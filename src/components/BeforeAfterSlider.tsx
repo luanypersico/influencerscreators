@@ -49,17 +49,23 @@ export function BeforeAfterSlider({
           alt="Versão realista: pele com poros, brilho natural e imperfeições preservadas"
           width={1024}
           height={1280}
-          className="absolute inset-0 size-full object-cover"
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
+          className="absolute inset-0 size-full object-cover [-webkit-touch-callout:none]"
         />
         {/* clip-path instead of a width-limited wrapper so the underlying image
-            never rescales while dragging. */}
+            never rescales while dragging. draggable=false + onDragStart prevent
+            the browser's native image drag from hijacking the pointer gesture
+            mid-swipe (it was firing pointercancel and freezing the divider). */}
         <img
           src={beforeSrc}
           alt=""
           aria-hidden="true"
           width={1024}
           height={1280}
-          className="absolute inset-0 size-full object-cover"
+          draggable={false}
+          onDragStart={(e) => e.preventDefault()}
+          className="absolute inset-0 size-full object-cover [-webkit-touch-callout:none]"
           style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
         />
 

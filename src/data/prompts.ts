@@ -27,7 +27,8 @@ export type CategoryId =
   | "fitness"
   | "moda"
   | "viagem"
-  | "video";
+  | "video"
+  | "motion";
 
 export interface Category {
   id: CategoryId;
@@ -44,7 +45,18 @@ export const CATEGORIES: Category[] = [
   { id: "moda", label: "Moda", hint: "Look e editorial" },
   { id: "viagem", label: "Viagem", hint: "Locação e luz natural" },
   { id: "video", label: "Vídeo", hint: "Movimento e câmera" },
+  { id: "motion", label: "Motion Control", hint: "Câmera, tempo e ação por beats" },
 ];
+
+/**
+ * Reusable English fragment for motion prompts.
+ *
+ * Video models (Veo, Kling, Runway, Sora, Hailuo) drift the face and morph
+ * hands far more than image models. Naming what must NOT move is what keeps a
+ * clip usable.
+ */
+const MOTION_LOCK =
+  "Motion constraints: the face keeps identical proportions and identity for the entire duration, no morphing, no drifting features, no extra fingers, no limbs changing length. Clothing and hair move with real weight and inertia. Exactly one continuous take, no cuts, no speed ramps, no zoom punches unless described. Frame rate 24fps with natural motion blur on moving edges.";
 
 /** Reusable English fragment appended to stills to kill the plastic look. */
 const RAW = "Unretouched skin with visible pores, peach fuzz and subtle blemishes. No beauty filter, no smoothing, no HDR glow. Natural asymmetry in the face.";
@@ -353,5 +365,124 @@ export const PROMPTS: Prompt[] = [
     category: "ugc",
     tags: ["produto", "mao", "detalhe"],
     prompt: `Close-up photo of a hand holding an unbranded matte cosmetic tube at chest height, shot slightly from above with the product label fully readable and in sharp focus. Soft window daylight from camera-left with a real shadow cast across the palm. Shot on a 50mm lens at f/2.8, background of a lived-in bathroom counter falling out of focus. The hand shows unretouched detail: pores on the back of the hand, faint vein structure, dry skin near the knuckle, short nails with slightly uneven edges and one small hangnail, natural pressure whitening where the fingers grip the tube. A faint fingerprint smudge on the product surface. Neutral color grade, no sharpening halos, natural sensor noise.`,
+  },
+
+  // ---- Motion Control -----------------------------------------------------
+  // Structured as SHOT / CAMERA / SUBJECT / BEATS / AUDIO / LOCK so video
+  // models get one instruction per axis instead of one long run-on sentence.
+  {
+    id: "motion-locked-off",
+    title: "Câmera travada (o mais seguro)",
+    description: "Zero movimento de câmera. É o clipe com maior taxa de acerto em qualquer modelo.",
+    category: "motion",
+    tags: ["estatico", "tripe", "iniciante", "talking head"],
+    prompt: `SHOT: Medium close-up of a 24-year-old Brazilian woman seated on a sofa in a lived-in apartment, chest-up framing, slightly off-center to frame-left.
+CAMERA: Locked off on a tripod. Absolutely no pan, no tilt, no dolly, no zoom. 50mm equivalent, f/2.0, focus fixed on her near eye for the whole shot.
+LIGHT: Single soft window source camera-left, unchanging for the whole duration. Practical lamp glowing warm in the far background.
+SUBJECT MOTION: She talks to the camera in a relaxed, conversational way. Small natural head movements, occasional blinks, one hand entering the lower frame to gesture briefly and leaving again. Weight shifts once on the sofa.
+BEATS (5s): 0.0-1.0s she inhales and begins speaking; 1.0-3.5s continuous speech with two small head nods; 3.5-4.5s brief pause, glances down and back up; 4.5-5.0s resumes speaking, frame ends mid-sentence.
+TEXTURE: Unretouched skin with visible pores and natural shine, no beauty filter, no smoothing.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-slow-push",
+    title: "Push-in lento (dolly in)",
+    description: "Aproximação suave e constante. Cria intimidade sem quebrar o rosto.",
+    category: "motion",
+    tags: ["dolly", "push in", "camera move", "retrato"],
+    prompt: `SHOT: Starts as a medium shot of a 26-year-old Brazilian woman standing by a window, ends as a tight close-up on her face.
+CAMERA: Very slow, perfectly linear dolly-in on a slider, constant speed, moving roughly 40cm over the full duration. No zoom, no handheld shake, no arc. 35mm lens at f/2.0. Focus pulls with the move to stay on her eyes.
+LIGHT: Overcast daylight from the window camera-right. Light level rises subtly as the camera approaches the source. No flicker.
+SUBJECT MOTION: She holds nearly still, breathing visibly, looking just past the lens. She blinks twice. Near the end she turns her eyes into the lens without moving her head.
+BEATS (6s): 0.0-3.0s push begins, she looks off-camera; 3.0-4.0s slow blink; 4.0-6.0s eyes shift to the lens as the frame settles into the close-up.
+TEXTURE: Unretouched skin, visible pores and peach fuzz, one stray hair moving with her breath.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-orbit",
+    title: "Orbit / arco em volta",
+    description: "Movimento circular controlado. Mostra o cenário sem perder o sujeito.",
+    category: "motion",
+    tags: ["orbit", "arco", "cenario", "camera move"],
+    prompt: `SHOT: Three-quarter body framing of a 25-year-old Brazilian woman standing still in the middle of a rooftop at golden hour.
+CAMERA: Smooth 45-degree arc orbiting clockwise around her at constant radius and constant speed, gimbal-stabilized, camera height fixed at chest level. She stays centered in frame the entire time. No zoom, no vertical movement. 35mm lens at f/2.8.
+LIGHT: Low warm sun that starts behind her (rim light) and progressively moves to side light as the camera arcs. Lens flare enters frame briefly at the halfway point and leaves naturally.
+SUBJECT MOTION: She stays largely planted, hair and the hem of her shirt moving in a steady breeze. Her head follows the camera slightly, eyes tracking the lens for the last third.
+BEATS (7s): 0.0-2.5s arc begins with her backlit and face in shadow; 2.5-4.0s flare crosses the frame; 4.0-7.0s her face fills with warm side light as she turns her eyes to the lens.
+TEXTURE: Unretouched skin, visible pores, warm highlights without HDR glow.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-handheld-follow",
+    title: "Follow handheld andando",
+    description: "Vlog cru. Trepidação e passos como assinatura de realismo.",
+    category: "motion",
+    tags: ["handheld", "walking", "vlog", "rua"],
+    prompt: `SHOT: Medium shot from behind and slightly to the side of a 24-year-old Brazilian woman walking down a busy sidewalk in the late afternoon, occasionally turning her head back toward the camera.
+CAMERA: Handheld, following at walking pace, keeping a constant distance. Natural unstabilized micro-shake and a subtle vertical bounce synced to the operator's footsteps. No artificial smoothing, no zoom. 24mm equivalent, f/2.2, deep enough focus that the street reads.
+LIGHT: Direct low sun down the street creating long shadows and intermittent backlight as she passes buildings. Light shifts naturally as she crosses shade and sun.
+SUBJECT MOTION: Steady walking rhythm with real weight transfer, arms swinging naturally, bag strap shifting on her shoulder. She glances back over her shoulder once and says something short to the camera. Pedestrians cross between the camera and her.
+BEATS (6s): 0.0-2.0s walking away, backlit; 2.0-3.0s a passerby briefly blocks the frame; 3.0-4.5s she looks back and speaks; 4.5-6.0s she turns forward and keeps walking.
+TEXTURE: Unretouched skin, phone-camera rendering with visible noise in the shadows.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-first-last-frame",
+    title: "First frame → last frame",
+    description: "Para modelos que aceitam imagem inicial e final. Descreve só a transição.",
+    category: "motion",
+    tags: ["keyframe", "first last frame", "kling", "transicao"],
+    prompt: `TRANSITION BRIEF (use with a start image and an end image):
+START STATE: The subject is seated at a cafe table, head down, looking at her phone, both hands on the device, face lit by the cool screen glow.
+END STATE: The same subject leaning back, phone face down on the table, looking directly into the lens with a small closed-mouth smile, face now lit by warm window light.
+HOW TO GET THERE: One continuous natural movement. She finishes reading, exhales, sets the phone down with her right hand while her left hand slides off the table, then leans back into the chair and lifts her chin to meet the lens. The screen glow fades from her face as she moves out of its throw and into the window light.
+CAMERA: Static, no movement at all. The camera does not help the transition. 50mm at f/2.0, focus stays on her face.
+PACING: Even and unhurried across the full duration, no snap at the end, no held freeze on either frame.
+DO NOT: change her clothing, hair style, jewelry, the table objects, or the background between the two frames. Identity must be identical in every frame.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-loop",
+    title: "Loop perfeito",
+    description: "Primeiro e último frame idênticos. Ideal para fundo de story e capa animada.",
+    category: "motion",
+    tags: ["loop", "seamless", "story", "fundo"],
+    prompt: `SHOT: Medium close-up of a 27-year-old Brazilian woman standing against a plain concrete wall, looking into the lens.
+CAMERA: Static, locked off, 50mm at f/2.0. No movement whatsoever.
+LOOP REQUIREMENT: The final frame must match the first frame exactly in pose, expression, hair position and light, so the clip loops seamlessly with no visible jump. Design the motion as a closed cycle that returns to its starting state.
+SUBJECT MOTION: A single closed cycle: she tilts her head slightly to the right, blinks once, and returns precisely to the neutral starting position. Hair settles back to where it began. Breathing is the only residual motion.
+BEATS (4s): 0.0-1.5s head tilts right; 1.5-2.0s blink at the extreme; 2.0-4.0s head returns to exact starting position and settles.
+LIGHT: Constant soft frontal daylight, zero flicker or exposure drift across the clip — any change breaks the loop.
+TEXTURE: Unretouched skin, visible pores, no beauty filter.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-lipsync",
+    title: "Fala com lipsync limpo",
+    description: "Base para talking head com áudio. Boca e mandíbula descritas explicitamente.",
+    category: "motion",
+    tags: ["lipsync", "fala", "audio", "talking head"],
+    prompt: `SHOT: Close-up of a 25-year-old Brazilian woman speaking directly to camera in a bedroom, shoulders-up framing, eyes on the lens.
+CAMERA: Static on a tripod at eye level, 50mm at f/2.0, focus locked on her eyes. No movement.
+DIALOGUE: She says, in Brazilian Portuguese, in a calm conversational tone: "eu testei isso por trinta dias e vou ser bem honesta com você."
+MOUTH AND JAW: Lip shapes match the spoken syllables precisely, jaw opening scaled to each vowel, teeth and tongue visible only where the sounds require it. Small natural pauses between phrases. No chewing motion, no over-articulation, no smile held through the whole line.
+SUBJECT MOTION: Micro head movements on stressed words, two eyebrow raises for emphasis, natural blinking every 2-3 seconds, one small shoulder shift.
+AUDIO: Her voice only, close and slightly dry, recorded in a small room with soft reflections. Faint room tone. No music, no reverb tail, no background chatter.
+TEXTURE: Unretouched skin, visible pores and natural T-zone shine.
+${MOTION_LOCK}`,
+  },
+  {
+    id: "motion-produto-reveal",
+    title: "Reveal de produto na mão",
+    description: "Movimento curto e fechado — onde vídeo de IA erra menos e converte mais.",
+    category: "motion",
+    tags: ["produto", "ugc", "maos", "reveal"],
+    prompt: `SHOT: Close-up on the hands of a 26-year-old Brazilian woman at a bathroom counter, bringing an unbranded matte cosmetic tube up into frame and turning the label toward the lens.
+CAMERA: Slight handheld drift only, otherwise still. 50mm at f/2.8. Focus starts on the counter and pulls to the product as it rises. No zoom.
+SUBJECT MOTION: The product enters from the bottom of the frame, rises to chest height, and rotates roughly 90 degrees so the label faces the camera and comes to rest. Fingers grip with visible pressure, the thumb repositions once mid-move. Real weight in the wrist, a small overshoot and settle at the top rather than a robotic stop.
+BEATS (4s): 0.0-1.5s product rises into frame, focus pulling; 1.5-2.5s rotation to reveal the label; 2.5-4.0s hand holds steady with tiny natural tremor, label sharp and readable.
+LIGHT: Soft window daylight camera-left with a real shadow cast on the counter that moves correctly with the product.
+HANDS: Five fingers, correct anatomy, short uneven nails, dry skin near the knuckle, one small hangnail. No finger morphing at any frame.
+${MOTION_LOCK}`,
   },
 ];

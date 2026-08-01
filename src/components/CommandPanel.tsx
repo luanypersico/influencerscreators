@@ -49,7 +49,7 @@ export function CommandPanel({ mode, selected, onToggle }: CommandPanelProps) {
         })}
       </div>
 
-      <ul className="mt-4 flex max-h-[26rem] flex-col gap-2 overflow-y-auto pr-1">
+      <ul className="mt-4 flex max-h-[30rem] flex-col gap-2 overflow-y-auto pr-1">
         {active?.commands.map((command) => {
           const key = `${active.id}:${command.id}`;
           const on = selected.has(key);

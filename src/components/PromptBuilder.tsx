@@ -65,7 +65,7 @@ export function PromptBuilder() {
           <button
             type="button"
             onClick={randomize}
-            className="inline-flex items-center gap-2 self-start border border-border px-3 py-2 text-xs font-medium tracking-wide uppercase transition-colors hover:border-primary/60 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-border px-3.5 py-2 text-xs font-medium transition-colors hover:border-primary/60 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <RefreshCw className="size-3.5" />
             Sortear
@@ -88,7 +88,7 @@ export function PromptBuilder() {
                       aria-pressed={selection[field.id] === i}
                       onClick={() => pick(field.id, i)}
                       className={cn(
-                        "border px-2.5 py-1.5 text-xs transition-colors",
+                        "rounded-full border px-3 py-1.5 text-xs transition-colors",
                         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                         selection[field.id] === i
                           ? "border-primary bg-primary text-primary-foreground"
@@ -115,13 +115,13 @@ export function PromptBuilder() {
                 onChange={(e) => setIdentity(e.target.value)}
                 rows={3}
                 placeholder="ex: small mole above the left eyebrow, gap between front teeth, thin gold hoop in the right ear, faint scar on the chin"
-                className="mt-2.5 w-full border border-input bg-background p-3 font-mono text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                className="mt-2.5 w-full rounded-xl border border-input bg-background p-3 font-mono text-xs text-foreground placeholder:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               />
             </fieldset>
           </div>
 
           <div className="lg:sticky lg:top-6 lg:self-start">
-            <div className="border border-border bg-background p-5">
+            <div className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs font-semibold tracking-[0.14em] text-foreground uppercase">
                   Seu prompt

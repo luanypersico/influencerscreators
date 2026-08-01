@@ -18,7 +18,7 @@ export function PromptCard({ prompt, suffix }: PromptCardProps) {
   const copyValue = suffix ? `${prompt.prompt}\n\nNegative prompt: ${suffix}` : prompt.prompt;
 
   return (
-    <article className="flex flex-col border border-border bg-card p-5 transition-colors hover:border-primary/40">
+    <article className="flex flex-col rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40">
       <div className="flex items-start justify-between gap-3">
         <div>
           <span className="text-[0.65rem] font-semibold tracking-[0.18em] text-primary uppercase">
@@ -42,14 +42,14 @@ export function PromptCard({ prompt, suffix }: PromptCardProps) {
       </button>
 
       {open && (
-        <pre className="mt-3 max-h-72 overflow-auto border border-border bg-background p-3 font-mono text-[0.7rem] leading-relaxed whitespace-pre-wrap text-muted-foreground">
+        <pre className="mt-3 max-h-72 overflow-auto rounded-xl border border-border bg-background p-3 font-mono text-[0.7rem] leading-relaxed whitespace-pre-wrap text-muted-foreground">
           {prompt.prompt}
         </pre>
       )}
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         {prompt.tags.map((tag) => (
-          <span key={tag} className="border border-border px-2 py-0.5 text-[0.65rem] text-muted-foreground">
+          <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[0.65rem] text-muted-foreground">
             {tag}
           </span>
         ))}

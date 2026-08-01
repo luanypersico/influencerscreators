@@ -51,20 +51,17 @@ export function BeforeAfterSlider({
           height={1280}
           className="absolute inset-0 size-full object-cover"
         />
-        <div
-          className="absolute inset-y-0 left-0 overflow-hidden"
-          style={{ width: `${pct}%` }}
+        {/* clip-path instead of a width-limited wrapper so the underlying image
+            never rescales while dragging. */}
+        <img
+          src={beforeSrc}
+          alt=""
           aria-hidden="true"
-        >
-          <img
-            src={beforeSrc}
-            alt=""
-            width={1024}
-            height={1280}
-            className="absolute inset-0 h-full w-[var(--frame-w)] object-cover"
-            style={{ "--frame-w": `${frame.current?.offsetWidth ?? 0}px` } as React.CSSProperties}
-          />
-        </div>
+          width={1024}
+          height={1280}
+          className="absolute inset-0 size-full object-cover"
+          style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
+        />
 
         <span className="absolute top-3 left-3 rounded-full bg-background/80 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-foreground backdrop-blur">
           {beforeLabel}

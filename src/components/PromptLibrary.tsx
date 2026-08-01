@@ -48,7 +48,7 @@ export function PromptLibrary() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="flash, praia, gym, video..."
-              className="w-full border border-input bg-card py-2.5 pr-3 pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              className="w-full rounded-full border border-input bg-card py-2.5 pr-3 pl-9 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             />
           </label>
         </header>
@@ -90,7 +90,7 @@ function FilterChip({
       type="button"
       aria-pressed={active}
       className={cn(
-        "border px-3 py-1.5 text-xs font-medium tracking-wide uppercase transition-colors",
+        "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         active
           ? "border-primary bg-primary text-primary-foreground"

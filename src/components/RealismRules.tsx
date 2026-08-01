@@ -14,7 +14,7 @@ export function RealismRules() {
           todo modelo suaviza por padrão.
         </p>
 
-        <ol className="mt-10 grid grid-cols-1 gap-px border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
+        <ol className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2 lg:grid-cols-3">
           {REALISM_RULES.map((rule, i) => (
             <li key={rule.title} className="bg-background p-6">
               <span className="font-mono text-xs text-primary">

@@ -8,13 +8,8 @@ export interface BeforeAfterSliderProps {
 }
 
 /** Magnifier lens: diameter and how much it zooms in on the image beneath it. */
-const LENS_SIZE = 150;
+const LENS_SIZE = 220;
 const LENS_ZOOM = 2.5;
-/** Touch only: how long a still touch must be held before it's treated as a
- *  zoom instead of a divider drag, and how far it may move before that
- *  decision is made (crossing this cancels the hold and starts a drag). */
-const LONG_PRESS_MS = 300;
-const MOVE_CANCEL_PX = 10;
 
 interface MagnifierState {
   x: number;
@@ -29,9 +24,11 @@ interface MagnifierState {
  * Pointer events (not mouse events) so touch and pen work with the same code
  * path; the divider is also a real slider input for keyboard and screen readers.
  *
- * A magnifier lens shows a zoomed-in crop of whichever image is under the
- * cursor: mouse users get it on hover, touch users get it on a held touch
- * (a quick touch-and-move still drags the divider as before).
+ * The magnifier lens is opt-in via the zoom toggle button — while it's off,
+ * every pointer interaction on the frame drags the divider exactly like
+ * before. Only once the user turns zoom on does hover/touch on the frame
+ * move a lens instead; this keeps the two gestures from ever competing for
+ * the same touch.
  */
 export function BeforeAfterSlider({
   beforeSrc,
@@ -40,12 +37,11 @@ export function BeforeAfterSlider({
   afterLabel = "Realista",
 }: BeforeAfterSliderProps) {
   const [pct, setPct] = useState(50);
+  const [zoomMode, setZoomMode] = useState(false);
   const [magnifier, setMagnifier] = useState<MagnifierState | null>(null);
   const frame = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
-  const magnifying = useRef(false);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const moveTo = useCallback((clientX: number) => {
     const box = frame.current?.getBoundingClientRect();
@@ -55,6 +51,12 @@ export function BeforeAfterSlider({
   }, []);
 
   const updateMagnifier = useCallback((clientX: number, clientY: number) => {
+    // A pending "pointer left" clear from a spurious leave event (see
+    // onPointerLeave) is stale the moment a real move comes back in.
+    if (leaveTimer.current) {
+      clearTimeout(leaveTimer.current);
+      leaveTimer.current = undefined;
+    }
     const box = frame.current?.getBoundingClientRect();
     if (!box || box.width === 0 || box.height === 0) return;
     setMagnifier({
@@ -63,21 +65,6 @@ export function BeforeAfterSlider({
       boxWidth: box.width,
       boxHeight: box.height,
     });
-  }, []);
-
-  const clearLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = undefined;
-    }
-  };
-
-  const endInteraction = useCallback(() => {
-    dragging.current = false;
-    magnifying.current = false;
-    clearLongPress();
-    pointerStart.current = null;
-    setMagnifier(null);
   }, []);
 
   return (
@@ -92,45 +79,53 @@ export function BeforeAfterSlider({
           } catch {
             // ignored
           }
-          pointerStart.current = { x: e.clientX, y: e.clientY };
-          if (e.pointerType !== "touch") {
-            dragging.current = true;
-            moveTo(e.clientX);
+          if (zoomMode) {
+            updateMagnifier(e.clientX, e.clientY);
             return;
           }
-          // Touch: hold still to zoom, move to drag — decided in onPointerMove.
-          longPressTimer.current = setTimeout(() => {
-            magnifying.current = true;
-            updateMagnifier(e.clientX, e.clientY);
-          }, LONG_PRESS_MS);
+          dragging.current = true;
+          moveTo(e.clientX);
         }}
         onPointerMove={(e) => {
-          if (magnifying.current) {
-            updateMagnifier(e.clientX, e.clientY);
-            return;
-          }
-          if (dragging.current) {
-            moveTo(e.clientX);
-            return;
-          }
-          if (e.pointerType === "mouse") {
-            updateMagnifier(e.clientX, e.clientY);
-            return;
-          }
-          if (pointerStart.current && longPressTimer.current) {
-            const dx = e.clientX - pointerStart.current.x;
-            const dy = e.clientY - pointerStart.current.y;
-            if (Math.hypot(dx, dy) > MOVE_CANCEL_PX) {
-              clearLongPress();
-              dragging.current = true;
-              moveTo(e.clientX);
+          if (zoomMode) {
+            // Mouse hovers without a button held; touch only reports move
+            // while the finger is actually down (buttons is 0 otherwise).
+            if (e.pointerType === "mouse" || e.buttons > 0) {
+              updateMagnifier(e.clientX, e.clientY);
             }
+            return;
           }
+          if (dragging.current) moveTo(e.clientX);
         }}
-        onPointerUp={endInteraction}
-        onPointerCancel={endInteraction}
+        onPointerUp={() => {
+          dragging.current = false;
+          if (zoomMode) setMagnifier(null);
+        }}
+        onPointerCancel={() => {
+          dragging.current = false;
+          if (zoomMode) setMagnifier(null);
+        }}
         onPointerLeave={(e) => {
-          if (e.pointerType === "mouse" && !dragging.current) setMagnifier(null);
+          // Dragging is tracked via pointer capture, so it keeps working even
+          // if the cursor briefly reports as "outside" the frame — only a
+          // real pointerup/pointercancel should end it.
+          if (!zoomMode || e.pointerType !== "mouse") return;
+          // Inserting the lens under a still cursor makes Chromium fire a
+          // pointerleave that isn't real (the pointer never actually left).
+          // Re-checking the event's own coordinates against the frame's
+          // current bounds once the DOM has settled filters those out; a
+          // genuine exit is outside the frame both now and 50ms from now.
+          const { clientX, clientY } = e;
+          leaveTimer.current = setTimeout(() => {
+            const box = frame.current?.getBoundingClientRect();
+            const stillInside =
+              box &&
+              clientX >= box.left &&
+              clientX <= box.right &&
+              clientY >= box.top &&
+              clientY <= box.bottom;
+            if (!stillInside) setMagnifier(null);
+          }, 50);
         }}
         className="relative aspect-[4/5] w-full touch-none overflow-hidden rounded-xl select-none"
       >
@@ -175,7 +170,7 @@ export function BeforeAfterSlider({
           </span>
         </div>
 
-        {magnifier && (
+        {zoomMode && magnifier && (
           <div
             aria-hidden="true"
             className="pointer-events-none absolute rounded-full border-2 border-white shadow-2xl"
@@ -191,9 +186,23 @@ export function BeforeAfterSlider({
           />
         )}
 
-        <span className="pointer-events-none absolute right-3 bottom-3 rounded-full bg-background/80 px-2.5 py-1 text-[0.6rem] font-medium tracking-wide text-muted-foreground backdrop-blur">
-          Zoom: passe o mouse (ou toque e segure)
-        </span>
+        <button
+          type="button"
+          aria-pressed={zoomMode}
+          aria-label={zoomMode ? "Desativar zoom" : "Ativar zoom"}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => {
+            setZoomMode((v) => !v);
+            setMagnifier(null);
+          }}
+          className={`absolute right-3 bottom-3 grid size-8 place-items-center rounded-full text-sm backdrop-blur transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+            zoomMode
+              ? "bg-primary text-primary-foreground"
+              : "bg-background/80 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          🔍
+        </button>
       </div>
 
       <label className="sr-only" htmlFor="ba-range">

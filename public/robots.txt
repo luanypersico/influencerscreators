@@ -1,14 +1,5 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Demonstrative build — content is illustrative (fictional characters,
+# placeholder pricing, an unfinished lab route). Block all crawling until
+# the launch round explicitly removes this file's Disallow rule.
 User-agent: *
-Allow: /
+Disallow: /

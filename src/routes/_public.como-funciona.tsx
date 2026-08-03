@@ -30,6 +30,7 @@ function ComoFunciona() {
             kicker="Como funciona"
             title="Da escolha ao dia a dia da sua influencer"
             subtitle="Um passo a passo claro de como a exclusividade funciona hoje — e do que vem depois."
+            headingAs="h1"
           />
         </Container>
       </section>

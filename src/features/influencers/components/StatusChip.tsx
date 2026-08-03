@@ -17,19 +17,30 @@ const CLASS: Record<InfluencerStatus, string> = {
 
 export interface StatusChipProps {
   status: InfluencerStatus;
+  /**
+   * True for every entry in this round's catalog. "Disponível" reads as a
+   * real, buyable state — for a demo profile that's a false commercial
+   * claim, so it's overridden to a clearly demonstrative label instead of
+   * being shown as-is.
+   */
+  demo?: boolean;
   className?: string;
 }
 
-export function StatusChip({ status, className }: StatusChipProps) {
+export function StatusChip({ status, demo, className }: StatusChipProps) {
+  const isDemoAvailable = demo && status === "available";
+  const label = isDemoAvailable ? "Perfil demonstrativo" : LABEL[status];
+  const styleClass = isDemoAvailable ? "border border-primary/50 text-primary" : CLASS[status];
+
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-1 text-[0.65rem] font-medium tracking-wide uppercase",
-        CLASS[status],
+        styleClass,
         className,
       )}
     >
-      {LABEL[status]}
+      {label}
     </span>
   );
 }

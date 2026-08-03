@@ -68,7 +68,7 @@ function InfluencerProfile() {
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <StatusChip status={influencer.status} />
+              <StatusChip status={influencer.status} demo={influencer.demo} />
               <span className="text-xs tracking-wide text-muted-foreground uppercase">
                 {influencer.niches.join(" · ")}
               </span>
@@ -80,6 +80,7 @@ function InfluencerProfile() {
                 name={influencer.name}
                 status={influencer.status}
                 priceLabel={influencer.publicPriceLabel}
+                demo={influencer.demo}
               />
             </div>
           </div>

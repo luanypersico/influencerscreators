@@ -40,7 +40,11 @@ export function InfluencerCard({ influencer, className }: InfluencerCardProps) {
             className="size-full"
           />
         )}
-        <StatusChip status={influencer.status} className="absolute top-3 left-3" />
+        <StatusChip
+          status={influencer.status}
+          demo={influencer.demo}
+          className="absolute top-3 left-3"
+        />
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-5">
@@ -52,7 +56,11 @@ export function InfluencerCard({ influencer, className }: InfluencerCardProps) {
         </div>
         <p className="line-clamp-2 text-sm text-muted-foreground">{influencer.tagline}</p>
         <div className="mt-auto flex items-center justify-between pt-3 text-sm">
-          <span className="text-muted-foreground">{influencer.publicPriceLabel}</span>
+          <span className="text-muted-foreground">
+            {influencer.demo && influencer.status === "available"
+              ? "Perfil demonstrativo"
+              : influencer.publicPriceLabel}
+          </span>
           <span className="font-medium text-primary">Conhecer {influencer.name} →</span>
         </div>
       </div>

@@ -60,6 +60,7 @@ function InfluencersCatalog() {
             kicker="Catálogo"
             title="Influencers da Casa"
             subtitle="Cada personagem tem identidade, personalidade e universo visual próprios."
+            headingAs="h1"
           />
           <label className="relative w-full md:w-72">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

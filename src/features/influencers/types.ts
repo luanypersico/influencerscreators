@@ -57,8 +57,17 @@ interface PublicInfluencerBase {
   demo: true;
 }
 
-/** A fully fleshed-out profile: has real cover/gallery/sample content. */
+/**
+ * A fully fleshed-out profile: has real cover/gallery/sample content.
+ *
+ * `status` deliberately excludes "coming_soon" — a revealed profile (real
+ * photo) can never be presented as not-yet-revealed. This is what makes
+ * `hasRealPhoto` below a sound discriminator instead of an assumption: the
+ * two branches of `PublicInfluencer` have mutually exclusive `status` types
+ * by construction, not just by convention.
+ */
 export interface RevealedInfluencer extends PublicInfluencerBase {
+  status: Exclude<InfluencerStatus, "coming_soon">;
   coverImage: string;
   gallery: string[];
   sampleContent: SampleContent;

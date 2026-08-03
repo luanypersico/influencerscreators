@@ -9,8 +9,9 @@ import { ALL_NICHES, PUBLIC_INFLUENCERS } from "@/features/influencers/data/publ
 import { hasRealPhoto } from "@/features/influencers/types";
 import { cn } from "@/lib/utils";
 
-const TITLE = "Influencers — A Casa";
-const DESCRIPTION = "Conheça as personagens da Casa e as próximas a chegar ao catálogo.";
+const TITLE = "Influencers — A Casa do Influencer AI";
+const DESCRIPTION =
+  "Conheça as personagens da Casa do Influencer AI e as próximas a chegar ao catálogo.";
 
 export const Route = createFileRoute("/_public/influencers/")({
   head: () => ({
@@ -68,7 +69,7 @@ function InfluencersCatalog() {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <SectionTitle
             kicker="Catálogo"
-            title="Influencers da Casa"
+            title="Personagens da Casa do Influencer AI"
             subtitle="Cada personagem tem identidade, personalidade e universo visual próprios."
             headingAs="h1"
           />

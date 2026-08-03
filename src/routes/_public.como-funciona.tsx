@@ -5,9 +5,9 @@ import { Container } from "@/components/site/Container";
 import { SectionTitle } from "@/components/site/SectionTitle";
 import { SiteButton } from "@/components/site/SiteButton";
 
-const TITLE = "Como funciona — A Casa";
+const TITLE = "Como funciona — A Casa do Influencer AI";
 const DESCRIPTION =
-  "Entenda como funciona a exclusividade das influencers virtuais da Casa, da escolha até o futuro estúdio de criação.";
+  "Entenda como funciona a exclusividade das personagens virtuais da Casa do Influencer AI, da escolha até o futuro estúdio de criação.";
 
 export const Route = createFileRoute("/_public/como-funciona")({
   head: () => ({
@@ -49,7 +49,7 @@ function ComoFunciona() {
           <div>
             <h3 className="text-xl">Identidade digital, não apenas imagens</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Comprar uma influencer da Casa não é comprar um pacote de fotos. É adquirir uma
+              Comprar uma personagem da Casa do Influencer AI não é comprar um pacote de fotos. É adquirir uma
               personagem com nome, personalidade, rotina, universo visual e linguagem próprios — a
               base para gerar conteúdo com continuidade, não peças soltas e desconexas.
             </p>
@@ -75,7 +75,9 @@ function ComoFunciona() {
       <section className="border-t border-border px-6 py-16 md:px-10">
         <Container className="flex flex-col items-start gap-6 rounded-3xl border border-border bg-card p-8 md:flex-row md:items-center md:justify-between md:p-12">
           <div>
-            <h2 className="text-3xl md:text-4xl">Pronto para conhecer as influencers da Casa?</h2>
+            <h2 className="text-3xl md:text-4xl">
+              Pronto para conhecer as personagens da Casa do Influencer AI?
+            </h2>
           </div>
           <SiteButton to="/influencers" className="shrink-0">
             Ver catálogo

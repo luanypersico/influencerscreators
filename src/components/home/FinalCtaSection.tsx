@@ -32,7 +32,7 @@ export function FinalCtaSection() {
           <div>
             <h2 className="text-3xl md:text-4xl">Sua próxima influencer está esperando.</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Explore os perfis em demonstração e as próximas personagens da Casa.
+              Explore os perfis em demonstração e as próximas personagens da Casa do Influencer AI.
             </p>
           </div>
           <SiteButton to="/influencers" className="shrink-0">

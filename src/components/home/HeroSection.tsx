@@ -29,7 +29,7 @@ export function HeroSection() {
         <div className="grain overflow-hidden rounded-3xl border border-border">
           <img
             src={heroPortrait}
-            alt="Influencer virtual da Casa, retrato editorial"
+            alt="Personagem virtual da Casa do Influencer AI, retrato editorial"
             width={1024}
             height={1280}
             className="aspect-[4/5] w-full object-cover"

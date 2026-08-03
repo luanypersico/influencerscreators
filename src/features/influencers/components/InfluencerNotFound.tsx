@@ -7,7 +7,9 @@ export function InfluencerNotFound() {
       <span className="text-[0.65rem] font-semibold tracking-[0.2em] text-primary uppercase">
         Não encontramos essa personagem
       </span>
-      <h1 className="mt-3 text-4xl md:text-5xl">Essa influencer não existe na Casa</h1>
+      <h1 className="mt-3 text-4xl md:text-5xl">
+        Essa personagem não existe na Casa do Influencer AI
+      </h1>
       <p className="mt-3 max-w-md text-sm text-muted-foreground">
         O link pode estar incorreto, ou a personagem ainda não faz parte do catálogo.
       </p>

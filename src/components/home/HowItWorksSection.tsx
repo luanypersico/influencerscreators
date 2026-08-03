@@ -3,7 +3,7 @@ import { SectionTitle } from "@/components/site/SectionTitle";
 const STEPS = [
   {
     title: "Escolha",
-    body: "Conheça as personagens da Casa e encontre a identidade que combina com o seu projeto.",
+    body: "Conheça as personagens da Casa do Influencer AI e encontre a identidade que combina com o seu projeto.",
   },
   {
     title: "Adquira com exclusividade",

@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="border-t border-border px-6 py-12 md:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
-          <p className="font-display text-lg text-foreground">A Casa</p>
+          <p className="font-display text-lg text-foreground">A Casa do Influencer AI</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Influencers virtuais exclusivas, com identidade, personalidade e universo visual
             próprios — prontas para representar sua próxima marca.

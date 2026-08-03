@@ -72,7 +72,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-const SITE_TITLE = "A Casa — influencers virtuais exclusivas";
+const SITE_TITLE = "A Casa do Influencer AI — influencers virtuais exclusivas";
 const SITE_DESCRIPTION =
   "Encontre a influencer virtual exclusiva que vai representar sua próxima marca: identidade, personalidade, rotina e universo visual próprios.";
 

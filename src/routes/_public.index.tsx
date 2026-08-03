@@ -9,7 +9,7 @@ import { MoreThanAFaceSection } from "@/components/home/MoreThanAFaceSection";
 import { SoldExclusivitySection } from "@/components/home/SoldExclusivitySection";
 import { getFeaturedInfluencers } from "@/features/influencers/data/publicInfluencers";
 
-const TITLE = "A Casa — influencers virtuais exclusivas";
+const TITLE = "A Casa do Influencer AI — influencers virtuais exclusivas";
 const DESCRIPTION =
   "Encontre a influencer virtual exclusiva que vai representar sua próxima marca: identidade, personalidade, rotina e universo visual próprios.";
 

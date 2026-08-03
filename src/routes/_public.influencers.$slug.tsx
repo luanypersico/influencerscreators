@@ -18,9 +18,12 @@ import { hasRealPhoto } from "@/features/influencers/types";
 export const Route = createFileRoute("/_public/influencers/$slug")({
   head: ({ params }) => {
     const influencer = findInfluencerBySlug(params.slug);
-    const title = influencer ? `${influencer.name} — A Casa` : "Influencer não encontrada — A Casa";
+    const title = influencer
+      ? `${influencer.name} — A Casa do Influencer AI`
+      : "Personagem não encontrada — A Casa do Influencer AI";
     const description =
-      influencer?.tagline ?? "Essa influencer não foi encontrada no catálogo da Casa.";
+      influencer?.tagline ??
+      "Essa personagem não foi encontrada no catálogo da Casa do Influencer AI.";
     return {
       meta: [
         { title },

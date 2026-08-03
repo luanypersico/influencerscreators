@@ -6,11 +6,11 @@ import { Container } from "@/components/site/Container";
 import { SectionTitle } from "@/components/site/SectionTitle";
 import { InfluencerCard } from "@/features/influencers/components/InfluencerCard";
 import { ALL_NICHES, PUBLIC_INFLUENCERS } from "@/features/influencers/data/publicInfluencers";
-import type { InfluencerStatus } from "@/features/influencers/types";
+import { hasRealPhoto } from "@/features/influencers/types";
 import { cn } from "@/lib/utils";
 
 const TITLE = "Influencers — A Casa";
-const DESCRIPTION = "Conheça as influencers virtuais exclusivas disponíveis na Casa.";
+const DESCRIPTION = "Conheça as personagens da Casa e as próximas a chegar ao catálogo.";
 
 export const Route = createFileRoute("/_public/influencers/")({
   head: () => ({
@@ -25,32 +25,42 @@ export const Route = createFileRoute("/_public/influencers/")({
 });
 
 type NicheFilter = string | "all";
-type StatusFilter = InfluencerStatus | "all";
 
-const STATUS_OPTIONS: { id: StatusFilter; label: string }[] = [
+/**
+ * Every entry in this round's catalog is demonstrative. The commercial
+ * status values (available/reserved/sold) exist on the data model for when
+ * the catalog has real, non-demo characters, but exposing them as filters
+ * here would let a visitor select "Disponível" and see Mari — implying she
+ * can actually be acquired. Only these three, non-commercial groupings are
+ * shown while every profile remains a demo.
+ */
+type VisibilityFilter = "all" | "demo_revealed" | "coming_soon";
+
+const VISIBILITY_OPTIONS: { id: VisibilityFilter; label: string }[] = [
   { id: "all", label: "Todas" },
-  { id: "available", label: "Disponível" },
-  { id: "reserved", label: "Reservada" },
-  { id: "sold", label: "Vendida" },
+  { id: "demo_revealed", label: "Perfil demonstrativo" },
   { id: "coming_soon", label: "Em breve" },
 ];
 
 function InfluencersCatalog() {
   const [query, setQuery] = useState("");
   const [niche, setNiche] = useState<NicheFilter>("all");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [visibility, setVisibility] = useState<VisibilityFilter>("all");
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return PUBLIC_INFLUENCERS.filter((influencer) => {
       if (niche !== "all" && !influencer.niches.includes(niche)) return false;
-      if (status !== "all" && influencer.status !== status) return false;
+      if (visibility === "demo_revealed" && !(hasRealPhoto(influencer) && influencer.demo)) {
+        return false;
+      }
+      if (visibility === "coming_soon" && influencer.status !== "coming_soon") return false;
       if (!q) return true;
       return (
         influencer.name.toLowerCase().includes(q) || influencer.tagline.toLowerCase().includes(q)
       );
     });
-  }, [query, niche, status]);
+  }, [query, niche, visibility]);
 
   return (
     <div className="py-16 md:py-20">
@@ -85,10 +95,10 @@ function InfluencersCatalog() {
             onSelect={(id) => setNiche(id)}
           />
           <FilterRow
-            label="Status"
-            active={status}
-            options={STATUS_OPTIONS.map((o) => ({ id: o.id, label: o.label }))}
-            onSelect={(id) => setStatus(id as StatusFilter)}
+            label="Tipo de perfil"
+            active={visibility}
+            options={VISIBILITY_OPTIONS.map((o) => ({ id: o.id, label: o.label }))}
+            onSelect={(id) => setVisibility(id as VisibilityFilter)}
           />
         </div>
 

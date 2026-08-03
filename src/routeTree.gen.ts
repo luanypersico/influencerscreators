@@ -13,6 +13,7 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
+import { Route as StudioDemoSlugRouteImport } from './routes/studio-demo.$slug'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 
@@ -35,6 +36,11 @@ const PublicComoFuncionaRoute = PublicComoFuncionaRouteImport.update({
   path: '/como-funciona',
   getParentRoute: () => PublicRoute,
 } as any)
+const StudioDemoSlugRoute = StudioDemoSlugRouteImport.update({
+  id: '/studio-demo/$slug',
+  path: '/studio-demo/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
   id: '/influencers/',
   path: '/influencers/',
@@ -50,12 +56,14 @@ export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
+  '/studio-demo/$slug': typeof StudioDemoSlugRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesByTo {
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
+  '/studio-demo/$slug': typeof StudioDemoSlugRoute
   '/': typeof PublicIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers': typeof PublicInfluencersIndexRoute
@@ -65,6 +73,7 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteWithChildren
   '/laboratorio': typeof LaboratorioRoute
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
+  '/studio-demo/$slug': typeof StudioDemoSlugRoute
   '/_public/': typeof PublicIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/_public/influencers/': typeof PublicInfluencersIndexRoute
@@ -75,12 +84,14 @@ export interface FileRouteTypes {
     | '/'
     | '/laboratorio'
     | '/como-funciona'
+    | '/studio-demo/$slug'
     | '/influencers/$slug'
     | '/influencers/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/laboratorio'
     | '/como-funciona'
+    | '/studio-demo/$slug'
     | '/'
     | '/influencers/$slug'
     | '/influencers'
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/_public'
     | '/laboratorio'
     | '/_public/como-funciona'
+    | '/studio-demo/$slug'
     | '/_public/'
     | '/_public/influencers/$slug'
     | '/_public/influencers/'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   LaboratorioRoute: typeof LaboratorioRoute
+  StudioDemoSlugRoute: typeof StudioDemoSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/como-funciona'
       preLoaderRoute: typeof PublicComoFuncionaRouteImport
       parentRoute: typeof PublicRoute
+    }
+    '/studio-demo/$slug': {
+      id: '/studio-demo/$slug'
+      path: '/studio-demo/$slug'
+      fullPath: '/studio-demo/$slug'
+      preLoaderRoute: typeof StudioDemoSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_public/influencers/': {
       id: '/_public/influencers/'
@@ -166,6 +186,7 @@ const PublicRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   LaboratorioRoute: LaboratorioRoute,
+  StudioDemoSlugRoute: StudioDemoSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

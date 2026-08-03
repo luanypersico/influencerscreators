@@ -7,6 +7,12 @@ export interface AcquisitionCtaProps {
   priceLabel: string;
   /** True for every entry in this round's catalog — see the demo branch below. */
   demo: boolean;
+  /**
+   * Set only for slugs that have a studio demo (currently just Mari) — routes
+   * "Conhecer a experiência" there instead of the generic /como-funciona
+   * fallback used by every other "Em breve" entry.
+   */
+  studioHref?: string | undefined;
 }
 
 const SECONDARY_LINK_CLASS =
@@ -32,11 +38,17 @@ function InactiveStatusNote({ children }: { children: React.ReactNode }) {
  * The status-based branch below is kept for when the catalog has real,
  * non-demo, revealed characters.
  */
-export function AcquisitionCta({ name, status, priceLabel, demo }: AcquisitionCtaProps) {
+export function AcquisitionCta({
+  name,
+  status,
+  priceLabel,
+  demo,
+  studioHref,
+}: AcquisitionCtaProps) {
   if (demo) {
     return (
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
-        <SiteButton to="/como-funciona">Conhecer a experiência</SiteButton>
+        <SiteButton to={studioHref ?? "/como-funciona"}>Conhecer a experiência</SiteButton>
         <span className="text-sm text-muted-foreground">
           Perfil demonstrativo — sem oferta comercial real.
         </span>

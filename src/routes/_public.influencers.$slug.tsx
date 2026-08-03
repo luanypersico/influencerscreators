@@ -14,6 +14,7 @@ import { StatusChip } from "@/features/influencers/components/StatusChip";
 import { WhatIsIncludedSection } from "@/features/influencers/components/WhatIsIncludedSection";
 import { findInfluencerBySlug } from "@/features/influencers/data/publicInfluencers";
 import { hasRealPhoto } from "@/features/influencers/types";
+import { findStudioRecordBySlug } from "@/features/influencer-studio/data/studioDemoRecords";
 
 export const Route = createFileRoute("/_public/influencers/$slug")({
   head: ({ params }) => {
@@ -42,6 +43,8 @@ function InfluencerProfile() {
   }
 
   const revealed = hasRealPhoto(influencer);
+  const studioRecord = findStudioRecordBySlug(influencer.slug);
+  const studioHref = studioRecord ? `/studio-demo/${influencer.slug}` : undefined;
 
   return (
     <div className="pb-20">
@@ -81,6 +84,7 @@ function InfluencerProfile() {
                 status={influencer.status}
                 priceLabel={influencer.publicPriceLabel}
                 demo={influencer.demo}
+                studioHref={studioHref}
               />
             </div>
           </div>

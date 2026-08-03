@@ -9,51 +9,174 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicRouteImport } from './routes/_public'
+import { Route as LaboratorioRouteImport } from './routes/laboratorio'
+import { Route as PublicIndexRouteImport } from './routes/_public.index'
+import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
+import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
+import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 
-const IndexRoute = IndexRouteImport.update({
+const PublicRoute = PublicRouteImport.update({
+  id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaboratorioRoute = LaboratorioRouteImport.update({
+  id: '/laboratorio',
+  path: '/laboratorio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicIndexRoute = PublicIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicComoFuncionaRoute = PublicComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
+  id: '/influencers/',
+  path: '/influencers/',
+  getParentRoute: () => PublicRoute,
+} as any)
+const PublicInfluencersSlugRoute = PublicInfluencersSlugRouteImport.update({
+  id: '/influencers/$slug',
+  path: '/influencers/$slug',
+  getParentRoute: () => PublicRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof PublicIndexRoute
+  '/laboratorio': typeof LaboratorioRoute
+  '/como-funciona': typeof PublicComoFuncionaRoute
+  '/influencers/$slug': typeof PublicInfluencersSlugRoute
+  '/influencers/': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/laboratorio': typeof LaboratorioRoute
+  '/como-funciona': typeof PublicComoFuncionaRoute
+  '/': typeof PublicIndexRoute
+  '/influencers/$slug': typeof PublicInfluencersSlugRoute
+  '/influencers': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_public': typeof PublicRouteWithChildren
+  '/laboratorio': typeof LaboratorioRoute
+  '/_public/como-funciona': typeof PublicComoFuncionaRoute
+  '/_public/': typeof PublicIndexRoute
+  '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
+  '/_public/influencers/': typeof PublicInfluencersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/laboratorio'
+    | '/como-funciona'
+    | '/influencers/$slug'
+    | '/influencers/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/laboratorio'
+    | '/como-funciona'
+    | '/'
+    | '/influencers/$slug'
+    | '/influencers'
+  id:
+    | '__root__'
+    | '/_public'
+    | '/laboratorio'
+    | '/_public/como-funciona'
+    | '/_public/'
+    | '/_public/influencers/$slug'
+    | '/_public/influencers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  PublicRoute: typeof PublicRouteWithChildren
+  LaboratorioRoute: typeof LaboratorioRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_public': {
+      id: '/_public'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/laboratorio': {
+      id: '/laboratorio'
+      path: '/laboratorio'
+      fullPath: '/laboratorio'
+      preLoaderRoute: typeof LaboratorioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/': {
+      id: '/_public/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof PublicIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/como-funciona': {
+      id: '/_public/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/como-funciona'
+      preLoaderRoute: typeof PublicComoFuncionaRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/influencers/': {
+      id: '/_public/influencers/'
+      path: '/influencers'
+      fullPath: '/influencers/'
+      preLoaderRoute: typeof PublicInfluencersIndexRouteImport
+      parentRoute: typeof PublicRoute
+    }
+    '/_public/influencers/$slug': {
+      id: '/_public/influencers/$slug'
+      path: '/influencers/$slug'
+      fullPath: '/influencers/$slug'
+      preLoaderRoute: typeof PublicInfluencersSlugRouteImport
+      parentRoute: typeof PublicRoute
     }
   }
 }
 
+interface PublicRouteChildren {
+  PublicComoFuncionaRoute: typeof PublicComoFuncionaRoute
+  PublicIndexRoute: typeof PublicIndexRoute
+  PublicInfluencersSlugRoute: typeof PublicInfluencersSlugRoute
+  PublicInfluencersIndexRoute: typeof PublicInfluencersIndexRoute
+}
+
+const PublicRouteChildren: PublicRouteChildren = {
+  PublicComoFuncionaRoute: PublicComoFuncionaRoute,
+  PublicIndexRoute: PublicIndexRoute,
+  PublicInfluencersSlugRoute: PublicInfluencersSlugRoute,
+  PublicInfluencersIndexRoute: PublicInfluencersIndexRoute,
+}
+
+const PublicRouteWithChildren =
+  PublicRoute._addFileChildren(PublicRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  PublicRoute: PublicRouteWithChildren,
+  LaboratorioRoute: LaboratorioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

@@ -10,7 +10,7 @@ const TITLE = "Prompts de realismo para influencers de IA";
 const DESCRIPTION =
   "Biblioteca de prompts e montador para gerar influencers de IA fotorrealistas: câmera, lente, luz e imperfeição de pele especificadas. Copie e cole.";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/laboratorio")({
   head: () => ({
     meta: [
       { title: `${TITLE} — Realismo` },

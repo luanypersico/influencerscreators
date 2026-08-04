@@ -82,26 +82,33 @@ const otherUser = await admin.rpc("find_user_id_by_email", { _email: "outro@exam
 check("outro produto = 200 ignored, sem evento/dados pessoais",
   r.status === 200 && r.body.status === "ignored" && (otherEvent.data ?? []).length === 0 && !otherUser.data, r);
 
-// ---- 15. falha simulada da RPC após criação do usuário Auth
-const conflictEmail = BUYER;
-const u2 = await admin.auth.admin.createUser({ email: `conflito.${Date.now()}@example.com`, email_confirm: false });
-await admin.from("profiles").update({ email: conflictEmail }).eq("id", u2.data.user!.id);
+// ---- 15. usuário Auth criado + falha da RPC, depois reprocessamento
 const tsA = Date.now();
-r = await post(payload({ event: "PURCHASE_APPROVED", tx: "TXA", ts: tsA }));
-const uidAfterFail = (await admin.rpc("find_user_id_by_email", { _email: BUYER })).data;
-const evFail = await admin.from("webhook_events").select("processing_status").eq("transaction_ref", "TXA").maybeSingle();
-check("RPC falha => 500, usuário Auth criado, evento em error, sem pedido/acesso",
-  r.status === 500 && !!uidAfterFail && evFail.data?.processing_status === "error" &&
-  (await orderCount("TXA")).count === 0 && (await accessState()) === null, { r, evFail: evFail.data });
+// simula "identidade criada, RPC falhou": usuário existe, nada comercial gravado
+const preCreated = await admin.auth.admin.createUser({ email: BUYER, email_confirm: false });
+const preUid = preCreated.data.user!.id;
+const failed = await admin.rpc("process_hotmart_event", {
+  p_integration_id: integ!.id, p_product_id: productId,
+  p_external_event_id: "FALHA-SIMULADA-TXA", p_event_type: "PURCHASE_APPROVED",
+  p_event_occurred_at: new Date(tsA).toISOString(), p_transaction_ref: "TXA",
+  p_purchase_status: "APPROVED", p_payload: {},
+  p_user_id: "00000000-0000-0000-0000-000000000000",
+  p_buyer_email: BUYER, p_buyer_name: "Comprador Teste", p_amount_cents: 2700,
+} as never);
+const evAfterFail = await admin.from("webhook_events").select("processing_status").eq("external_event_id", "FALHA-SIMULADA-TXA").maybeSingle();
+check("RPC falha => erro, usuário Auth preservado, sem pedido, sem acesso, sem evento processado",
+  !!failed.error && !!preUid && (await orderCount("TXA")).count === 0 &&
+  (await accessState()) === null && evAfterFail.data?.processing_status !== "processed",
+  { err: failed.error?.message, ev: evAfterFail.data });
 
-// remove conflito e reprocessa o MESMO evento
-await admin.from("profiles").update({ email: `conflito.restaurado.${Date.now()}@example.com` }).eq("id", u2.data.user!.id);
+// reprocessa o evento real: precisa reutilizar o usuário já existente
 r = await post(payload({ event: "PURCHASE_APPROVED", tx: "TXA", ts: tsA }));
 const uidAfterRetry = (await admin.rpc("find_user_id_by_email", { _email: BUYER })).data;
 let acc = await accessState();
+const { count: profileCount } = await admin.from("profiles").select("id", { count: "exact" }).eq("email", BUYER);
 check("reprocessamento reusa o mesmo usuário, 1 pedido, acesso só depois da RPC",
-  r.status === 200 && uidAfterRetry === uidAfterFail && (await orderCount("TXA")).count === 1 &&
-  acc?.revoked_at === null && acc?.suspended_at === null, { r, acc });
+  r.status === 200 && uidAfterRetry === preUid && profileCount === 1 &&
+  (await orderCount("TXA")).count === 1 && acc?.revoked_at === null && acc?.suspended_at === null, { r, acc, uidAfterRetry, preUid });
 
 // ---- 6. evento duplicado
 r = await post(payload({ event: "PURCHASE_APPROVED", tx: "TXA", ts: tsA }));
@@ -142,6 +149,7 @@ check("APPROVED atrasado de A ignorado (transação terminal)", r.status === 200
 // ---- 11. protesto em A com B paga não suspende
 r = await post(payload({ event: "PURCHASE_PROTEST", tx: "TXB", ts: tsB + 2000 }));
 acc = await accessState();
+console.log("   debug protest TXB:", JSON.stringify(r), JSON.stringify((await orderCount()).rows));
 check("protesto em B (sem outra compra paga) suspende sem revogar", acc?.suspended_at !== null && acc?.revoked_at === null, acc);
 
 // COMPLETE posterior válido remove a suspensão
@@ -188,7 +196,6 @@ if (uidAfterRetry) {
   await admin.from("product_access").delete().eq("user_id", uidAfterRetry);
   await admin.auth.admin.deleteUser(uidAfterRetry);
 }
-await admin.auth.admin.deleteUser(u2.data.user!.id);
 await admin.from("payment_integrations").delete().eq("id", integ!.id);
 await admin.from("admin_audit_log").delete().eq("actor_email", "system:hotmart-webhook");
 

@@ -79,8 +79,8 @@ Boleto impresso e pagamento atrasado criam ou atualizam pedido pendente e **nunc
 Script de teste local disparando o endpoint com payloads sinteticos, cobrindo: token invalido rejeitado; produto diferente rejeitado; oferta diferente rejeitada; compra aprovada gerando pedido e acesso Bergamo; evento duplicado sem duplicacao; pagamento pendente sem acesso; reembolso revogando so o Bergamo; comprador com acesso a outro produto preservado; evento de ambiente de teste sem efeito na producao. Mais lint, TypeScript, build e conferencia de que `/bergamo`, `/admin/*` e `/auth` continuam funcionando. Ao final entrego a lista de arquivos, a migracao, a matriz de RLS, os eventos implementados, o resultado de cada teste e os riscos.
 
 ## Dados que ainda preciso de voce
-1. `external_product_id` (id do produto na Hotmart) e `external_offer_id` (codigo da oferta de R$ 27).
-2. Hottok do postback da Hotmart — vou pedir como secret; voce cola e fica protegido (um para teste, um para producao, se voce tiver os dois).
+1. `data.product.ucode` (ucode do produto na Hotmart), `data.product.id` (id numerico) e o codigo da oferta de R$ 27.
+2. Hottok da conta Hotmart — vou pedir como secret `HOTMART_HOTTOK`; voce cola e fica protegido.
 3. Link de checkout real da oferta de R$ 27 (sem ele o produto fica `draft`).
 
 Comeco pela migracao e pelo webhook, que nao dependem desses valores; depois so plugamos os codigos e ativamos.

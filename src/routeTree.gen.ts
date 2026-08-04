@@ -25,6 +25,7 @@ import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
+import { Route as ApiPublicWebhooksHotmartRouteImport } from './routes/api/public/webhooks/hotmart'
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
@@ -105,6 +106,12 @@ const PublicInfluencersSlugRoute = PublicInfluencersSlugRouteImport.update({
   path: '/influencers/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const ApiPublicWebhooksHotmartRoute =
+  ApiPublicWebhooksHotmartRouteImport.update({
+    id: '/api/public/webhooks/hotmart',
+    path: '/api/public/webhooks/hotmart',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
+  '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -138,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers': typeof PublicInfluencersIndexRoute
+  '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -157,6 +166,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/_public/influencers/': typeof PublicInfluencersIndexRoute
+  '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/influencers/$slug'
     | '/influencers/'
+    | '/api/public/webhooks/hotmart'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/influencers/$slug'
     | '/influencers'
+    | '/api/public/webhooks/hotmart'
   id:
     | '__root__'
     | '/_public'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_public/influencers/$slug'
     | '/_public/influencers/'
+    | '/api/public/webhooks/hotmart'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -218,6 +231,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BergamoRoute: typeof BergamoRoute
   LaboratorioRoute: typeof LaboratorioRoute
+  ApiPublicWebhooksHotmartRoute: typeof ApiPublicWebhooksHotmartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -334,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicInfluencersSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/api/public/webhooks/hotmart': {
+      id: '/api/public/webhooks/hotmart'
+      path: '/api/public/webhooks/hotmart'
+      fullPath: '/api/public/webhooks/hotmart'
+      preLoaderRoute: typeof ApiPublicWebhooksHotmartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -382,17 +403,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BergamoRoute: BergamoRoute,
   LaboratorioRoute: LaboratorioRoute,
+  ApiPublicWebhooksHotmartRoute: ApiPublicWebhooksHotmartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

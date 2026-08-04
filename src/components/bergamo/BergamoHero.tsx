@@ -47,7 +47,7 @@ export function BergamoHero() {
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <a
               href="#planos"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              className="bergamo-cta inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               Liberar meu acesso
               <ArrowRight className="size-4" aria-hidden="true" />

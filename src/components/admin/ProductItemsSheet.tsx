@@ -43,7 +43,16 @@ export function ProductItemsSheet({
     await qc.invalidateQueries({ queryKey: ["admin", "product_items", productId] });
   }
 
-  async function update(id: string, patch: Record<string, unknown>) {
+  type ItemPatch = {
+    code?: string;
+    title?: string;
+    category?: string;
+    prompt?: string;
+    is_free?: boolean;
+    status?: string;
+  };
+
+  async function update(id: string, patch: ItemPatch) {
     const { error } = await supabase.from("product_items").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else await refresh();

@@ -153,24 +153,37 @@
  */
 .bergamo-theme {
   --radius: 1rem;
-  --background: oklch(0.13 0.004 60);
-  --foreground: oklch(0.97 0.006 90);
-  --card: oklch(0.17 0.006 65);
-  --card-foreground: oklch(0.97 0.006 90);
-  --popover: oklch(0.16 0.006 65);
-  --popover-foreground: oklch(0.97 0.006 90);
-  --primary: oklch(0.83 0.15 88);
-  --primary-foreground: oklch(0.16 0.02 70);
-  --secondary: oklch(0.22 0.008 65);
-  --secondary-foreground: oklch(0.97 0.006 90);
-  --muted: oklch(0.2 0.006 65);
-  --muted-foreground: oklch(0.72 0.012 85);
-  --accent: oklch(0.26 0.02 80);
-  --accent-foreground: oklch(0.97 0.006 90);
-  --border: oklch(0.9 0.03 90 / 14%);
-  --input: oklch(0.9 0.03 90 / 18%);
-  --ring: oklch(0.83 0.15 88);
+  /* Paleta Bergamo Creators IA — roxo/magenta sobre quase-preto. */
+  --background: oklch(0.114 0.056 316.5);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.167 0.084 311.4);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.167 0.084 311.4);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(0.637 0.283 325.3);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.327 0.166 306.5);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.2 0.09 312);
+  --muted-foreground: oklch(0.787 0.091 320.1);
+  --accent: oklch(0.517 0.229 311.7);
+  --accent-foreground: oklch(1 0 0);
+  --border: oklch(0.637 0.283 325.3 / 24%);
+  --input: oklch(0.637 0.283 325.3 / 30%);
+  --ring: oklch(0.637 0.283 325.3);
+  --gradient-bergamo: linear-gradient(
+    90deg,
+    oklch(0.327 0.166 306.5) 0%,
+    oklch(0.517 0.229 311.7) 50%,
+    oklch(0.637 0.283 325.3) 100%
+  );
   color-scheme: dark;
+}
+
+/* CTA principal do Bergamo — gradiente roxo → magenta. */
+@utility bergamo-cta {
+  background-image: var(--gradient-bergamo);
+  color: oklch(1 0 0);
 }
 
 /* Brilho dourado usado nas seções do Bergamo. */

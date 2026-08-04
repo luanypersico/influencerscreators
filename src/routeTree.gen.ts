@@ -16,6 +16,8 @@ import { Route as BergamoRouteImport } from './routes/bergamo'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 
@@ -53,6 +55,16 @@ const PublicComoFuncionaRoute = PublicComoFuncionaRouteImport.update({
   path: '/como-funciona',
   getParentRoute: () => PublicRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditoriaRoute = AdminAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
   id: '/influencers/',
   path: '/influencers/',
@@ -66,33 +78,38 @@ const PublicInfluencersSlugRoute = PublicInfluencersSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesByTo {
-  '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
   '/': typeof PublicIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_public': typeof PublicRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
+  '/admin/auditoria': typeof AdminAuditoriaRoute
   '/_public/': typeof PublicIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/_public/influencers/': typeof PublicInfluencersIndexRoute
 }
@@ -105,16 +122,19 @@ export interface FileRouteTypes {
     | '/bergamo'
     | '/laboratorio'
     | '/como-funciona'
+    | '/admin/auditoria'
+    | '/admin/'
     | '/influencers/$slug'
     | '/influencers/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/admin'
     | '/auth'
     | '/bergamo'
     | '/laboratorio'
     | '/como-funciona'
+    | '/admin/auditoria'
     | '/'
+    | '/admin'
     | '/influencers/$slug'
     | '/influencers'
   id:
@@ -125,14 +145,16 @@ export interface FileRouteTypes {
     | '/bergamo'
     | '/laboratorio'
     | '/_public/como-funciona'
+    | '/admin/auditoria'
     | '/_public/'
+    | '/admin/'
     | '/_public/influencers/$slug'
     | '/_public/influencers/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   BergamoRoute: typeof BergamoRoute
   LaboratorioRoute: typeof LaboratorioRoute
@@ -189,6 +211,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicComoFuncionaRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/auditoria': {
+      id: '/admin/auditoria'
+      path: '/auditoria'
+      fullPath: '/admin/auditoria'
+      preLoaderRoute: typeof AdminAuditoriaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_public/influencers/': {
       id: '/_public/influencers/'
       path: '/influencers'
@@ -223,9 +259,21 @@ const PublicRouteChildren: PublicRouteChildren = {
 const PublicRouteWithChildren =
   PublicRoute._addFileChildren(PublicRouteChildren)
 
+interface AdminRouteChildren {
+  AdminAuditoriaRoute: typeof AdminAuditoriaRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditoriaRoute: AdminAuditoriaRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   BergamoRoute: BergamoRoute,
   LaboratorioRoute: LaboratorioRoute,

@@ -14,24 +14,14 @@ export interface BergamoPlan {
 
 const PLANS: BergamoPlan[] = [
   {
-    name: "Acervo Essencial",
-    price: "R$ 37",
+    name: "Acervo Completo",
+    price: "R$ 27",
     caption: "Pagamento único · acesso vitalício",
+    highlight: true,
     features: [
       `Todos os ${BERGAMO_PROMPTS.length} prompts do acervo`,
       "Imagens de referência de cada cena",
       "Guia de foto de referência",
-      "Atualizações do acervo por 12 meses",
-    ],
-    checkoutUrl: "#",
-  },
-  {
-    name: "Acervo Completo",
-    price: "R$ 47",
-    caption: "Pagamento único · acesso vitalício",
-    highlight: true,
-    features: [
-      "Tudo do plano Essencial",
       "Módulo anti-cara-de-IA completo",
       "Playbook de publicação e carrosséis",
       "Prompts de vídeo e motion control",
@@ -55,7 +45,7 @@ export function BergamoPricing() {
           </h2>
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6">
           {PLANS.map((plan) => (
             <article
               key={plan.name}

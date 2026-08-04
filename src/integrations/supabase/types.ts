@@ -312,7 +312,6 @@ export type Database = {
           external_offer_id: string | null
           external_product_id: string | null
           external_product_ucode: string | null
-          hottok: string | null
           id: string
           product_id: string
           provider: string
@@ -325,7 +324,6 @@ export type Database = {
           external_offer_id?: string | null
           external_product_id?: string | null
           external_product_ucode?: string | null
-          hottok?: string | null
           id?: string
           product_id: string
           provider: string
@@ -338,7 +336,6 @@ export type Database = {
           external_offer_id?: string | null
           external_product_id?: string | null
           external_product_ucode?: string | null
-          hottok?: string | null
           id?: string
           product_id?: string
           provider?: string

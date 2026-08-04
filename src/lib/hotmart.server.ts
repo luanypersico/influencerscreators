@@ -3,8 +3,10 @@
  *
  * Regras invioláveis:
  * - Hottok validado antes de qualquer leitura de payload ou gravação.
- * - Hottok vem da integração cadastrada no admin (payment_integrations.hottok);
- *   a variável de ambiente HOTMART_HOTTOK continua aceita como alternativa.
+ * - Hottok vem exclusivamente do secret server-side HOTMART_HOTTOK. Nunca é
+ *   lido do banco — payment_integrations não tem (e não deve ter) essa coluna.
+ * - Corpo do webhook limitado a MAX_BODY_BYTES, aplicado no stream (não só
+ *   via Content-Length, que pode estar ausente ou incorreto).
  * - Payload sem identificador de evento, transação, tipo, produto ou oferta => 400 sem persistir nada.
  * - Evento de outro produto/oferta => 200 ignorado, ZERO dado pessoal persistido ou logado.
  * - Usuário Auth só é criado/procurado em PURCHASE_APPROVED e PURCHASE_COMPLETE.
@@ -17,12 +19,13 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
 
+export const MAX_BODY_BYTES = 256 * 1024;
+
 type IntegrationRow = {
   id: string;
   product_id: string;
   external_product_ucode: string | null;
   external_offer_id: string | null;
-  hottok: string | null;
   products: { slug: string } | null;
 };
 
@@ -82,6 +85,37 @@ function constantTimeEquals(a: string, b: string): boolean {
   return timingSafeEqual(left, right);
 }
 
+/**
+ * Lê o corpo da requisição impondo um teto rígido em bytes efetivamente
+ * lidos do stream — nunca confia só no header Content-Length (pode estar
+ * ausente ou mentir). Cancela a leitura assim que o limite é excedido.
+ */
+export async function readBodyWithLimit(
+  request: Request,
+  maxBytes: number,
+): Promise<{ ok: true; text: string } | { ok: false }> {
+  const reader = request.body?.getReader();
+  if (!reader) return { ok: true, text: "" };
+
+  const decoder = new TextDecoder();
+  let text = "";
+  let total = 0;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => {});
+      return { ok: false };
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+
+  text += decoder.decode();
+  return { ok: true, text };
+}
+
 /** Extrai apenas os campos necessários. Retorna null se o payload for inválido. */
 export function extractHotmartEvent(raw: unknown): HotmartExtract | null {
   const root = record(raw);
@@ -112,7 +146,9 @@ export function extractHotmartEvent(raw: unknown): HotmartExtract | null {
 
   const priceValue = price["value"];
   const amountCents =
-    typeof priceValue === "number" && Number.isFinite(priceValue) ? Math.round(priceValue * 100) : null;
+    typeof priceValue === "number" && Number.isFinite(priceValue)
+      ? Math.round(priceValue * 100)
+      : null;
 
   const buyerEmail = asString(buyer["email"]);
 
@@ -152,7 +188,9 @@ async function resolveBuyerUserId(email: string, fullName: string | null): Promi
   const retry = await supabaseAdmin.rpc("find_user_id_by_email", { _email: email });
   if (retry.data) return retry.data;
 
-  throw new Error(`não foi possível resolver o usuário do comprador: ${created.error?.message ?? "desconhecido"}`);
+  throw new Error(
+    `não foi possível resolver o usuário do comprador: ${created.error?.message ?? "desconhecido"}`,
+  );
 }
 
 export async function handleHotmartWebhook(request: Request): Promise<Response> {
@@ -160,40 +198,36 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     return json(405, { error: "method_not_allowed" });
   }
 
+  // Rejeição rápida quando o cliente já declara um corpo grande demais.
+  // Não é a única defesa (Content-Length pode estar ausente ou incorreto) —
+  // o teto real é aplicado no stream em readBodyWithLimit, mais abaixo.
+  const contentLength = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+    return json(413, { error: "payload_too_large" });
+  }
+
   const hottok = request.headers.get("x-hotmart-hottok") ?? "";
   if (!hottok) {
     return json(401, { error: "invalid_hottok" });
   }
 
-  // Integrações ativas — nada de dados pessoais ainda.
-  const integrations = await supabaseAdmin
-    .from("payment_integrations")
-    .select("id, product_id, external_product_ucode, external_offer_id, hottok, products!inner(slug)")
-    .eq("provider", "hotmart")
-    .eq("active", true);
-
-  if (integrations.error) {
-    console.error("[hotmart] falha ao carregar integrações", { message: integrations.error.message });
-    return json(500, { error: "integration_lookup_failed" });
+  const envSecret = process.env["HOTMART_HOTTOK"] ?? null;
+  if (!envSecret) {
+    console.error("[hotmart] HOTMART_HOTTOK não configurado no ambiente");
+    return json(401, { error: "invalid_hottok" });
+  }
+  if (!constantTimeEquals(hottok, envSecret)) {
+    return json(401, { error: "invalid_hottok" });
   }
 
-  const rows = (integrations.data ?? []) as unknown as IntegrationRow[];
-  const envSecret = process.env["HOTMART_HOTTOK"] ?? null;
-
-  // O token pode estar cadastrado no admin (por integração) ou na variável de ambiente.
-  const matchedByHottok = rows.filter((r) => r.hottok && constantTimeEquals(hottok, r.hottok));
-  const envMatch = envSecret ? constantTimeEquals(hottok, envSecret) : false;
-
-  if (matchedByHottok.length === 0 && !envMatch) {
-    if (rows.length === 0) {
-      console.error("[hotmart] nenhuma integração ativa com hottok cadastrado");
-    }
-    return json(401, { error: "invalid_hottok" });
+  const body = await readBodyWithLimit(request, MAX_BODY_BYTES);
+  if (!body.ok) {
+    return json(413, { error: "payload_too_large" });
   }
 
   let parsed: unknown;
   try {
-    parsed = await request.json();
+    parsed = JSON.parse(body.text);
   } catch {
     return json(400, { error: "invalid_json" });
   }
@@ -203,11 +237,27 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     return json(400, { error: "invalid_payload" });
   }
 
-  // A integração precisa casar com o produto/oferta do evento.
-  const candidates = matchedByHottok.length > 0 ? matchedByHottok : rows;
+  // Integrações ativas — nada de dados pessoais ainda. Sem hottok no banco:
+  // o token já foi validado contra o secret do ambiente, aqui só resolvemos
+  // qual integração (produto/oferta) o evento pertence.
+  const integrations = await supabaseAdmin
+    .from("payment_integrations")
+    .select("id, product_id, external_product_ucode, external_offer_id, products!inner(slug)")
+    .eq("provider", "hotmart")
+    .eq("active", true);
+
+  if (integrations.error) {
+    console.error("[hotmart] falha ao carregar integrações", {
+      message: integrations.error.message,
+    });
+    return json(500, { error: "integration_lookup_failed" });
+  }
+
+  const rows = (integrations.data ?? []) as unknown as IntegrationRow[];
   const row =
-    candidates.find(
-      (r) => r.external_product_ucode === event.productUcode && r.external_offer_id === event.offerCode,
+    rows.find(
+      (r) =>
+        r.external_product_ucode === event.productUcode && r.external_offer_id === event.offerCode,
     ) ?? null;
   const slug = row?.products?.slug ?? null;
 
@@ -218,7 +268,9 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
       event_type: event.eventType,
       product_ucode: event.productUcode,
       offer_code: event.offerCode,
-      reason: row ? "produto da integração não é bergamo" : "nenhuma integração ativa correspondente",
+      reason: row
+        ? "produto da integração não é bergamo"
+        : "nenhuma integração ativa correspondente",
     });
     return json(200, { status: "ignored", reason: "out_of_scope" });
   }

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -9,20 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  adminGetBergamoIntegrationFn,
+  adminListBergamoWebhookEventsFn,
+  adminUpdateBergamoIntegrationFn,
+} from "@/lib/admin-integrations.functions";
 
 export const Route = createFileRoute("/admin/integracoes")({
   component: IntegrationsPage,
 });
 
-const WEBHOOK_PATH = "/api/public/webhooks/hotmart";
-
 type Form = {
   external_product_ucode: string;
   external_product_id: string;
   external_offer_id: string;
-  hottok: string;
-  environment: string;
+  environment: "test" | "production";
   active: boolean;
 };
 
@@ -30,47 +32,26 @@ const EMPTY: Form = {
   external_product_ucode: "",
   external_product_id: "",
   external_offer_id: "",
-  hottok: "",
   environment: "production",
   active: false,
 };
 
 function IntegrationsPage() {
   const qc = useQueryClient();
-  const [form, setForm] = useState<Form>(EMPTY);
-  const [showToken, setShowToken] = useState(false);
-  const [origin, setOrigin] = useState("");
+  const getIntegration = useServerFn(adminGetBergamoIntegrationFn);
+  const listEvents = useServerFn(adminListBergamoWebhookEventsFn);
+  const updateIntegration = useServerFn(adminUpdateBergamoIntegrationFn);
 
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [form, setForm] = useState<Form>(EMPTY);
 
   const { data: integration, isLoading } = useQuery({
     queryKey: ["admin", "integracoes", "hotmart"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payment_integrations")
-        .select("*, products!inner(slug, name, status, checkout_url)")
-        .eq("provider", "hotmart")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => getIntegration(),
   });
 
   const { data: events } = useQuery({
     queryKey: ["admin", "integracoes", "eventos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("webhook_events")
-        .select("id, event_type, purchase_status, transaction_ref, processing_status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(15);
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => listEvents(),
   });
 
   useEffect(() => {
@@ -79,44 +60,32 @@ function IntegrationsPage() {
       external_product_ucode: integration.external_product_ucode ?? "",
       external_product_id: integration.external_product_id ?? "",
       external_offer_id: integration.external_offer_id ?? "",
-      hottok: integration.hottok ?? "",
-      environment: integration.environment,
+      environment: integration.environment === "test" ? "test" : "production",
       active: integration.active,
     });
   }, [integration]);
 
-  const missing =
-    !form.external_product_ucode.trim() || !form.external_offer_id.trim() || !form.hottok.trim();
+  const missing = !form.external_product_ucode.trim() || !form.external_offer_id.trim();
 
   async function save(nextActive: boolean) {
-    if (!integration) return;
-    if (nextActive && missing) {
-      toast.error("Preencha ucode, código da oferta e Hottok antes de ativar.");
-      return;
+    try {
+      await updateIntegration({
+        data: {
+          external_product_ucode: form.external_product_ucode.trim() || null,
+          external_product_id: form.external_product_id.trim() || null,
+          external_offer_id: form.external_offer_id.trim() || null,
+          environment: form.environment,
+          active: nextActive,
+        },
+      });
+      toast.success(
+        nextActive ? "Integração ativa. A Hotmart já pode liberar acessos." : "Dados salvos.",
+      );
+      await qc.invalidateQueries({ queryKey: ["admin", "integracoes", "hotmart"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível salvar.");
     }
-    const { error } = await supabase
-      .from("payment_integrations")
-      .update({
-        external_product_ucode: form.external_product_ucode.trim() || null,
-        external_product_id: form.external_product_id.trim() || null,
-        external_offer_id: form.external_offer_id.trim() || null,
-        hottok: form.hottok.trim() || null,
-        environment: form.environment,
-        active: nextActive,
-      })
-      .eq("id", integration.id);
-
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setForm((f) => ({ ...f, active: nextActive }));
-    toast.success(nextActive ? "Integração ativa. A Hotmart já pode liberar acessos." : "Dados salvos.");
-    await qc.invalidateQueries({ queryKey: ["admin", "integracoes", "hotmart"] });
   }
-
-  const product = integration?.products;
-  const webhookUrl = origin ? `${origin}${WEBHOOK_PATH}` : WEBHOOK_PATH;
 
   return (
     <AdminPage
@@ -129,13 +98,15 @@ function IntegrationsPage() {
       >
         <div className="flex flex-wrap items-center gap-2">
           <code className="min-w-0 flex-1 truncate rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs">
-            {webhookUrl}
+            {integration?.webhook_url ?? "carregando..."}
           </code>
           <Button
             size="sm"
             variant="outline"
+            disabled={!integration?.webhook_url}
             onClick={async () => {
-              await navigator.clipboard.writeText(webhookUrl);
+              if (!integration?.webhook_url) return;
+              await navigator.clipboard.writeText(integration.webhook_url);
               toast.success("URL copiada.");
             }}
           >
@@ -143,14 +114,14 @@ function IntegrationsPage() {
           </Button>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Eventos a marcar: Compra aprovada, Compra completa, Boleto impresso, Compra atrasada, Compra expirada,
-          Compra cancelada, Reembolso, Chargeback e Protesto.
+          Eventos a marcar: Compra aprovada, Compra completa, Boleto impresso, Compra atrasada,
+          Compra expirada, Compra cancelada, Reembolso, Chargeback e Protesto.
         </p>
       </Panel>
 
       <Panel
         title="Hotmart · Bergamo"
-        description="O Hottok fica guardado aqui e é conferido em cada chamada do webhook. Só administradores veem este campo."
+        description="O Hottok fica guardado nos Secrets do ambiente e nunca é exibido nesta página."
       >
         {isLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}
         {!isLoading && !integration && (
@@ -163,8 +134,12 @@ function IntegrationsPage() {
               <Badge variant={form.active ? "default" : "secondary"}>
                 {form.active ? "Ativa" : "Inativa"}
               </Badge>
-              <Badge variant="outline">produto: {product?.slug}</Badge>
-              <Badge variant="outline">produto {product?.status === "active" ? "publicado" : "em rascunho"}</Badge>
+              <Badge variant="outline">produto: bergamo</Badge>
+              <Badge variant={integration.hottok_configured ? "default" : "secondary"}>
+                {integration.hottok_configured
+                  ? "Hottok configurado no ambiente"
+                  : "Hottok ainda não configurado"}
+              </Badge>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -185,27 +160,20 @@ function IntegrationsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">ID numérico do produto (opcional)</Label>
+                <Label className="text-xs text-muted-foreground">
+                  ID numérico do produto (opcional)
+                </Label>
                 <Input
                   value={form.external_product_id}
                   onChange={(e) => setForm({ ...form, external_product_id: e.target.value })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Hottok (token do webhook)</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type={showToken ? "text" : "password"}
-                    value={form.hottok}
-                    autoComplete="off"
-                    onChange={(e) => setForm({ ...form, hottok: e.target.value })}
-                  />
-                  <Button size="sm" variant="outline" onClick={() => setShowToken((v) => !v)}>
-                    {showToken ? "Ocultar" : "Ver"}
-                  </Button>
-                </div>
-              </div>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              O Hottok é cadastrado nos Secrets do ambiente (HOTMART_HOTTOK) e nunca é exibido nesta
+              página.
+            </p>
 
             <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/30 p-4">
               <div className="flex items-center gap-3">
@@ -217,21 +185,26 @@ function IntegrationsPage() {
               </Button>
               {missing && (
                 <span className="text-xs text-muted-foreground">
-                  Faltam dados obrigatórios para ativar (ucode, oferta e Hottok).
+                  Faltam dados obrigatórios para ativar (ucode e oferta), além do Hottok no
+                  ambiente.
                 </span>
               )}
             </div>
 
             <div className="space-y-2 text-xs text-muted-foreground">
-              <p>Link de checkout usado na página /bergamo: {product?.checkout_url || "ainda não definido"}.</p>
               <p>O checkout é editado em Produtos — aqui só cuidamos da conexão do webhook.</p>
             </div>
           </div>
         )}
       </Panel>
 
-      <Panel title="Últimos eventos recebidos" description="Registro técnico do webhook (somente produto Bergamo).">
-        {!events?.length && <p className="text-sm text-muted-foreground">Nenhum evento recebido ainda.</p>}
+      <Panel
+        title="Últimos eventos recebidos"
+        description="Registro técnico do webhook (somente produto Bergamo)."
+      >
+        {!events?.length && (
+          <p className="text-sm text-muted-foreground">Nenhum evento recebido ainda.</p>
+        )}
         {!!events?.length && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">

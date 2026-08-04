@@ -20,6 +20,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Environment variables — nunca versionar secrets reais (HOTMART_HOTTOK,
+# SUPABASE_SERVICE_ROLE_KEY). Use .env.example como referência de nomes.
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

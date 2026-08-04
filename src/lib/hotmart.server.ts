@@ -2,7 +2,9 @@
  * Hotmart purchase webhook (v2) — produto Bergamo apenas.
  *
  * Regras invioláveis:
- * - Hottok validado antes de qualquer gravação.
+ * - Hottok validado antes de qualquer leitura de payload ou gravação.
+ * - Hottok vem da integração cadastrada no admin (payment_integrations.hottok);
+ *   a variável de ambiente HOTMART_HOTTOK continua aceita como alternativa.
  * - Payload sem identificador de evento, transação, tipo, produto ou oferta => 400 sem persistir nada.
  * - Evento de outro produto/oferta => 200 ignorado, ZERO dado pessoal persistido ou logado.
  * - Usuário Auth só é criado/procurado em PURCHASE_APPROVED e PURCHASE_COMPLETE.
@@ -14,6 +16,15 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
+
+type IntegrationRow = {
+  id: string;
+  product_id: string;
+  external_product_ucode: string | null;
+  external_offer_id: string | null;
+  hottok: string | null;
+  products: { slug: string } | null;
+};
 
 const GRANTING_EVENTS = new Set(["PURCHASE_APPROVED", "PURCHASE_COMPLETE"]);
 
@@ -149,14 +160,34 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     return json(405, { error: "method_not_allowed" });
   }
 
-  const secret = process.env["HOTMART_HOTTOK"];
-  if (!secret) {
-    console.error("[hotmart] HOTMART_HOTTOK não configurado");
-    return json(500, { error: "integration_not_configured" });
+  const hottok = request.headers.get("x-hotmart-hottok") ?? "";
+  if (!hottok) {
+    return json(401, { error: "invalid_hottok" });
   }
 
-  const hottok = request.headers.get("x-hotmart-hottok") ?? "";
-  if (!hottok || !constantTimeEquals(hottok, secret)) {
+  // Integrações ativas — nada de dados pessoais ainda.
+  const integrations = await supabaseAdmin
+    .from("payment_integrations")
+    .select("id, product_id, external_product_ucode, external_offer_id, hottok, products!inner(slug)")
+    .eq("provider", "hotmart")
+    .eq("active", true);
+
+  if (integrations.error) {
+    console.error("[hotmart] falha ao carregar integrações", { message: integrations.error.message });
+    return json(500, { error: "integration_lookup_failed" });
+  }
+
+  const rows = (integrations.data ?? []) as unknown as IntegrationRow[];
+  const envSecret = process.env["HOTMART_HOTTOK"] ?? null;
+
+  // O token pode estar cadastrado no admin (por integração) ou na variável de ambiente.
+  const matchedByHottok = rows.filter((r) => r.hottok && constantTimeEquals(hottok, r.hottok));
+  const envMatch = envSecret ? constantTimeEquals(hottok, envSecret) : false;
+
+  if (matchedByHottok.length === 0 && !envMatch) {
+    if (rows.length === 0) {
+      console.error("[hotmart] nenhuma integração ativa com hottok cadastrado");
+    }
     return json(401, { error: "invalid_hottok" });
   }
 
@@ -172,25 +203,12 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     return json(400, { error: "invalid_payload" });
   }
 
-  // Integração ativa + produto correspondente (sem tocar dados pessoais ainda).
-  const integration = await supabaseAdmin
-    .from("payment_integrations")
-    .select("id, product_id, environment, products!inner(slug)")
-    .eq("provider", "hotmart")
-    .eq("active", true)
-    .eq("external_product_ucode", event.productUcode)
-    .eq("external_offer_id", event.offerCode)
-    .maybeSingle();
-
-  if (integration.error) {
-    console.error("[hotmart] falha ao resolver integração", {
-      event_id: event.eventId,
-      message: integration.error.message,
-    });
-    return json(500, { error: "integration_lookup_failed" });
-  }
-
-  const row = integration.data;
+  // A integração precisa casar com o produto/oferta do evento.
+  const candidates = matchedByHottok.length > 0 ? matchedByHottok : rows;
+  const row =
+    candidates.find(
+      (r) => r.external_product_ucode === event.productUcode && r.external_offer_id === event.offerCode,
+    ) ?? null;
   const slug = row?.products?.slug ?? null;
 
   if (!row || slug !== "bergamo") {

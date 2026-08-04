@@ -20,6 +20,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
@@ -81,6 +82,11 @@ const AdminEmailsRoute = AdminEmailsRouteImport.update({
   path: '/emails',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminIntegracoesRoute = AdminIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -123,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/integracoes': typeof AdminIntegracoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/emails'
+    | '/admin/integracoes'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/emails'
+    | '/admin/integracoes'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/emails'
+    | '/admin/integracoes'
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
@@ -313,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEmailsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/integracoes': {
+      id: '/admin/integracoes'
+      path: '/integracoes'
+      fullPath: '/admin/integracoes'
+      preLoaderRoute: typeof AdminIntegracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pedidos': {
       id: '/admin/pedidos'
       path: '/pedidos'
@@ -379,6 +398,7 @@ interface AdminRouteChildren {
   AdminAuditoriaRoute: typeof AdminAuditoriaRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
+  AdminIntegracoesRoute: typeof AdminIntegracoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminUsuariosRoute: typeof AdminUsuariosRoute
@@ -389,6 +409,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditoriaRoute: AdminAuditoriaRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminEmailsRoute: AdminEmailsRoute,
+  AdminIntegracoesRoute: AdminIntegracoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,

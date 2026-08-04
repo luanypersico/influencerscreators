@@ -13,6 +13,7 @@ const NAV = [
   { to: "/admin/usuarios", label: "Usuários & acessos" },
   { to: "/admin/pedidos", label: "Vendas & pedidos" },
   { to: "/admin/emails", label: "E-mails" },
+  { to: "/admin/integracoes", label: "Integrações" },
   { to: "/admin/auditoria", label: "Auditoria" },
   { to: "/admin/configuracoes", label: "Configurações" },
 ] as const;

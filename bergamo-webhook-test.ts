@@ -23,7 +23,7 @@ const productId = product!.id;
 
 const { data: integ } = await admin.from("payment_integrations").insert({
   provider: "hotmart", product_id: productId, environment: "test",
-  external_product_ucode: UCODE, external_product_id: "999", external_offer_id: OFFER, active: true,
+  external_product_ucode: UCODE, external_product_id: "999", external_offer_id: OFFER, active: true, hottok: DB_HOTTOK,
 }).select("id").single();
 
 function payload(o: {event: string; tx: string; ts: number; email?: string; ucode?: string; offer?: string; amount?: number; omitTx?: boolean; id?: string}) {

@@ -222,7 +222,8 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     }
   }
 
-  const processed = await supabaseAdmin.rpc("process_hotmart_event", {
+  // A RPC aceita NULL nestes parâmetros; os tipos gerados os declaram como obrigatórios.
+  const rpcArgs = {
     p_integration_id: row.id,
     p_product_id: row.product_id,
     p_external_event_id: event.eventId,
@@ -244,7 +245,9 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
     p_buyer_email: event.buyerEmail,
     p_buyer_name: event.buyerName,
     p_amount_cents: event.amountCents,
-  });
+  } as unknown as ProcessHotmartEventArgs;
+
+  const processed = await supabaseAdmin.rpc("process_hotmart_event", rpcArgs);
 
   if (processed.error) {
     console.error("[hotmart] processamento falhou", {

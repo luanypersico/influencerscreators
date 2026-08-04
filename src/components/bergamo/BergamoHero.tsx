@@ -67,8 +67,8 @@ export function BergamoHero() {
               key={item.id}
               className={
                 index === 0
-                  ? "bergamo-vignette relative col-span-2 overflow-hidden rounded-3xl border border-border/70"
-                  : "bergamo-vignette relative overflow-hidden rounded-2xl border border-border/70"
+                  ? "bergamo-vignette relative col-span-2 aspect-[16/11] overflow-hidden rounded-3xl border border-border/70"
+                  : "bergamo-vignette relative aspect-[3/4] overflow-hidden rounded-2xl border border-border/70"
               }
             >
               <img

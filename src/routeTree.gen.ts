@@ -18,6 +18,8 @@ import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
+import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 
@@ -65,6 +67,16 @@ const AdminAuditoriaRoute = AdminAuditoriaRouteImport.update({
   path: '/auditoria',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProdutosRoute = AdminProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
   id: '/influencers/',
   path: '/influencers/',
@@ -84,6 +96,8 @@ export interface FileRoutesByFullPath {
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/admin/': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
@@ -94,6 +108,8 @@ export interface FileRoutesByTo {
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
@@ -108,6 +124,8 @@ export interface FileRoutesById {
   '/laboratorio': typeof LaboratorioRoute
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/produtos': typeof AdminProdutosRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
@@ -123,6 +141,8 @@ export interface FileRouteTypes {
     | '/laboratorio'
     | '/como-funciona'
     | '/admin/auditoria'
+    | '/admin/configuracoes'
+    | '/admin/produtos'
     | '/admin/'
     | '/influencers/$slug'
     | '/influencers/'
@@ -133,6 +153,8 @@ export interface FileRouteTypes {
     | '/laboratorio'
     | '/como-funciona'
     | '/admin/auditoria'
+    | '/admin/configuracoes'
+    | '/admin/produtos'
     | '/'
     | '/admin'
     | '/influencers/$slug'
@@ -146,6 +168,8 @@ export interface FileRouteTypes {
     | '/laboratorio'
     | '/_public/como-funciona'
     | '/admin/auditoria'
+    | '/admin/configuracoes'
+    | '/admin/produtos'
     | '/_public/'
     | '/admin/'
     | '/_public/influencers/$slug'
@@ -225,6 +249,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditoriaRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/configuracoes': {
+      id: '/admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminConfiguracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/produtos': {
+      id: '/admin/produtos'
+      path: '/produtos'
+      fullPath: '/admin/produtos'
+      preLoaderRoute: typeof AdminProdutosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_public/influencers/': {
       id: '/_public/influencers/'
       path: '/influencers'
@@ -261,11 +299,15 @@ const PublicRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminAuditoriaRoute: typeof AdminAuditoriaRoute
+  AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
+  AdminProdutosRoute: typeof AdminProdutosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditoriaRoute: AdminAuditoriaRoute,
+  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
+  AdminProdutosRoute: AdminProdutosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

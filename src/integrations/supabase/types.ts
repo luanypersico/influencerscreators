@@ -14,16 +14,543 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          id: string
+          meta: Json
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          meta?: Json
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          meta?: Json
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      email_campaigns: {
+        Row: {
+          audience: string
+          body_html: string
+          created_at: string
+          created_by: string | null
+          failed_count: number
+          id: string
+          manual_recipients: string[] | null
+          name: string
+          product_id: string | null
+          scheduled_at: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          body_html: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          manual_recipients?: string[] | null
+          name: string
+          product_id?: string | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          body_html?: string
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number
+          id?: string
+          manual_recipients?: string[] | null
+          name?: string
+          product_id?: string | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_messages: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          provider_ref: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_ref?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider_ref?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_html: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          meta: Json
+          name: string | null
+          phone: string | null
+          product_id: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          meta?: Json
+          name?: string | null
+          phone?: string | null
+          product_id?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          meta?: Json
+          name?: string | null
+          phone?: string | null
+          product_id?: string | null
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_cents: number
+          buyer_email: string
+          buyer_name: string | null
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          product_id: string | null
+          provider: string | null
+          provider_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents?: number
+          buyer_email: string
+          buyer_name?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          product_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          buyer_email?: string
+          buyer_name?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          product_id?: string | null
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_access: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          granted_by: string | null
+          id: string
+          product_id: string
+          revoked_at: string | null
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          product_id: string
+          revoked_at?: string | null
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          product_id?: string
+          revoked_at?: string | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_access_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_items: {
+        Row: {
+          category: string | null
+          code: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_free: boolean
+          product_id: string
+          prompt: string | null
+          sort_order: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_free?: boolean
+          product_id: string
+          prompt?: string | null
+          sort_order?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_free?: boolean
+          product_id?: string
+          prompt?: string | null
+          sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          checkout_url: string | null
+          checkout_url_secondary: string | null
+          compare_at_cents: number | null
+          coproducer_email: string | null
+          coproducer_name: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          id: string
+          is_coproduction: boolean
+          name: string
+          price_cents: number
+          revenue_share_pct: number | null
+          slug: string
+          sort_order: number
+          status: string
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          checkout_url?: string | null
+          checkout_url_secondary?: string | null
+          compare_at_cents?: number | null
+          coproducer_email?: string | null
+          coproducer_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          is_coproduction?: boolean
+          name: string
+          price_cents?: number
+          revenue_share_pct?: number | null
+          slug: string
+          sort_order?: number
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checkout_url?: string | null
+          checkout_url_secondary?: string | null
+          compare_at_cents?: number | null
+          coproducer_email?: string | null
+          coproducer_name?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          is_coproduction?: boolean
+          name?: string
+          price_cents?: number
+          revenue_share_pct?: number | null
+          slug?: string
+          sort_order?: number
+          status?: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          last_seen_at: string | null
+          notes: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_product_access: {
+        Args: { _product_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "admin" | "coproducer" | "support" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +677,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "admin", "coproducer", "support", "member"],
+    },
   },
 } as const

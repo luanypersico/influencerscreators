@@ -88,6 +88,22 @@ Antes de alterar `orders` ou `product_access`, o evento e comparado com o ultimo
 - `REFUNDED`/`CHARGEBACK`: preenche `revoked_at` e limpa `suspended_at`.
 - Acesso ativo exige `revoked_at IS NULL` **e** `suspended_at IS NULL`.
 - `revoked_at` nunca representa suspensao temporaria.
+
+### Acesso recalculado por TODAS as transacoes (nao pelo ultimo webhook)
+`orders` e a fonte da verdade por transacao. Cada evento primeiro atualiza **somente** o pedido de `provider = 'hotmart'` + `provider_ref = data.purchase.transaction`. Depois a RPC **recalcula** `product_access` olhando todos os pedidos do mesmo `user_id` + product_id do Bergamo:
+- existe ao menos uma transacao paga valida -> acesso ativo (`revoked_at = null`, `suspended_at = null`);
+- nenhuma paga, mas alguma em protesto/disputa -> `suspended_at` preenchido, `revoked_at = null`;
+- nenhuma paga valida nem disputa recuperavel -> `revoked_at` preenchido, `suspended_at = null`.
+
+Consequencias garantidas: reembolso/chargeback/protesto da transacao A nao afeta acesso valido da transacao B; boleto, atraso, expiracao ou cancelamento de uma compra nao afetam outra compra paga; recompra legitima reativa o acesso; a decisao nunca depende so do ultimo webhook recebido.
+
+### `orders.user_id` — verificacao previa
+Antes de implementar, confirmo a nullability de `orders.user_id` e documento a decisao (sem alterar nada silenciosamente):
+- aceita NULL -> pedido pendente e gravado com `buyer_email` e `user_id` nulo;
+- nao aceita NULL -> nao crio usuario so por boleto/atraso; o evento fica em `webhook_events` e o `order` e criado apenas em `APPROVED`/`COMPLETE`.
+
+### Busca segura do usuario por e-mail
+Sem varredura paginada de `listUsers`. Mecanismo server-only deterministico sobre e-mail normalizado `lower(trim(email))`, com unicidade do e-mail normalizado em `profiles` apos preflight de duplicatas. Em conflito de criacao concorrente, recupero o `user_id` existente por esse mecanismo server-only e reutilizo o usuario. Nunca consultar `auth.users` do navegador; nunca expor service role.
 - `PURCHASE_BILLET_PRINTED`, `PURCHASE_DELAYED`: pedido pendente, sem acesso.
 - `PURCHASE_EXPIRED`, `PURCHASE_CANCELED`: pedido encerrado, sem acesso.
 - `PURCHASE_PROTEST`: marca disputa e **suspende temporariamente** o acesso — nao e tratado como perda definitiva e pode ser revertido.
@@ -127,6 +143,8 @@ Validacoes de ordem e estado:
 - refund sem pedido existente nao cria usuario;
 - dois eventos simultaneos da mesma compra nao duplicam Auth, order nem acesso;
 - `products.checkout_url` continua sendo a unica fonte de checkout.
+
+Cenario multi-transacao obrigatorio: compra A aprovada; compra B aprovada; reembolso de A; acesso continua ativo por B; reembolso de B; somente entao o acesso e revogado; protesto em A com B paga nao suspende o acesso.
 
 Mais lint, TypeScript, build e conferencia de que `/bergamo`, `/admin/*` e `/auth` continuam funcionando. Ao final entrego a lista de arquivos, a migracao, a matriz de RLS, os eventos implementados, o resultado de cada teste e os riscos — e **paro antes de publicar** qualquer alteracao comercial.
 

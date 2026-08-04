@@ -19,6 +19,8 @@ import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-fu
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
+import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
@@ -73,6 +75,16 @@ const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEmailsRoute = AdminEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPedidosRoute = AdminPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProdutosRoute = AdminProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -103,6 +115,8 @@ export interface FileRoutesByFullPath {
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/emails': typeof AdminEmailsRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/admin/': typeof AdminIndexRoute
@@ -116,6 +130,8 @@ export interface FileRoutesByTo {
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/emails': typeof AdminEmailsRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/': typeof PublicIndexRoute
@@ -133,6 +149,8 @@ export interface FileRoutesById {
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/emails': typeof AdminEmailsRoute
+  '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/_public/': typeof PublicIndexRoute
@@ -151,6 +169,8 @@ export interface FileRouteTypes {
     | '/como-funciona'
     | '/admin/auditoria'
     | '/admin/configuracoes'
+    | '/admin/emails'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
     | '/admin/'
@@ -164,6 +184,8 @@ export interface FileRouteTypes {
     | '/como-funciona'
     | '/admin/auditoria'
     | '/admin/configuracoes'
+    | '/admin/emails'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
     | '/'
@@ -180,6 +202,8 @@ export interface FileRouteTypes {
     | '/_public/como-funciona'
     | '/admin/auditoria'
     | '/admin/configuracoes'
+    | '/admin/emails'
+    | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
     | '/_public/'
@@ -268,6 +292,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/emails': {
+      id: '/admin/emails'
+      path: '/emails'
+      fullPath: '/admin/emails'
+      preLoaderRoute: typeof AdminEmailsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/pedidos': {
+      id: '/admin/pedidos'
+      path: '/pedidos'
+      fullPath: '/admin/pedidos'
+      preLoaderRoute: typeof AdminPedidosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produtos': {
       id: '/admin/produtos'
       path: '/produtos'
@@ -319,6 +357,8 @@ const PublicRouteWithChildren =
 interface AdminRouteChildren {
   AdminAuditoriaRoute: typeof AdminAuditoriaRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
+  AdminEmailsRoute: typeof AdminEmailsRoute
+  AdminPedidosRoute: typeof AdminPedidosRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminUsuariosRoute: typeof AdminUsuariosRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -327,6 +367,8 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditoriaRoute: AdminAuditoriaRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
+  AdminEmailsRoute: AdminEmailsRoute,
+  AdminPedidosRoute: AdminPedidosRoute,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,
   AdminIndexRoute: AdminIndexRoute,

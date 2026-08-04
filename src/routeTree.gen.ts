@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublicRouteImport } from './routes/_public'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BergamoRouteImport } from './routes/bergamo'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
@@ -19,6 +21,16 @@ import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.infl
 
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BergamoRoute = BergamoRouteImport.update({
@@ -54,6 +66,8 @@ const PublicInfluencersSlugRoute = PublicInfluencersSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
@@ -61,6 +75,8 @@ export interface FileRoutesByFullPath {
   '/influencers/': typeof PublicInfluencersIndexRoute
 }
 export interface FileRoutesByTo {
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
@@ -71,6 +87,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_public': typeof PublicRouteWithChildren
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
@@ -82,6 +100,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/auth'
     | '/bergamo'
     | '/laboratorio'
     | '/como-funciona'
@@ -89,6 +109,8 @@ export interface FileRouteTypes {
     | '/influencers/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/admin'
+    | '/auth'
     | '/bergamo'
     | '/laboratorio'
     | '/como-funciona'
@@ -98,6 +120,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_public'
+    | '/admin'
+    | '/auth'
     | '/bergamo'
     | '/laboratorio'
     | '/_public/como-funciona'
@@ -108,6 +132,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   BergamoRoute: typeof BergamoRoute
   LaboratorioRoute: typeof LaboratorioRoute
 }
@@ -119,6 +145,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bergamo': {
@@ -185,6 +225,8 @@ const PublicRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   BergamoRoute: BergamoRoute,
   LaboratorioRoute: LaboratorioRoute,
 }

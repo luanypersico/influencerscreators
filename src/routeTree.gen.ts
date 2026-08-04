@@ -20,6 +20,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
+import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 
@@ -77,6 +78,11 @@ const AdminProdutosRoute = AdminProdutosRouteImport.update({
   path: '/produtos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
   id: '/influencers/',
   path: '/influencers/',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/admin/': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/produtos'
+    | '/admin/usuarios'
     | '/admin/'
     | '/influencers/$slug'
     | '/influencers/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/produtos'
+    | '/admin/usuarios'
     | '/'
     | '/admin'
     | '/influencers/$slug'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/admin/auditoria'
     | '/admin/configuracoes'
     | '/admin/produtos'
+    | '/admin/usuarios'
     | '/_public/'
     | '/admin/'
     | '/_public/influencers/$slug'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProdutosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/usuarios': {
+      id: '/admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AdminUsuariosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_public/influencers/': {
       id: '/_public/influencers/'
       path: '/influencers'
@@ -301,6 +320,7 @@ interface AdminRouteChildren {
   AdminAuditoriaRoute: typeof AdminAuditoriaRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
+  AdminUsuariosRoute: typeof AdminUsuariosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -308,6 +328,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditoriaRoute: AdminAuditoriaRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminProdutosRoute: AdminProdutosRoute,
+  AdminUsuariosRoute: AdminUsuariosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

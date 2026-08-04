@@ -185,10 +185,14 @@
 }
 
 /* Headlines do Bergamo: pesadas, apertadas, com muito impacto. */
-.bergamo-theme :is(h1, h2, h3) {
+.bergamo-theme :is(h1, h2, h3),
+.bergamo-theme .font-display {
   font-family: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
   font-weight: 400;
   letter-spacing: -0.03em;
+}
+
+.bergamo-theme :is(h1, h2) {
   line-height: 0.98;
 }
 

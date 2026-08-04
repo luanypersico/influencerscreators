@@ -11,6 +11,9 @@
 import { timingSafeEqual } from "node:crypto";
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
+
+type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
 
 const GRANTING_EVENTS = new Set(["PURCHASE_APPROVED", "PURCHASE_COMPLETE"]);
 

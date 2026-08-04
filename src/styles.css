@@ -145,3 +145,52 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
+
+/*
+ * Bergamo — produto isolado (/bergamo).
+ * Tema escopado: noir & gold. Todos os tokens semânticos são sobrescritos
+ * apenas dentro deste container, sem afetar o restante do app.
+ */
+.bergamo-theme {
+  --radius: 1rem;
+  --background: oklch(0.13 0.004 60);
+  --foreground: oklch(0.97 0.006 90);
+  --card: oklch(0.17 0.006 65);
+  --card-foreground: oklch(0.97 0.006 90);
+  --popover: oklch(0.16 0.006 65);
+  --popover-foreground: oklch(0.97 0.006 90);
+  --primary: oklch(0.83 0.15 88);
+  --primary-foreground: oklch(0.16 0.02 70);
+  --secondary: oklch(0.22 0.008 65);
+  --secondary-foreground: oklch(0.97 0.006 90);
+  --muted: oklch(0.2 0.006 65);
+  --muted-foreground: oklch(0.72 0.012 85);
+  --accent: oklch(0.26 0.02 80);
+  --accent-foreground: oklch(0.97 0.006 90);
+  --border: oklch(0.9 0.03 90 / 14%);
+  --input: oklch(0.9 0.03 90 / 18%);
+  --ring: oklch(0.83 0.15 88);
+  color-scheme: dark;
+}
+
+/* Brilho dourado usado nas seções do Bergamo. */
+.bergamo-glow {
+  background-image: radial-gradient(
+    70% 60% at 50% 0%,
+    color-mix(in oklab, var(--primary) 16%, transparent),
+    transparent 72%
+  );
+}
+
+/* Textura sutil de vinheta nos cards da galeria. */
+.bergamo-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--background) 88%, transparent) 0%,
+    transparent 55%
+  );
+  pointer-events: none;
+}

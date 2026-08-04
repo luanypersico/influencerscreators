@@ -57,7 +57,7 @@ export function BergamoHeader({ ctaHref = "#planos", className, ...rest }: Berga
 
         <a
           href={ctaHref}
-          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold tracking-wide text-primary-foreground uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="bergamo-cta rounded-full px-4 py-2 text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           Quero o acervo
         </a>

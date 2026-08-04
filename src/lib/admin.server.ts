@@ -28,8 +28,8 @@ export async function assertSuperAdmin(userId: string): Promise<void> {
 export async function logAudit(params: {
   actorId: string;
   action: string;
-  entity?: string;
-  entityId?: string;
+  entity?: string | undefined;
+  entityId?: string | null | undefined;
   meta?: Record<string, unknown>;
 }): Promise<void> {
   const { data: profile } = await supabaseAdmin

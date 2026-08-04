@@ -1,64 +1,75 @@
-# Colocar o /bergamo para vender — Webhook Hotmart + /admin/integracoes
+# Bergamo — Hotmart Access Foundation (Rodada 1 de 2)
 
-## O que ja existe
-- Pagina de vendas `/bergamo` pronta (90 prompts, tema roxo/magenta).
-- Banco com `products` (bergamo cadastrado: R$ 37, co-producao 50%), `orders`, `product_access`, `profiles`, `leads`, `app_settings`, `admin_audit_log`.
-- Painel `/admin` completo (visao geral, produtos, usuarios, pedidos, e-mails, auditoria, configuracoes).
+Escopo unico: backend seguro de venda e liberacao de acesso do produto `bergamo` via Hotmart. Nada de Casa do Influencer AI, KawaiPay, creditos, assinaturas, marketplace ou geracao de IA.
 
-## O que esta faltando (lista completa)
-1. Nenhum endpoint de webhook existe — nao ha nada em `src/routes/api/`. A Hotmart nao tem para onde enviar a compra.
-2. Nenhuma tabela de integracoes — nao ha onde guardar a configuracao da Hotmart nem o log dos eventos recebidos.
-3. Sem pagina `/admin/integracoes` — nao existe no menu do painel.
-4. Sem liberacao automatica de acesso — hoje o acesso so e dado manualmente no painel.
-5. Sem e-mail de boas-vindas com credenciais — o comprador nao recebe nada apos pagar.
-6. Sem area de membros — mesmo com acesso liberado, o cliente nao tem onde consumir os prompts.
-7. Botoes de checkout do /bergamo sem link — falta a URL de checkout.
-8. Sem chave do provedor de e-mail — nenhum e-mail sai sem ela.
-9. Sem tratamento de reembolso, chargeback e cancelamento — o acesso precisa ser revogado automaticamente.
+## Estado atual verificado
+- Branch/SHA/working tree: nao posso reportar nem criar branch. Neste ambiente o git e gerenciado pela plataforma — nao executo `git` (branch, commit, push). Todo o trabalho vai para a branch que a Lovable ja usa, em um unico conjunto de mudancas revisavel antes de publicar. Se voce quiser branch e PR de verdade, conecte o repositorio no GitHub e eu descrevo o commit para voce aplicar la.
+- `AGENTS.md`: contem apenas o aviso da Lovable para nao reescrever historico publicado.
+- Migrations existentes: 3 (`20260804211555`, `20260804211619`, `20260804211643`) — criaram todo o schema do admin.
+- `products`: `id, slug, name, tagline, description, cover_url, price_cents, compare_at_cents, currency, checkout_url, checkout_url_secondary, status, is_coproduction, coproducer_name, coproducer_email, revenue_share_pct, sort_order, created_by, created_at, updated_at`. Linhas: `bergamo` (R$ 37,00 = 3700 centavos, is_coproduction true, share 50%) e o placeholder `influencers-creators` (nao sera tocado).
+- `orders`: `id, product_id, user_id, buyer_email, buyer_name, amount_cents, currency, status, provider, provider_ref, paid_at, notes, created_at, updated_at`.
+- `product_access`: `id, user_id, product_id, source, granted_by, expires_at, revoked_at, created_at, updated_at`.
+- `profiles`: `id, email, full_name, avatar_url, phone, notes, status, last_seen_at, created_at, updated_at`.
+- Auth: Supabase Auth com papeis em `user_roles` (`super_admin` ja aplicado a trafegocomkrisan@gmail.com); login por e-mail/senha em `/auth`; nenhum provedor social configurado.
+- `src/routes/api/` nao existe: hoje nao ha nenhum webhook.
 
-## O que vou construir
+## 1. Produto Bergamo
+Atualizar **somente** a linha `slug = 'bergamo'`:
+- `price_cents = 2700` (R$ 27,00), moeda BRL, pagamento unico.
+- Mantem `is_coproduction = true` e `coproducer_*` apenas como identificacao/relatorio. O app nao calcula, nao paga e nao distribui comissao — o split 50/50 e da Hotmart. O campo de percentual passa a ser tratado como informativo e sai dos calculos financeiros do painel.
+- `status` fica `draft` (nao vendendo) e vira `active` somente quando o checkout real estiver cadastrado.
+- Nenhuma outra linha de `products` e alterada.
 
-### 1. Banco (uma migracao)
-- `integrations`: uma linha por provedor (hotmart, kawaipay), com produto vinculado, ativo/inativo, ambiente (teste/producao) e os codigos de produto/oferta do provedor.
-- `webhook_events`: log de tudo que chega — provedor, tipo de evento, id unico do evento (idempotencia), payload cru, status (recebido/processado/erro), mensagem de erro e data. Impede processar a mesma compra duas vezes.
-- Os tokens do provedor ficam como secret do projeto, nunca no banco.
+## 2. Configuracao Hotmart (sem segredos)
+Nova tabela `payment_integrations`, uma linha por produto+provedor+ambiente, ligada por `product_id`:
+- `provider` ('hotmart'), `product_id` (FK obrigatoria), `environment` ('test' | 'production'), `external_product_id`, `external_offer_id`, `checkout_url`, `active`, `created_at`, `updated_at`.
+- Unicidade por (provider, product_id, environment) e separacao explicita teste/producao.
+- Nenhum token, hottok, chave ou segredo entra nesta tabela. O token da Hotmart fica exclusivamente como secret do projeto (`HOTMART_HOTTOK_PRODUCTION` e `HOTMART_HOTTOK_TEST`).
 
-### 2. Endpoint publico do webhook
-`/api/public/webhooks/hotmart` — URL estavel e imutavel, pronta para colar no painel da Hotmart:
-- Valida o token do header antes de qualquer processamento; token invalido devolve 401.
-- Grava o evento e ignora se aquele id ja foi processado.
-- Eventos tratados: compra aprovada/completa libera acesso; reembolso, chargeback, cancelamento e disputa revogam o acesso; boleto gerado e pagamento atrasado registram pedido pendente.
-- Na compra aprovada: encontra ou cria o usuario pelo e-mail (senha temporaria gerada), atualiza o perfil, grava em `orders` (provedor, valor, referencia da transacao), grava `product_access` com origem hotmart, dispara o e-mail de boas-vindas com link de acesso e credenciais, e registra na auditoria.
-- Responde 200 rapido para a Hotmart nao ficar re-tentando sem necessidade.
+## 3. Eventos de webhook
+Nova tabela `webhook_events`:
+- `provider`, `product_id`, `integration_id`, `external_event_id`, `event_type`, `payload` (jsonb), `processing_status` ('received' | 'processed' | 'ignored' | 'error'), `error_message`, `received_at`, `processed_at`.
+- Idempotencia por indice unico (provider, environment, external_event_id): o mesmo evento nunca e processado duas vezes.
+- RLS habilitada, zero leitura publica, zero leitura para `authenticated` comum — somente admin le; somente o servidor escreve.
+- O payload guardado e reduzido: apenas os campos necessarios (transacao, produto, oferta, status, e-mail e nome do comprador, valor). Nada de dados sensiveis extras nos logs de aplicacao — logs so com id do evento e status.
 
-### 3. Pagina `/admin/integracoes`
-Novo item no menu do painel, contendo:
-- Card Hotmart: ligar/desligar, escolher o produto (/bergamo), colar os codigos de produto e oferta, ver a URL do webhook com botao copiar, indicador de token configurado e um botao de teste que simula uma compra aprovada de ponta a ponta.
-- Card KawaiPay (para Casa dos Influencers IA): ja criado, desativado, pronto para a proxima etapa.
-- Ultimos eventos recebidos: tabela com data, provedor, evento, e-mail do comprador, status e detalhe do erro, com botao reprocessar.
-- Campo dos links de checkout do produto (principal e secundario), que alimentam os botoes do /bergamo.
+## 4. Endpoint
+`src/routes/api/public/webhooks/hotmart.ts`:
+- Aceita somente POST; qualquer outro metodo responde 405.
+- Valida o token do header (`x-hotmart-hottok`) contra o secret **antes de qualquer gravacao**; invalido = 401 e nada persistido.
+- Resolve a integracao pelo `external_product_id` + `external_offer_id` do payload. Se nao corresponder a uma integracao ativa do Bergamo, o evento e rejeitado (nao processado) — eventos de outros produtos ou outras ofertas nunca criam pedido nem acesso.
+- Grava o evento de forma idempotente e processa apenas tipos documentados pela Hotmart: `PURCHASE_APPROVED`, `PURCHASE_COMPLETE`, `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK`, `PURCHASE_CANCELED`, `PURCHASE_PROTEST`, `PURCHASE_BILLET_PRINTED`, `PURCHASE_DELAYED`, `PURCHASE_OUT_OF_SHOPPING_CART`. Tipos desconhecidos ficam registrados como `ignored`.
+- Responde 200 rapido nos casos tratados para a Hotmart nao re-tentar em excesso.
 
-### 4. Area de membros (minimo para poder vender)
-- `/membros`: lista os produtos que o usuario comprou.
-- `/membros/bergamo`: os 90 prompts liberados (sem blur), com busca, filtro por categoria e copiar prompt.
-- Sem acesso ao produto: tela de "voce ainda nao tem esse produto" com botao de compra.
+## 5. Compra aprovada
+Para compra valida do Bergamo:
+- Cria ou atualiza o pedido em `orders` (product_id do Bergamo, valor em centavos, provider `hotmart`, `provider_ref` = codigo da transacao, `status` pago, `paid_at`), casando pela transacao para nao duplicar.
+- Localiza o comprador pelo e-mail; se nao existir, cria a identidade **sem senha** (nenhuma senha gerada, nenhuma senha enviada) e o perfil correspondente.
+- Concede `product_access` **somente** ao produto Bergamo, `source = 'hotmart'`, limpando `revoked_at` em recompra.
+- Registra auditoria em `admin_audit_log` (ator sistema).
+- O acesso fica pronto para o comprador entrar depois por magic link / OTP / criacao de senha — o fluxo de login em si e da proxima rodada.
 
-### 5. Vendas ligadas na pagina
-- Botoes do `/bergamo` passam a usar o link de checkout cadastrado no admin (nada fixo no codigo), com fallback caso esteja vazio.
-- CTA discreto "ja comprei, quero acessar" apontando para o login.
+## 6. Revogacao
+Reembolso, chargeback, cancelamento e disputa com perda confirmada: atualiza o `status` do pedido e marca `revoked_at` **apenas** na linha de `product_access` do Bergamo daquele usuario. Acesso a qualquer outro produto permanece intacto.
 
-## O que preciso de voce
-1. Link de checkout da Hotmart do Arsenal Bergamo (e o segundo, se houver o plano de R$ 47).
-2. Codigos da Hotmart: id do produto e id da oferta.
-3. Token de postback da Hotmart — vou pedir como secret, voce cola e ele fica protegido.
-4. Chave do provedor de e-mail para os e-mails de boas-vindas sairem.
-5. Confirmar o remetente do e-mail (o dominio produtospuertomadero.com ja esta verificado).
+## 7. Eventos pendentes
+Boleto impresso, Pix/pagamento aguardando e pagamento atrasado criam ou atualizam pedido com status pendente e **nunca** concedem acesso.
 
-Pode mandar o que ja tiver: comeco pela migracao, pelo webhook e pela pagina de integracoes, que nao dependem desses valores, e depois so plugamos.
+## 8. Seguranca
+- Segredos somente como secrets do projeto (Lovable Cloud); service role somente no servidor, importado dentro do handler e depois da validacao do token.
+- Nenhuma senha criada ou enviada; nenhuma chave no frontend; nenhum token no banco.
+- RLS habilitada com GRANT explicito nas duas tabelas novas; politicas de leitura restritas a admin, escrita apenas via service role.
+- Nenhuma linha de codigo de KawaiPay; nenhum evento de outro produto processado.
 
-## Detalhes tecnicos
-- Webhook como server route em `src/routes/api/public/webhooks/hotmart.ts`; o prefixo `/api/public/*` dispensa auth de site, a seguranca e a validacao do token dentro do handler.
-- Escrita privilegiada com o cliente admin importado dentro do handler, apenas apos validar o token.
-- Idempotencia por indice unico no id do evento em `webhook_events`.
-- Funcoes do admin via `createServerFn` com `requireSupabaseAuth` e checagem de papel, no mesmo padrao de `admin.functions.ts`.
-- Todas as tabelas novas com RLS habilitada, GRANT explicito e politicas restritas a admin.
+## Fora de escopo desta rodada
+`/membros`, `/membros/bergamo`, `/admin/integracoes`, e-mail de boas-vindas, links definitivos de checkout, mudancas visuais em `/bergamo`, KawaiPay, Casa do Influencer AI, geracao de IA, creditos, assinaturas, outros produtos.
+
+## Validacao que vou executar
+Script de teste local disparando o endpoint com payloads sinteticos, cobrindo: token invalido rejeitado; produto diferente rejeitado; oferta diferente rejeitada; compra aprovada gerando pedido e acesso Bergamo; evento duplicado sem duplicacao; pagamento pendente sem acesso; reembolso revogando so o Bergamo; comprador com acesso a outro produto preservado; evento de ambiente de teste sem efeito na producao. Mais lint, TypeScript, build e conferencia de que `/bergamo`, `/admin/*` e `/auth` continuam funcionando. Ao final entrego a lista de arquivos, a migracao, a matriz de RLS, os eventos implementados, o resultado de cada teste e os riscos.
+
+## Dados que ainda preciso de voce
+1. `external_product_id` (id do produto na Hotmart) e `external_offer_id` (codigo da oferta de R$ 27).
+2. Hottok do postback da Hotmart — vou pedir como secret; voce cola e fica protegido (um para teste, um para producao, se voce tiver os dois).
+3. Link de checkout real da oferta de R$ 27 (sem ele o produto fica `draft`).
+
+Comeco pela migracao e pelo webhook, que nao dependem desses valores; depois so plugamos os codigos e ativamos.

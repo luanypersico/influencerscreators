@@ -15,14 +15,14 @@ export function BergamoHeader({ ctaHref = "#planos", className, ...rest }: Berga
       )}
       {...rest}
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
-        <a href="#topo" className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+      <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:flex md:justify-between">
+        <a href="#topo" className="flex min-w-0 items-center gap-2.5">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
             B
           </span>
-          <span className="font-display text-lg leading-none tracking-tight text-foreground">
+          <span className="truncate font-display text-base leading-none tracking-tight text-foreground sm:text-lg">
             Bergamo
-            <span className="ml-1.5 align-middle text-[10px] font-sans tracking-[0.2em] text-muted-foreground uppercase">
+            <span className="ml-1.5 hidden align-middle font-sans text-[10px] tracking-[0.2em] text-muted-foreground uppercase sm:inline">
               Creators
             </span>
           </span>
@@ -57,9 +57,10 @@ export function BergamoHeader({ ctaHref = "#planos", className, ...rest }: Berga
 
         <a
           href={ctaHref}
-          className="bergamo-cta rounded-full px-4 py-2 text-xs font-semibold tracking-wide uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="bergamo-cta shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
         >
-          Quero o acervo
+          <span className="sm:hidden">Quero o acervo</span>
+          <span className="hidden sm:inline">Quero o acervo</span>
         </a>
       </div>
     </header>

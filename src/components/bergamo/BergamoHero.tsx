@@ -43,9 +43,11 @@ export function BergamoHero() {
             ].map((item) => (
               <li key={item} className="flex min-w-0 items-start gap-2.5">
                 <span
-                  className="mt-1.5 size-4 shrink-0 rounded-full border border-primary/40 bg-primary/15"
+                  className="mt-1 grid size-4 shrink-0 place-items-center rounded-full border border-primary/40 bg-primary/15"
                   aria-hidden="true"
-                />
+                >
+                  <span className="size-1.5 rounded-full bg-primary" />
+                </span>
                 <span className="min-w-0">{item}</span>
               </li>
             ))}

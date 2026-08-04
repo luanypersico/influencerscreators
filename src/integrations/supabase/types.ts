@@ -304,6 +304,53 @@ export type Database = {
           },
         ]
       }
+      payment_integrations: {
+        Row: {
+          active: boolean
+          created_at: string
+          environment: string
+          external_offer_id: string | null
+          external_product_id: string | null
+          external_product_ucode: string | null
+          id: string
+          product_id: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          environment?: string
+          external_offer_id?: string | null
+          external_product_id?: string | null
+          external_product_ucode?: string | null
+          id?: string
+          product_id: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          environment?: string
+          external_offer_id?: string | null
+          external_product_id?: string | null
+          external_product_ucode?: string | null
+          id?: string
+          product_id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_integrations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_access: {
         Row: {
           created_at: string
@@ -313,6 +360,8 @@ export type Database = {
           product_id: string
           revoked_at: string | null
           source: string
+          status_reason: string | null
+          suspended_at: string | null
           updated_at: string
           user_id: string
         }
@@ -324,6 +373,8 @@ export type Database = {
           product_id: string
           revoked_at?: string | null
           source?: string
+          status_reason?: string | null
+          suspended_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -335,6 +386,8 @@ export type Database = {
           product_id?: string
           revoked_at?: string | null
           source?: string
+          status_reason?: string | null
+          suspended_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -530,11 +583,84 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_occurred_at: string | null
+          event_type: string
+          external_event_id: string
+          id: string
+          integration_id: string
+          payload: Json
+          processed_at: string | null
+          processing_status: string
+          product_id: string
+          provider: string
+          purchase_status: string | null
+          received_at: string
+          transaction_ref: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_occurred_at?: string | null
+          event_type: string
+          external_event_id: string
+          id?: string
+          integration_id: string
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string
+          product_id: string
+          provider: string
+          purchase_status?: string | null
+          received_at?: string
+          transaction_ref?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_occurred_at?: string | null
+          event_type?: string
+          external_event_id?: string
+          id?: string
+          integration_id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string
+          product_id?: string
+          provider?: string
+          purchase_status?: string | null
+          received_at?: string
+          transaction_ref?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "payment_integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      find_user_id_by_email: { Args: { _email: string }; Returns: string }
       has_product_access: {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean
@@ -548,6 +674,23 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      process_hotmart_event: {
+        Args: {
+          p_amount_cents?: number
+          p_buyer_email?: string
+          p_buyer_name?: string
+          p_event_occurred_at: string
+          p_event_type: string
+          p_external_event_id: string
+          p_integration_id: string
+          p_payload: Json
+          p_product_id: string
+          p_purchase_status: string
+          p_transaction_ref: string
+          p_user_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "super_admin" | "admin" | "coproducer" | "support" | "member"

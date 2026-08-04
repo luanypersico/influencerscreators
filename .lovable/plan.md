@@ -21,39 +21,50 @@ Atualizar **somente** a linha `slug = 'bergamo'`:
 - Nenhuma outra linha de `products` e alterada.
 
 ## 2. Configuracao Hotmart (sem segredos)
-Nova tabela `payment_integrations`, uma linha por produto+provedor+ambiente, ligada por `product_id`:
-- `provider` ('hotmart'), `product_id` (FK obrigatoria), `environment` ('test' | 'production'), `external_product_id`, `external_offer_id`, `checkout_url`, `active`, `created_at`, `updated_at`.
-- Unicidade por (provider, product_id, environment) e separacao explicita teste/producao.
-- Nenhum token, hottok, chave ou segredo entra nesta tabela. O token da Hotmart fica exclusivamente como secret do projeto (`HOTMART_HOTTOK_PRODUCTION` e `HOTMART_HOTTOK_TEST`).
+Nova tabela `payment_integrations`, ligada por `product_id`:
+- `provider` ('hotmart'), `product_id` (FK obrigatoria), `environment` ('test' | 'production'), `external_product_ucode`, `external_product_id`, `external_offer_id`, `checkout_url`, `active`, `created_at`, `updated_at`.
+- O ambiente vem **da integracao encontrada**, nunca do payload — a Hotmart nao garante campo de ambiente.
+- Indice unico parcial garantindo **uma unica integracao ativa** por (provider, external_product_ucode, external_offer_id), evitando duas integracoes ativas ambiguas para a mesma conta/produto/oferta.
+- Nenhum token, hottok, chave ou segredo entra nesta tabela. O Hottok e unico por conta Hotmart e fica apenas como secret do projeto: **`HOTMART_HOTTOK`** (um so; nada de variantes de teste/producao, a menos que existam duas contas Hotmart distintas de fato).
 
 ## 3. Eventos de webhook
 Nova tabela `webhook_events`:
 - `provider`, `product_id`, `integration_id`, `external_event_id`, `event_type`, `payload` (jsonb), `processing_status` ('received' | 'processed' | 'ignored' | 'error'), `error_message`, `received_at`, `processed_at`.
-- Idempotencia por indice unico (provider, environment, external_event_id): o mesmo evento nunca e processado duas vezes.
+- Idempotencia por `UNIQUE (integration_id, external_event_id)` — o ambiente ja esta implicito na integracao, sem coluna redundante.
+- Reforcos de integridade fora da tabela de eventos: `orders` unico por (`provider`, `provider_ref`) e `product_access` unico por (`user_id`, `product_id`). Assim `PURCHASE_APPROVED` e `PURCHASE_COMPLETE` da mesma transacao nunca geram pedido nem acesso duplicado.
 - RLS habilitada, zero leitura publica, zero leitura para `authenticated` comum — somente admin le; somente o servidor escreve.
 - O payload guardado e reduzido: apenas os campos necessarios (transacao, produto, oferta, status, e-mail e nome do comprador, valor). Nada de dados sensiveis extras nos logs de aplicacao — logs so com id do evento e status.
 
 ## 4. Endpoint
 `src/routes/api/public/webhooks/hotmart.ts`:
-- Aceita somente POST; qualquer outro metodo responde 405.
-- Valida o token do header (`x-hotmart-hottok`) contra o secret **antes de qualquer gravacao**; invalido = 401 e nada persistido.
-- Resolve a integracao pelo `external_product_id` + `external_offer_id` do payload. Se nao corresponder a uma integracao ativa do Bergamo, o evento e rejeitado (nao processado) — eventos de outros produtos ou outras ofertas nunca criam pedido nem acesso.
-- Grava o evento de forma idempotente e processa apenas tipos documentados pela Hotmart: `PURCHASE_APPROVED`, `PURCHASE_COMPLETE`, `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK`, `PURCHASE_CANCELED`, `PURCHASE_PROTEST`, `PURCHASE_BILLET_PRINTED`, `PURCHASE_DELAYED`, `PURCHASE_OUT_OF_SHOPPING_CART`. Tipos desconhecidos ficam registrados como `ignored`.
-- Responde 200 rapido nos casos tratados para a Hotmart nao re-tentar em excesso.
+- Aceita somente POST; qualquer outro metodo responde **405**.
+- Valida `X-HOTMART-HOTTOK` contra o secret **antes de qualquer gravacao**; invalido = **401**, nada persistido.
+- Identificacao lida do payload: `data.product.ucode` (identificador externo principal), `data.product.id` (auxiliar numerico), `data.purchase.offer.code` (oferta) e `data.purchase.transaction` (referencia unica do pedido).
+- Resolve a integracao ativa pelo ucode + codigo da oferta. Sem correspondencia com a integracao do Bergamo, o evento e registrado e rejeitado — eventos de outros produtos ou outras ofertas nunca criam pedido nem acesso.
+- Eventos oficiais do webhook de compras v2 processados: `PURCHASE_APPROVED`, `PURCHASE_COMPLETE`, `PURCHASE_BILLET_PRINTED`, `PURCHASE_DELAYED`, `PURCHASE_EXPIRED`, `PURCHASE_CANCELED`, `PURCHASE_PROTEST`, `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK`. Tipos desconhecidos ficam como `ignored`, **sem nenhum efeito comercial**.
+- Respostas: **200** somente depois de persistir e processar de forma duravel (evento concluido ou ignorado com seguranca); **500** em falha temporaria, para a Hotmart re-tentar.
 
-## 5. Compra aprovada
-Para compra valida do Bergamo:
-- Cria ou atualiza o pedido em `orders` (product_id do Bergamo, valor em centavos, provider `hotmart`, `provider_ref` = codigo da transacao, `status` pago, `paid_at`), casando pela transacao para nao duplicar.
-- Localiza o comprador pelo e-mail; se nao existir, cria a identidade **sem senha** (nenhuma senha gerada, nenhuma senha enviada) e o perfil correspondente.
-- Concede `product_access` **somente** ao produto Bergamo, `source = 'hotmart'`, limpando `revoked_at` em recompra.
-- Registra auditoria em `admin_audit_log` (ator sistema).
-- O acesso fica pronto para o comprador entrar depois por magic link / OTP / criacao de senha — o fluxo de login em si e da proxima rodada.
+## 5. Processamento atomico
+Pedido, `product_access`, perfil, auditoria e status do evento sao atualizados **numa unica funcao PostgreSQL segura (RPC)** chamada pelo servidor — tudo dentro da mesma transacao, sem estado parcial. Se a funcao falhar, nada e aplicado e o endpoint devolve 500 para nova tentativa.
 
-## 6. Revogacao
-Reembolso, chargeback, cancelamento e disputa com perda confirmada: atualiza o `status` do pedido e marca `revoked_at` **apenas** na linha de `product_access` do Bergamo daquele usuario. Acesso a qualquer outro produto permanece intacto.
+Na compra aprovada/completa do Bergamo:
+- Cria ou atualiza o pedido em `orders` (product_id do Bergamo, valor em centavos, provider `hotmart`, `provider_ref` = `data.purchase.transaction`, status pago, `paid_at`), casando pela transacao.
+- Localiza o comprador pelo e-mail; se nao existir, cria o registro Auth server-side **sem senha** (nenhuma senha gerada, nenhuma credencial enviada, nenhuma presuncao de que o comprador controla o e-mail) e o perfil correspondente.
+- Concede ou restaura `product_access` **somente** do Bergamo, `source = 'hotmart'`.
+- Registra auditoria (ator sistema) e marca o evento como processado.
+- O login efetivo do comprador (magic link, OTP ou convite) e Rodada 2.
+
+## 6. Mapeamento de status (nenhum evento toca outro produto)
+- `PURCHASE_APPROVED`, `PURCHASE_COMPLETE`: pedido pago, concede/restaura acesso.
+- `PURCHASE_BILLET_PRINTED`, `PURCHASE_DELAYED`: pedido pendente, sem acesso.
+- `PURCHASE_EXPIRED`, `PURCHASE_CANCELED`: pedido encerrado, sem acesso.
+- `PURCHASE_PROTEST`: marca disputa e **suspende temporariamente** o acesso — nao e tratado como perda definitiva e pode ser revertido.
+- `PURCHASE_REFUNDED`, `PURCHASE_CHARGEBACK`: revoga o acesso do Bergamo.
+- Reembolso parcial: marca o pedido para revisao manual, **sem revogacao automatica total**.
+- Toda revogacao/suspensao atinge exclusivamente a linha de `product_access` do Bergamo; acesso a outros produtos permanece intacto.
 
 ## 7. Eventos pendentes
-Boleto impresso, Pix/pagamento aguardando e pagamento atrasado criam ou atualizam pedido com status pendente e **nunca** concedem acesso.
+Boleto impresso e pagamento atrasado criam ou atualizam pedido pendente e **nunca** concedem acesso.
 
 ## 8. Seguranca
 - Segredos somente como secrets do projeto (Lovable Cloud); service role somente no servidor, importado dentro do handler e depois da validacao do token.
@@ -68,8 +79,8 @@ Boleto impresso, Pix/pagamento aguardando e pagamento atrasado criam ou atualiza
 Script de teste local disparando o endpoint com payloads sinteticos, cobrindo: token invalido rejeitado; produto diferente rejeitado; oferta diferente rejeitada; compra aprovada gerando pedido e acesso Bergamo; evento duplicado sem duplicacao; pagamento pendente sem acesso; reembolso revogando so o Bergamo; comprador com acesso a outro produto preservado; evento de ambiente de teste sem efeito na producao. Mais lint, TypeScript, build e conferencia de que `/bergamo`, `/admin/*` e `/auth` continuam funcionando. Ao final entrego a lista de arquivos, a migracao, a matriz de RLS, os eventos implementados, o resultado de cada teste e os riscos.
 
 ## Dados que ainda preciso de voce
-1. `external_product_id` (id do produto na Hotmart) e `external_offer_id` (codigo da oferta de R$ 27).
-2. Hottok do postback da Hotmart — vou pedir como secret; voce cola e fica protegido (um para teste, um para producao, se voce tiver os dois).
+1. `data.product.ucode` (ucode do produto na Hotmart), `data.product.id` (id numerico) e o codigo da oferta de R$ 27.
+2. Hottok da conta Hotmart — vou pedir como secret `HOTMART_HOTTOK`; voce cola e fica protegido.
 3. Link de checkout real da oferta de R$ 27 (sem ele o produto fica `draft`).
 
 Comeco pela migracao e pelo webhook, que nao dependem desses valores; depois so plugamos os codigos e ativamos.

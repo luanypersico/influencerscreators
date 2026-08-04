@@ -93,7 +93,7 @@ export function BergamoGallery() {
     <section id="acervo" className="mx-auto w-full max-w-6xl px-5 py-16 lg:py-24">
       <div className="max-w-2xl">
         <p className="text-[11px] font-medium tracking-[0.2em] text-primary uppercase">O acervo</p>
-        <h2 className="mt-3 font-display text-3xl leading-tight tracking-tight text-foreground sm:text-4xl">
+        <h2 className="mt-3 font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
           {BERGAMO_PROMPTS.length} cenas prontas, cada uma com o prompt exato que gerou a imagem.
         </h2>
         <p className="mt-4 text-muted-foreground">

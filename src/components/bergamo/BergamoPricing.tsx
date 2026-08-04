@@ -50,7 +50,7 @@ export function BergamoPricing() {
           <p className="text-[11px] font-medium tracking-[0.2em] text-primary uppercase">
             Escolha seu acesso
           </p>
-          <h2 className="mt-3 font-display text-3xl leading-tight tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-3 font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
             Um ensaio fotográfico custa mais que isso. Esse acervo gera infinitos.
           </h2>
         </div>

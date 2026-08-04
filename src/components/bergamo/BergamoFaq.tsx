@@ -27,7 +27,7 @@ export function BergamoFaq() {
     <>
       <section className="border-t border-border/60">
         <div className="mx-auto w-full max-w-3xl px-5 py-16 lg:py-24">
-          <h2 className="font-display text-3xl leading-tight tracking-tight text-foreground sm:text-4xl">
+          <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
             Perguntas frequentes
           </h2>
 

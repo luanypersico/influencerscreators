@@ -5,15 +5,6 @@
  * - Hottok validado antes de qualquer leitura de payload ou gravação.
  * - Hottok vem da integração cadastrada no admin (payment_integrations.hottok);
  *   a variável de ambiente HOTMART_HOTTOK continua aceita como alternativa.
-type IntegrationRow = {
-  id: string;
-  product_id: string;
-  external_product_ucode: string | null;
-  external_offer_id: string | null;
-  hottok: string | null;
-  products: { slug: string } | null;
-};
-
  * - Payload sem identificador de evento, transação, tipo, produto ou oferta => 400 sem persistir nada.
  * - Evento de outro produto/oferta => 200 ignorado, ZERO dado pessoal persistido ou logado.
  * - Usuário Auth só é criado/procurado em PURCHASE_APPROVED e PURCHASE_COMPLETE.
@@ -25,6 +16,15 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
+
+type IntegrationRow = {
+  id: string;
+  product_id: string;
+  external_product_ucode: string | null;
+  external_offer_id: string | null;
+  hottok: string | null;
+  products: { slug: string } | null;
+};
 
 const GRANTING_EVENTS = new Set(["PURCHASE_APPROVED", "PURCHASE_COMPLETE"]);
 

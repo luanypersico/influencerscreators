@@ -123,7 +123,7 @@ export async function createUser(params: {
   role: AdminRole;
   productIds: string[];
   notes?: string;
-}): Promise<{ userId: string; tempPassword?: string }> {
+}): Promise<{ userId: string; tempPassword?: string | undefined }> {
   const email = params.email.trim().toLowerCase();
   const tempPassword = params.password?.trim() || randomPassword();
 
@@ -326,7 +326,7 @@ export async function sendEmails(params: {
     actorId: params.actorId,
     action: "email.send",
     entity: "email",
-    entityId: params.campaignId ?? null ?? undefined,
+    entityId: params.campaignId ?? undefined,
     meta: { sent, failed, subject: params.subject },
   });
 

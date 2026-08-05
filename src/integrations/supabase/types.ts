@@ -412,6 +412,7 @@ export type Database = {
           image_url: string | null
           is_free: boolean
           item_type: string
+          member_image_path: string | null
           product_id: string
           prompt: string | null
           published_at: string | null
@@ -431,6 +432,7 @@ export type Database = {
           image_url?: string | null
           is_free?: boolean
           item_type?: string
+          member_image_path?: string | null
           product_id: string
           prompt?: string | null
           published_at?: string | null
@@ -450,6 +452,7 @@ export type Database = {
           image_url?: string | null
           is_free?: boolean
           item_type?: string
+          member_image_path?: string | null
           product_id?: string
           prompt?: string | null
           published_at?: string | null

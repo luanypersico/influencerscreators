@@ -9,7 +9,7 @@ import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
 import { SessionWatermark } from "@/components/security/SessionWatermark";
 import { SiteButton } from "@/components/site/SiteButton";
 import { useSession } from "@/hooks/useAuth";
-import { memberGetBergamoContentFn } from "@/lib/member.functions";
+import { memberGetBergamoContentFn, memberGetBergamoImageSignedUrlFn } from "@/lib/member.functions";
 import type { BergamoMemberItem } from "@/lib/member.server";
 import { cn } from "@/lib/utils";
 
@@ -46,8 +46,49 @@ function AccessNotFound() {
 
 function PromptCard({ item }: { item: BergamoMemberItem }) {
   const [open, setOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageExpired, setImageExpired] = useState(false);
+  const getSignedUrl = useServerFn(memberGetBergamoImageSignedUrlFn);
+
+  // Nunca carrega a imagem no mount — só quando o comprador pede,
+  // exatamente uma URL de curta duração por vez, nunca as 90 juntas.
+  useEffect(() => {
+    return () => setImageUrl(null);
+  }, []);
+
+  async function handleViewImage() {
+    if (imageUrl) {
+      setImageUrl(null);
+      return;
+    }
+    setImageLoading(true);
+    setImageExpired(false);
+    try {
+      const url = await getSignedUrl({ data: { code: item.code } });
+      setImageUrl(url ?? null);
+      if (!url) setImageExpired(true);
+    } finally {
+      setImageLoading(false);
+    }
+  }
+
   return (
-    <article className="rounded-2xl border border-border bg-card">
+    <article className="overflow-hidden rounded-2xl border border-border bg-card">
+      {imageUrl && (
+        <div className="relative aspect-[4/5] overflow-hidden bg-secondary/40">
+          <img
+            src={imageUrl}
+            alt={`Imagem gerada com o prompt ${item.title}`}
+            className="h-full w-full object-cover"
+            onError={() => {
+              setImageUrl(null);
+              setImageExpired(true);
+            }}
+          />
+        </div>
+      )}
+
       <div className="p-4">
         <div className="flex items-center justify-between gap-2">
           <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-[10px] font-medium tracking-wide text-foreground/80 uppercase">
@@ -66,7 +107,23 @@ function PromptCard({ item }: { item: BergamoMemberItem }) {
           </p>
         )}
 
+        {imageExpired && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            A imagem expirou ou não está disponível. Peça uma nova abaixo.
+          </p>
+        )}
+
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          {item.hasPrivateImage && (
+            <button
+              type="button"
+              onClick={handleViewImage}
+              disabled={imageLoading}
+              className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60 hover:text-primary disabled:opacity-60"
+            >
+              {imageLoading ? "Gerando..." : imageUrl ? "Ocultar imagem" : "Ver imagem"}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

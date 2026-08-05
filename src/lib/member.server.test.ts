@@ -22,6 +22,7 @@ let itemRows: Array<{
   description: string | null;
   prompt: string | null;
   status: string;
+  member_image_path?: string | null;
 }> = [];
 let updateRows: Array<{
   id: string;
@@ -61,17 +62,30 @@ mock.module("@/integrations/supabase/client.server", () => ({
       }
       if (table === "product_items") {
         return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                order: () =>
-                  Promise.resolve({
-                    data: itemRows.filter((i) => i.status === "published"),
-                    error: null,
-                  }),
-              }),
-            }),
-          }),
+          select: () => {
+            const filters: Array<[string, unknown]> = [];
+            const builder = {
+              eq: (col: string, val: unknown) => {
+                filters.push([col, val]);
+                return builder;
+              },
+              order: () =>
+                Promise.resolve({
+                  data: itemRows.filter((i) => i.status === "published"),
+                  error: null,
+                }),
+              maybeSingle: () => {
+                const codeFilter = filters.find(([c]) => c === "code")?.[1];
+                const statusFilter = filters.find(([c]) => c === "status")?.[1];
+                const row =
+                  itemRows.find(
+                    (i) => i.code === codeFilter && (!statusFilter || i.status === statusFilter),
+                  ) ?? null;
+                return Promise.resolve({ data: row, error: null });
+              },
+            };
+            return builder;
+          },
         };
       }
       if (table === "profiles") {
@@ -111,9 +125,31 @@ mock.module("@/integrations/supabase/client.server", () => ({
 const {
   getMyProductAccess,
   getBergamoMemberContent,
+  getBergamoMemberImageSignedUrl,
   maskEmailForWatermark,
   shortIdForWatermark,
 } = await import("./member.server");
+
+type SignedUrlResult = { data: { signedUrl: string } | null; error: { message: string } | null };
+let signedUrlResult: SignedUrlResult = {
+  data: { signedUrl: "https://signed.example.com/bergamo/05.jpg?token=abc" },
+  error: null,
+};
+let lastSignedUrlCall: { bucket: string; path: string; ttlSeconds: number } | null = null;
+
+function makeFakeUserClient(): Parameters<typeof getBergamoMemberImageSignedUrl>[1] {
+  const fake = {
+    storage: {
+      from: (bucket: string) => ({
+        createSignedUrl: (path: string, ttlSeconds: number) => {
+          lastSignedUrlCall = { bucket, path, ttlSeconds };
+          return Promise.resolve(signedUrlResult);
+        },
+      }),
+    },
+  };
+  return fake as unknown as Parameters<typeof getBergamoMemberImageSignedUrl>[1];
+}
 
 describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece como ativo", () => {
   beforeEach(() => {
@@ -262,6 +298,126 @@ describe("getBergamoMemberContent — gate obrigatório de has_product_access", 
     expect(content?.watermark.maskedEmail).not.toContain("lucas.krisan");
     expect(content?.watermark.shortId).toBe("11111111");
     expect(content?.watermark.shortId).not.toBe("11111111-2222-3333-4444-555555555555");
+  });
+
+  it("hasPrivateImage é true só quando member_image_path existe, e o caminho em si nunca é devolvido", async () => {
+    hasProductAccessResult = true;
+    itemRows = [
+      {
+        code: "01",
+        title: "Com imagem",
+        category: "Executivo",
+        description: null,
+        prompt: "prompt",
+        status: "published",
+        member_image_path: "bergamo/01.jpg",
+      },
+      {
+        code: "04",
+        title: "Sem imagem",
+        category: "Executivo",
+        description: null,
+        prompt: "prompt",
+        status: "published",
+        member_image_path: null,
+      },
+    ];
+    const content = await getBergamoMemberContent("user-ativo");
+    const withImage = content?.items.find((i) => i.code === "01");
+    const withoutImage = content?.items.find((i) => i.code === "04");
+    expect(withImage?.hasPrivateImage).toBe(true);
+    expect(withoutImage?.hasPrivateImage).toBe(false);
+    expect(JSON.stringify(content)).not.toContain("bergamo/01.jpg");
+  });
+});
+
+describe("getBergamoMemberImageSignedUrl — duas camadas independentes de autorização", () => {
+  beforeEach(() => {
+    hasProductAccessResult = false;
+    signedUrlResult = {
+      data: { signedUrl: "https://signed.example.com/bergamo/05.jpg?token=abc" },
+      error: null,
+    };
+    lastSignedUrlCall = null;
+    itemRows = [
+      {
+        code: "05",
+        title: "Item bloqueado",
+        category: "Executivo",
+        description: null,
+        prompt: null,
+        status: "published",
+        member_image_path: "bergamo/05.jpg",
+      },
+      {
+        code: "06",
+        title: "Item sem imagem mapeada",
+        category: "Executivo",
+        description: null,
+        prompt: null,
+        status: "published",
+        member_image_path: null,
+      },
+      {
+        code: "07",
+        title: "Item em draft",
+        category: "Executivo",
+        description: null,
+        prompt: null,
+        status: "draft",
+        member_image_path: "bergamo/07.jpg",
+      },
+    ];
+  });
+
+  it("usuário sem acesso ativo nunca chega a chamar o Storage", async () => {
+    hasProductAccessResult = false;
+    const url = await getBergamoMemberImageSignedUrl("user-sem-acesso", makeFakeUserClient(), "05");
+    expect(url).toBeNull();
+    expect(lastSignedUrlCall).toBeNull();
+  });
+
+  it("comprador ativo recebe a signed URL para um item com imagem mapeada", async () => {
+    hasProductAccessResult = true;
+    const url = await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "05");
+    expect(url).toBe("https://signed.example.com/bergamo/05.jpg?token=abc");
+  });
+
+  it("chama createSignedUrl com o bucket, caminho e TTL corretos (curto, 60–120s)", async () => {
+    hasProductAccessResult = true;
+    await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "05");
+    expect(lastSignedUrlCall).not.toBeNull();
+    expect(lastSignedUrlCall?.bucket).toBe("bergamo-member-images");
+    expect(lastSignedUrlCall?.path).toBe("bergamo/05.jpg");
+    expect(lastSignedUrlCall?.ttlSeconds).toBeGreaterThanOrEqual(60);
+    expect(lastSignedUrlCall?.ttlSeconds).toBeLessThanOrEqual(120);
+  });
+
+  it("item sem member_image_path nunca chama o Storage", async () => {
+    hasProductAccessResult = true;
+    const url = await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "06");
+    expect(url).toBeNull();
+    expect(lastSignedUrlCall).toBeNull();
+  });
+
+  it("item em draft nunca gera signed URL, mesmo com member_image_path preenchido", async () => {
+    hasProductAccessResult = true;
+    const url = await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "07");
+    expect(url).toBeNull();
+    expect(lastSignedUrlCall).toBeNull();
+  });
+
+  it("código inexistente nunca gera signed URL", async () => {
+    hasProductAccessResult = true;
+    const url = await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "99");
+    expect(url).toBeNull();
+  });
+
+  it("rejeição da RLS de Storage (segunda camada) nunca vaza detalhe do erro — só null", async () => {
+    hasProductAccessResult = true;
+    signedUrlResult = { data: null, error: { message: "new row violates row-level security policy" } };
+    const url = await getBergamoMemberImageSignedUrl("user-ativo", makeFakeUserClient(), "05");
+    expect(url).toBeNull();
   });
 });
 

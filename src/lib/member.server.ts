@@ -1,4 +1,10 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
+
+const BERGAMO_IMAGE_BUCKET = "bergamo-member-images";
+const BERGAMO_IMAGE_SIGNED_URL_TTL_SECONDS = 90;
 
 export interface MyProductAccessRow {
   productId: string;
@@ -39,6 +45,13 @@ export interface BergamoMemberItem {
   category: string;
   description: string | null;
   prompt: string;
+  /**
+   * Nunca o caminho do arquivo nem uma URL — só um booleano dizendo se
+   * existe imagem privada mapeada para este item, para a interface
+   * decidir se mostra o botão "Ver imagem". A URL de verdade só é
+   * gerada sob demanda por getBergamoMemberImageSignedUrl.
+   */
+  hasPrivateImage: boolean;
 }
 
 export interface BergamoMemberUpdate {
@@ -89,19 +102,10 @@ export function shortIdForWatermark(userId: string): string {
  * atualização é incluído na resposta (não é filtrado no cliente, nunca
  * chega a existir na resposta do servidor).
  *
- * Nota de escopo (ainda sem imagem "limpa" aqui): a imagem exigiria um
- * arquivo servido só para quem tem acesso — testamos importar uma
- * versão limpa via um módulo *.server.ts (import.meta.glob + `?url`) e
- * descobrimos que o build do Vite para o bundle do servidor NÃO copia
- * fisicamente o arquivo para .output/public quando o único caminho até
- * ele passa por código server-only (só o build do cliente faz essa
- * cópia) — o link gerado ficaria quebrado em produção. A alternativa
- * seria embutir os 90 arquivos como base64 no bundle do servidor (risco
- * real de estourar limite de tamanho de script no Cloudflare Workers)
- * ou usar um bucket privado do Supabase Storage com URL assinada por
- * requisição — que não pôde ser provisionado nesta rodada por falta de
- * SUPABASE_SERVICE_ROLE_KEY neste ambiente. Registrado para a próxima
- * rodada; o prompt completo continua sendo entregue normalmente.
+ * A imagem "limpa" não vem aqui: só um booleano (hasPrivateImage) por
+ * item. O caminho real do arquivo nunca sai desta função — a URL
+ * assinada é gerada sob demanda por getBergamoMemberImageSignedUrl,
+ * carregada só quando o comprador abre o card, nunca as 90 de uma vez.
  */
 export async function getBergamoMemberContent(
   userId: string,
@@ -129,7 +133,7 @@ export async function getBergamoMemberContent(
   const [itemsResult, updatesResult] = await Promise.all([
     supabaseAdmin
       .from("product_items")
-      .select("code, title, category, description, prompt")
+      .select("code, title, category, description, prompt, member_image_path")
       .eq("product_id", product.id)
       .eq("status", "published")
       .order("sort_order", { ascending: true }),
@@ -150,6 +154,7 @@ export async function getBergamoMemberContent(
     category: row.category ?? "",
     description: row.description,
     prompt: row.prompt ?? "",
+    hasPrivateImage: Boolean(row.member_image_path),
   }));
 
   const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort(
@@ -170,4 +175,62 @@ export async function getBergamoMemberContent(
   };
 
   return { items, categories, updates, watermark };
+}
+
+/**
+ * URL assinada de curta duração (90s) para a imagem privada de um item
+ * do Bergamo — gerada sob demanda, nunca em lote.
+ *
+ * Duas camadas independentes de autorização, de propósito:
+ *  1. Checagem em código com supabaseAdmin (has_product_access) — só
+ *     para decidir rápido se vale a pena tentar, com mensagem de erro
+ *     genérica.
+ *  2. A geração da URL em si roda no cliente AUTENTICADO COMO O PRÓPRIO
+ *     USUÁRIO (supabaseAsUser, o mesmo client que o middleware de auth
+ *     já monta a partir do JWT da requisição) — isso aciona de verdade
+ *     a policy de RLS de storage.objects (a mesma has_product_access),
+ *     não só a checagem em JS. Se as duas algum dia divergirem, quem
+ *     decide é a RLS: sem sessão de comprador ativo, a Storage API
+ *     recusa a signed URL mesmo que o código JS erre.
+ *
+ * Nunca usa getPublicUrl, nunca usa supabaseAdmin para o passo de
+ * assinatura, nunca aceita product_id do cliente (sempre resolvido
+ * aqui a partir do slug 'bergamo').
+ */
+export async function getBergamoMemberImageSignedUrl(
+  userId: string,
+  supabaseAsUser: SupabaseClient<Database>,
+  code: string,
+): Promise<string | null> {
+  const { data: product } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .eq("slug", "bergamo")
+    .maybeSingle();
+  if (!product) return null;
+
+  const { data: hasAccess, error: accessError } = await supabaseAdmin.rpc("has_product_access", {
+    _user_id: userId,
+    _product_id: product.id,
+  });
+  if (accessError) throw new Error(accessError.message);
+  if (!hasAccess) return null;
+
+  const { data: item } = await supabaseAdmin
+    .from("product_items")
+    .select("member_image_path")
+    .eq("product_id", product.id)
+    .eq("code", code)
+    .eq("status", "published")
+    .maybeSingle();
+  if (!item?.member_image_path) return null;
+
+  const { data, error } = await supabaseAsUser.storage
+    .from(BERGAMO_IMAGE_BUCKET)
+    .createSignedUrl(item.member_image_path, BERGAMO_IMAGE_SIGNED_URL_TTL_SECONDS);
+  // Erro aqui (inclusive rejeição de RLS) nunca é detalhado ao cliente
+  // — só "não disponível", para não confirmar/negar existência do
+  // objeto a quem não deveria nem estar perguntando.
+  if (error || !data?.signedUrl) return null;
+  return data.signedUrl;
 }

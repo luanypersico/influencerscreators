@@ -48,10 +48,39 @@ export interface BergamoMemberUpdate {
   publishedAt: string | null;
 }
 
+export interface BergamoMemberWatermark {
+  maskedEmail: string;
+  shortId: string;
+  label: string;
+}
+
 export interface BergamoMemberContent {
   items: BergamoMemberItem[];
   categories: string[];
   updates: BergamoMemberUpdate[];
+  watermark: BergamoMemberWatermark;
+}
+
+/**
+ * Mascara o e-mail para a marca-d'água (dissuasão contra print/
+ * compartilhamento) — mostra só os 2 primeiros caracteres do usuário
+ * local, nunca o domínio inteiro do usuário nem o e-mail completo.
+ */
+export function maskEmailForWatermark(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return "conta protegida";
+  const visibleLength = Math.min(2, local.length);
+  const visible = local.slice(0, visibleLength);
+  const masked = "*".repeat(Math.max(local.length - visibleLength, 3));
+  return `${visible}${masked}@${domain}`;
+}
+
+/**
+ * Identificador curto e não sensível para a marca-d'água — nunca o UUID
+ * completo (apenas os 8 primeiros caracteres hexadecimais, sem hifens).
+ */
+export function shortIdForWatermark(userId: string): string {
+  return userId.replace(/-/g, "").slice(0, 8);
 }
 
 /**
@@ -59,6 +88,20 @@ export interface BergamoMemberContent {
  * usuário não tem acesso ativo — nesse caso NENHUM item, prompt ou
  * atualização é incluído na resposta (não é filtrado no cliente, nunca
  * chega a existir na resposta do servidor).
+ *
+ * Nota de escopo (ainda sem imagem "limpa" aqui): a imagem exigiria um
+ * arquivo servido só para quem tem acesso — testamos importar uma
+ * versão limpa via um módulo *.server.ts (import.meta.glob + `?url`) e
+ * descobrimos que o build do Vite para o bundle do servidor NÃO copia
+ * fisicamente o arquivo para .output/public quando o único caminho até
+ * ele passa por código server-only (só o build do cliente faz essa
+ * cópia) — o link gerado ficaria quebrado em produção. A alternativa
+ * seria embutir os 90 arquivos como base64 no bundle do servidor (risco
+ * real de estourar limite de tamanho de script no Cloudflare Workers)
+ * ou usar um bucket privado do Supabase Storage com URL assinada por
+ * requisição — que não pôde ser provisionado nesta rodada por falta de
+ * SUPABASE_SERVICE_ROLE_KEY neste ambiente. Registrado para a próxima
+ * rodada; o prompt completo continua sendo entregue normalmente.
  */
 export async function getBergamoMemberContent(
   userId: string,
@@ -76,6 +119,12 @@ export async function getBergamoMemberContent(
   });
   if (accessError) throw new Error(accessError.message);
   if (!hasAccess) return null;
+
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
 
   const [itemsResult, updatesResult] = await Promise.all([
     supabaseAdmin
@@ -114,5 +163,11 @@ export async function getBergamoMemberContent(
     publishedAt: row.published_at,
   }));
 
-  return { items, categories, updates };
+  const watermark: BergamoMemberWatermark = {
+    maskedEmail: maskEmailForWatermark(profile?.email ?? ""),
+    shortId: shortIdForWatermark(userId),
+    label: "Uso pessoal",
+  };
+
+  return { items, categories, updates, watermark };
 }

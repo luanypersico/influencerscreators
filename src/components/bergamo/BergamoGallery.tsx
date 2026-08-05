@@ -8,13 +8,18 @@ import { cn } from "@/lib/utils";
 
 function PromptTile({ item }: { item: BergamoCatalogItem }) {
   const [open, setOpen] = useState(false);
+  const locked = !item.isFree || !item.prompt;
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-border/70 bg-card">
       <div className="bergamo-vignette relative aspect-[4/5] overflow-hidden">
         <img
           src={bergamoImage(item.code)}
-          alt={`Exemplo de imagem gerada: ${item.title}`}
+          alt={
+            locked
+              ? `Prévia bloqueada do prompt ${item.title}`
+              : `Exemplo de imagem gerada: ${item.title}`
+          }
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
         />
@@ -24,6 +29,19 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
         <span className="absolute top-3 right-3 z-10 font-mono text-[10px] text-foreground/70">
           #{item.code}
         </span>
+
+        {locked && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pt-10 pb-4 text-center">
+            <Lock className="size-4 text-white/90" aria-hidden="true" />
+            <p className="text-[11px] font-medium text-white/90">Disponível na área de membros</p>
+            <a
+              href="#planos"
+              className="pointer-events-auto rounded-full bg-white px-3.5 py-1.5 text-[11px] font-semibold text-black transition-transform hover:-translate-y-0.5"
+            >
+              Desbloquear os 90 prompts
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 p-4">

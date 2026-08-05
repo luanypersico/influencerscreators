@@ -5,6 +5,8 @@ import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CopyButton } from "@/components/CopyButton";
+import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
+import { SessionWatermark } from "@/components/security/SessionWatermark";
 import { SiteButton } from "@/components/site/SiteButton";
 import { useSession } from "@/hooks/useAuth";
 import { memberGetBergamoContentFn } from "@/lib/member.functions";
@@ -45,31 +47,35 @@ function AccessNotFound() {
 function PromptCard({ item }: { item: BergamoMemberItem }) {
   const [open, setOpen] = useState(false);
   return (
-    <article className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-[10px] font-medium tracking-wide text-foreground/80 uppercase">
-          {item.category}
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">#{item.code}</span>
-      </div>
-      <h3 className="mt-3 text-base font-semibold text-foreground">{item.title}</h3>
-      {item.description && <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>}
+    <article className="rounded-2xl border border-border bg-card">
+      <div className="p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="rounded-full bg-secondary/60 px-2.5 py-1 text-[10px] font-medium tracking-wide text-foreground/80 uppercase">
+            {item.category}
+          </span>
+          <span className="font-mono text-[10px] text-muted-foreground">#{item.code}</span>
+        </div>
+        <h3 className="mt-3 text-base font-semibold text-foreground">{item.title}</h3>
+        {item.description && (
+          <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>
+        )}
 
-      {open && (
-        <p className="mt-3 max-h-64 overflow-y-auto rounded-xl bg-secondary/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-foreground/90">
-          {item.prompt}
-        </p>
-      )}
+        {open && (
+          <p className="mt-3 max-h-64 overflow-y-auto rounded-xl bg-secondary/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-foreground/90">
+            {item.prompt}
+          </p>
+        )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60 hover:text-primary"
-        >
-          {open ? "Ocultar prompt" : "Ver prompt completo"}
-        </button>
-        <CopyButton value={item.prompt} />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60 hover:text-primary"
+          >
+            {open ? "Ocultar prompt" : "Ver prompt completo"}
+          </button>
+          <CopyButton value={item.prompt} />
+        </div>
       </div>
     </article>
   );
@@ -127,7 +133,9 @@ function BergamoMembersPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border px-6 py-10">
+      <PrivacyCurtain />
+      <SessionWatermark watermark={content.watermark} />
+      <header className="protected-content border-b border-border px-6 py-10">
         <div className="mx-auto max-w-5xl">
           <p className="text-xs font-medium tracking-[0.2em] text-primary uppercase">
             Área de membros
@@ -141,7 +149,7 @@ function BergamoMembersPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-10">
+      <main className="protected-content mx-auto max-w-5xl px-6 py-10">
         {content.updates.length > 0 && (
           <section className="mb-10">
             <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase">
@@ -215,6 +223,7 @@ function BergamoMembersPage() {
           </p>
         )}
       </main>
+      <p className="print-protected-notice">Conteúdo protegido — impressão desativada</p>
     </div>
   );
 }

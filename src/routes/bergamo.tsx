@@ -9,6 +9,7 @@ import { BergamoGallery } from "@/components/bergamo/BergamoGallery";
 import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
+import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
 import { getBergamoPublicCatalogFn } from "@/lib/bergamo-catalog.functions";
 
 const TITLE = "Bergamo Creators — 90 prompts de retrato realista com IA";
@@ -43,14 +44,16 @@ function BergamoPage() {
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
+      <PrivacyCurtain />
       <BergamoHeader />
-      <main>
+      <main className="protected-content">
         <BergamoHero items={items} totalCount={totalCount} />
         <BergamoGallery items={items} categories={categories} />
         <BergamoBonus />
         <BergamoPricing totalCount={totalCount} />
         <BergamoFaq />
       </main>
+      <p className="print-protected-notice">Conteúdo protegido — impressão desativada</p>
       <Toaster />
     </div>
   );

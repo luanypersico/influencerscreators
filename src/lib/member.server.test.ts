@@ -30,6 +30,7 @@ let updateRows: Array<{
   published_at: string | null;
   status: string;
 }> = [];
+let profileEmail = "comprador@example.com";
 
 mock.module("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
@@ -73,6 +74,15 @@ mock.module("@/integrations/supabase/client.server", () => ({
           }),
         };
       }
+      if (table === "profiles") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: { email: profileEmail }, error: null }),
+            }),
+          }),
+        };
+      }
       if (table === "product_updates") {
         return {
           select: () => ({
@@ -98,7 +108,12 @@ mock.module("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const { getMyProductAccess, getBergamoMemberContent } = await import("./member.server");
+const {
+  getMyProductAccess,
+  getBergamoMemberContent,
+  maskEmailForWatermark,
+  shortIdForWatermark,
+} = await import("./member.server");
 
 describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece como ativo", () => {
   beforeEach(() => {
@@ -152,6 +167,7 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
 describe("getBergamoMemberContent — gate obrigatório de has_product_access", () => {
   beforeEach(() => {
     hasProductAccessResult = false;
+    profileEmail = "comprador@example.com";
     itemRows = [
       {
         code: "01",
@@ -235,5 +251,48 @@ describe("getBergamoMemberContent — gate obrigatório de has_product_access", 
     const content = await getBergamoMemberContent("user-ativo");
     expect(content?.updates).toHaveLength(1);
     expect(content?.updates[0]?.id).toBe("u1");
+  });
+
+  it("a marca-d'água vem da sessão do servidor: e-mail mascarado e um id curto, nunca o UUID completo", async () => {
+    hasProductAccessResult = true;
+    profileEmail = "lucas.krisan@example.com";
+    const content = await getBergamoMemberContent("11111111-2222-3333-4444-555555555555");
+    expect(content?.watermark.label).toBe("Uso pessoal");
+    expect(content?.watermark.maskedEmail).toBe("lu**********@example.com");
+    expect(content?.watermark.maskedEmail).not.toContain("lucas.krisan");
+    expect(content?.watermark.shortId).toBe("11111111");
+    expect(content?.watermark.shortId).not.toBe("11111111-2222-3333-4444-555555555555");
+  });
+});
+
+describe("maskEmailForWatermark", () => {
+  it("mantém só os 2 primeiros caracteres do usuário local e o domínio inteiro", () => {
+    expect(maskEmailForWatermark("ana@example.com")).toBe("an***@example.com");
+  });
+
+  it("nunca deixa a parte mascarada visivelmente curta (mínimo de 3 asteriscos)", () => {
+    const masked = maskEmailForWatermark("ab@example.com");
+    expect(masked).toBe("ab***@example.com");
+  });
+
+  it("nunca contém o e-mail completo original", () => {
+    const email = "comprador.real@dominio.com";
+    expect(maskEmailForWatermark(email)).not.toContain(email);
+  });
+
+  it("entrada sem @ não quebra e não expõe o valor original", () => {
+    expect(maskEmailForWatermark("valor-invalido")).toBe("conta protegida");
+  });
+});
+
+describe("shortIdForWatermark", () => {
+  it("retorna só os 8 primeiros caracteres hexadecimais, sem hífens", () => {
+    expect(shortIdForWatermark("abcdef12-3456-7890-abcd-ef1234567890")).toBe("abcdef12");
+  });
+
+  it("nunca é igual ao UUID completo", () => {
+    const uuid = "abcdef12-3456-7890-abcd-ef1234567890";
+    expect(shortIdForWatermark(uuid)).not.toBe(uuid);
+    expect(shortIdForWatermark(uuid).length).toBeLessThan(uuid.length);
   });
 });

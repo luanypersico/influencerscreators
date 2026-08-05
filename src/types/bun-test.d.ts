@@ -30,8 +30,11 @@ declare module "bun:test" {
     toThrow(expected?: unknown): void;
     toBeInstanceOf(expected: unknown): void;
     toHaveLength(length: number): void;
+    toHaveProperty(path: string, value?: unknown): void;
     toBeGreaterThan(value: number): void;
     toBeGreaterThanOrEqual(value: number): void;
+    toBeLessThan(value: number): void;
+    toBeLessThanOrEqual(value: number): void;
     not: Matchers<T>;
     rejects: {
       toThrow(expected?: unknown): Promise<void>;

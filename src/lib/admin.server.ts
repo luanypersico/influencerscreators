@@ -1,6 +1,55 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type AdminRole = "super_admin" | "admin" | "coproducer" | "support" | "member";
+export type CollaboratorRole = "coproducer" | "editor" | "support";
+
+/**
+ * Vínculo entre usuário e produto — escopado, nunca global. Só super_admin
+ * cria ou revoga. A unicidade por (product_id, user_id) é garantida pelo
+ * banco (UNIQUE constraint), não só por esta checagem.
+ */
+export async function createProductCollaborator(params: {
+  actorId: string;
+  productId: string;
+  userId: string;
+  role: CollaboratorRole;
+}): Promise<void> {
+  const { error } = await supabaseAdmin.from("product_collaborators").insert({
+    product_id: params.productId,
+    user_id: params.userId,
+    role: params.role,
+    created_by: params.actorId,
+  });
+  if (error) throw new Error(error.message);
+
+  await logAudit({
+    actorId: params.actorId,
+    action: "collaborator.create",
+    entity: "product_collaborators",
+    entityId: `${params.productId}:${params.userId}`,
+    meta: { role: params.role },
+  });
+}
+
+export async function revokeProductCollaborator(params: {
+  actorId: string;
+  productId: string;
+  userId: string;
+}): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("product_collaborators")
+    .update({ status: "revoked", revoked_at: new Date().toISOString() })
+    .eq("product_id", params.productId)
+    .eq("user_id", params.userId);
+  if (error) throw new Error(error.message);
+
+  await logAudit({
+    actorId: params.actorId,
+    action: "collaborator.revoke",
+    entity: "product_collaborators",
+    entityId: `${params.productId}:${params.userId}`,
+  });
+}
 
 /** Garante que o chamador tem papel administrativo. Retorna os papéis dele. */
 export async function assertAdmin(userId: string): Promise<AdminRole[]> {
@@ -57,7 +106,15 @@ export type AdminUserRow = {
   notes: string | null;
   created_at: string;
   roles: AdminRole[];
-  products: { id: string; product_id: string; slug: string; name: string; source: string; expires_at: string | null; revoked_at: string | null }[];
+  products: {
+    id: string;
+    product_id: string;
+    slug: string;
+    name: string;
+    source: string;
+    expires_at: string | null;
+    revoked_at: string | null;
+  }[];
   last_sign_in_at: string | null;
   email_confirmed: boolean;
 };
@@ -65,9 +122,15 @@ export type AdminUserRow = {
 export async function listUsers(search?: string): Promise<AdminUserRow[]> {
   const [{ data: profiles, error }, { data: roles }, { data: access }, { data: products }] =
     await Promise.all([
-      supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }).limit(500),
+      supabaseAdmin
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500),
       supabaseAdmin.from("user_roles").select("user_id, role"),
-      supabaseAdmin.from("product_access").select("id, user_id, product_id, source, expires_at, revoked_at"),
+      supabaseAdmin
+        .from("product_access")
+        .select("id, user_id, product_id, source, expires_at, revoked_at"),
       supabaseAdmin.from("products").select("id, slug, name"),
     ]);
 
@@ -77,7 +140,10 @@ export async function listUsers(search?: string): Promise<AdminUserRow[]> {
   const authMap = new Map(
     (authList.data?.users ?? []).map((u) => [
       u.id,
-      { last_sign_in_at: u.last_sign_in_at ?? null, email_confirmed: Boolean(u.email_confirmed_at) },
+      {
+        last_sign_in_at: u.last_sign_in_at ?? null,
+        email_confirmed: Boolean(u.email_confirmed_at),
+      },
     ]),
   );
   const productMap = new Map((products ?? []).map((p) => [p.id, p]));
@@ -85,10 +151,11 @@ export async function listUsers(search?: string): Promise<AdminUserRow[]> {
   const term = (search ?? "").trim().toLowerCase();
 
   return (profiles ?? [])
-    .filter((p) =>
-      !term ||
-      p.email.toLowerCase().includes(term) ||
-      (p.full_name ?? "").toLowerCase().includes(term),
+    .filter(
+      (p) =>
+        !term ||
+        p.email.toLowerCase().includes(term) ||
+        (p.full_name ?? "").toLowerCase().includes(term),
     )
     .map((p) => ({
       id: p.id,
@@ -146,9 +213,12 @@ export async function createUser(params: {
   }
 
   for (const productId of params.productIds) {
-    await supabaseAdmin
-      .from("product_access")
-      .upsert({ user_id: userId, product_id: productId, source: "manual", granted_by: params.actorId });
+    await supabaseAdmin.from("product_access").upsert({
+      user_id: userId,
+      product_id: productId,
+      source: "manual",
+      granted_by: params.actorId,
+    });
   }
 
   await logAudit({
@@ -166,7 +236,12 @@ export async function deleteUser(params: { actorId: string; userId: string }): P
   if (params.actorId === params.userId) throw new Error("Você não pode excluir a própria conta.");
   const { error } = await supabaseAdmin.auth.admin.deleteUser(params.userId);
   if (error) throw new Error(error.message);
-  await logAudit({ actorId: params.actorId, action: "user.delete", entity: "user", entityId: params.userId });
+  await logAudit({
+    actorId: params.actorId,
+    action: "user.delete",
+    entity: "user",
+    entityId: params.userId,
+  });
 }
 
 export async function setUserPassword(params: {
@@ -179,7 +254,12 @@ export async function setUserPassword(params: {
     password: params.password,
   });
   if (error) throw new Error(error.message);
-  await logAudit({ actorId: params.actorId, action: "user.password_reset", entity: "user", entityId: params.userId });
+  await logAudit({
+    actorId: params.actorId,
+    action: "user.password_reset",
+    entity: "user",
+    entityId: params.userId,
+  });
 }
 
 export async function setUserRole(params: {
@@ -383,20 +463,37 @@ export type AdminOverview = {
   revenueCents: number;
   leads: number;
   accessCount: number;
-  products: { id: string; slug: string; name: string; status: string; buyers: number; revenueCents: number; isCoproduction: boolean; sharePct: number }[];
+  products: {
+    id: string;
+    slug: string;
+    name: string;
+    status: string;
+    buyers: number;
+    revenueCents: number;
+    isCoproduction: boolean;
+    sharePct: number;
+  }[];
   revenueByDay: { day: string; cents: number }[];
 };
 
 export async function getOverview(): Promise<AdminOverview> {
-  const [{ data: profiles }, { data: roles }, { data: orders }, { data: leads }, { data: access }, { data: products }] =
-    await Promise.all([
-      supabaseAdmin.from("profiles").select("id"),
-      supabaseAdmin.from("user_roles").select("role"),
-      supabaseAdmin.from("orders").select("product_id, amount_cents, status, paid_at, created_at"),
-      supabaseAdmin.from("leads").select("id"),
-      supabaseAdmin.from("product_access").select("product_id"),
-      supabaseAdmin.from("products").select("id, slug, name, status, is_coproduction, revenue_share_pct"),
-    ]);
+  const [
+    { data: profiles },
+    { data: roles },
+    { data: orders },
+    { data: leads },
+    { data: access },
+    { data: products },
+  ] = await Promise.all([
+    supabaseAdmin.from("profiles").select("id"),
+    supabaseAdmin.from("user_roles").select("role"),
+    supabaseAdmin.from("orders").select("product_id, amount_cents, status, paid_at, created_at"),
+    supabaseAdmin.from("leads").select("id"),
+    supabaseAdmin.from("product_access").select("product_id"),
+    supabaseAdmin
+      .from("products")
+      .select("id, slug, name, status, is_coproduction, revenue_share_pct"),
+  ]);
 
   const paid = (orders ?? []).filter((o) => o.status === "paid");
   const byDay = new Map<string, number>();
@@ -420,7 +517,9 @@ export async function getOverview(): Promise<AdminOverview> {
       isCoproduction: p.is_coproduction,
       sharePct: Number(p.revenue_share_pct ?? 0),
       buyers: (access ?? []).filter((a) => a.product_id === p.id).length,
-      revenueCents: paid.filter((o) => o.product_id === p.id).reduce((s, o) => s + o.amount_cents, 0),
+      revenueCents: paid
+        .filter((o) => o.product_id === p.id)
+        .reduce((s, o) => s + o.amount_cents, 0),
     })),
     revenueByDay: [...byDay.entries()]
       .sort(([a], [b]) => a.localeCompare(b))

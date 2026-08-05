@@ -1,13 +1,20 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 
-import { BERGAMO_PROMPTS } from "@/data/bergamo";
+import { bergamoImage } from "@/data/bergamoAssets";
+import type { BergamoCatalogItem } from "@/lib/bergamo-catalog.server";
 
 const HERO_IDS = ["01", "04", "26", "40", "71", "13"] as const;
 
-/** Hero editorial: promessa + mosaico com imagens reais do acervo. */
-export function BergamoHero() {
-  const showcase = HERO_IDS.map((id) => BERGAMO_PROMPTS.find((p) => p.id === id)).filter(
-    (p): p is (typeof BERGAMO_PROMPTS)[number] => Boolean(p),
+export interface BergamoHeroProps {
+  items: BergamoCatalogItem[];
+  totalCount: number;
+}
+
+/** Hero editorial: promessa + mosaico com imagens reais do acervo (dados do backend, sem prompt completo no bundle). */
+export function BergamoHero({ items, totalCount }: BergamoHeroProps) {
+  const byCode = new Map(items.map((item) => [item.code, item]));
+  const showcase = HERO_IDS.map((id) => byCode.get(id)).filter((item): item is BergamoCatalogItem =>
+    Boolean(item),
   );
 
   return (
@@ -20,7 +27,7 @@ export function BergamoHero() {
         <div className="min-w-0">
           <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-medium tracking-[0.18em] text-primary uppercase sm:text-[11px]">
             <Sparkles className="size-3.5" aria-hidden="true" />
-            {BERGAMO_PROMPTS.length} prompts profissionais
+            {totalCount} prompts profissionais
           </span>
 
           <h1 className="mt-5 font-display text-[2rem] leading-[1.02] tracking-tight text-balance text-foreground sm:mt-6 sm:text-5xl lg:text-6xl">
@@ -87,11 +94,11 @@ export function BergamoHero() {
               >
                 {column.map((item, index) => (
                   <figure
-                    key={item.id}
+                    key={item.code}
                     className="bergamo-vignette group relative overflow-hidden rounded-2xl border border-border/70 bg-card transition-transform duration-500 hover:-translate-y-1 sm:rounded-3xl"
                   >
                     <img
-                      src={item.image}
+                      src={bergamoImage(item.code)}
                       alt={`Resultado gerado com o prompt ${item.title}`}
                       width={760}
                       height={1018}

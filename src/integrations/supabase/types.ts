@@ -406,47 +406,200 @@ export type Database = {
           category: string | null
           code: string | null
           created_at: string
+          created_by: string | null
+          description: string | null
           id: string
           image_url: string | null
           is_free: boolean
+          item_type: string
           product_id: string
           prompt: string | null
+          published_at: string | null
           sort_order: number
           status: string
           title: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           category?: string | null
           code?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
+          item_type?: string
           product_id: string
           prompt?: string | null
+          published_at?: string | null
           sort_order?: number
           status?: string
           title: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           category?: string | null
           code?: string | null
           created_at?: string
+          created_by?: string | null
+          description?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
+          item_type?: string
           product_id?: string
           prompt?: string | null
+          published_at?: string | null
           sort_order?: number
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_item_revisions: {
+        Row: {
+          category: string | null
+          changed_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          item_id: string
+          prompt: string | null
+          reason: string | null
+          status: string
+          title: string
+          version: number
+        }
+        Insert: {
+          category?: string | null
+          changed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_id: string
+          prompt?: string | null
+          reason?: string | null
+          status: string
+          title: string
+          version: number
+        }
+        Update: {
+          category?: string | null
+          changed_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_id?: string
+          prompt?: string | null
+          reason?: string | null
+          status?: string
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_item_revisions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "product_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_updates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          product_id: string
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id: string
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id?: string
+          published_at?: string | null
           status?: string
           title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "product_items_product_id_fkey"
+            foreignKeyName: "product_updates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_collaborators: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          product_id: string
+          revoked_at: string | null
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id: string
+          revoked_at?: string | null
+          role: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id?: string
+          revoked_at?: string | null
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_collaborators_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

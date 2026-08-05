@@ -1,6 +1,5 @@
 import { Check } from "lucide-react";
 
-import { BERGAMO_PROMPTS } from "@/data/bergamo";
 import { cn } from "@/lib/utils";
 
 export interface BergamoPlan {
@@ -12,27 +11,34 @@ export interface BergamoPlan {
   checkoutUrl: string;
 }
 
-const PLANS: BergamoPlan[] = [
-  {
-    name: "Acervo Completo",
-    price: "R$ 27",
-    caption: "Pagamento único · acesso vitalício",
-    highlight: true,
-    features: [
-      `Todos os ${BERGAMO_PROMPTS.length} prompts do acervo`,
-      "Imagens de referência de cada cena",
-      "Guia de foto de referência",
-      "Módulo anti-cara-de-IA completo",
-      "Playbook de publicação e carrosséis",
-      "Prompts de vídeo e motion control",
-      "Atualizações vitalícias do acervo",
-    ],
-    checkoutUrl: "#",
-  },
-];
+function buildPlans(totalCount: number): BergamoPlan[] {
+  return [
+    {
+      name: "Acervo Completo",
+      price: "R$ 27",
+      caption: "Pagamento único · acesso vitalício",
+      highlight: true,
+      features: [
+        `Todos os ${totalCount} prompts do acervo`,
+        "Imagens de referência de cada cena",
+        "Guia de foto de referência",
+        "Módulo anti-cara-de-IA completo",
+        "Playbook de publicação e carrosséis",
+        "Prompts de vídeo e motion control",
+        "Atualizações vitalícias do acervo",
+      ],
+      checkoutUrl: "#",
+    },
+  ];
+}
+
+export interface BergamoPricingProps {
+  totalCount: number;
+}
 
 /** Planos lado a lado, com destaque no completo. */
-export function BergamoPricing() {
+export function BergamoPricing({ totalCount }: BergamoPricingProps) {
+  const plans = buildPlans(totalCount);
   return (
     <section id="planos" className="bergamo-glow relative">
       <div className="mx-auto w-full max-w-5xl px-5 py-16 lg:py-24">
@@ -46,12 +52,14 @@ export function BergamoPricing() {
         </div>
 
         <div className="mx-auto mt-12 grid max-w-md grid-cols-1 gap-6">
-          {PLANS.map((plan) => (
+          {plans.map((plan) => (
             <article
               key={plan.name}
               className={cn(
                 "relative flex flex-col rounded-3xl border bg-card p-7",
-                plan.highlight ? "border-primary/70 shadow-2xl shadow-primary/5" : "border-border/70",
+                plan.highlight
+                  ? "border-primary/70 shadow-2xl shadow-primary/5"
+                  : "border-border/70",
               )}
             >
               {plan.highlight && (
@@ -79,9 +87,7 @@ export function BergamoPricing() {
                 href={plan.checkoutUrl}
                 className={cn(
                   "mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  plan.highlight
-                    ? "bergamo-cta"
-                    : "border border-border text-foreground",
+                  plan.highlight ? "bergamo-cta" : "border border-border text-foreground",
                 )}
               >
                 Garantir acesso

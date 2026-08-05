@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BergamoRouteImport } from './routes/bergamo'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
+import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -24,6 +25,9 @@ import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
+import { Route as CoprodutorBergamoRouteImport } from './routes/coprodutor.bergamo'
+import { Route as MembrosIndexRouteImport } from './routes/membros.index'
+import { Route as MembrosBergamoRouteImport } from './routes/membros.bergamo'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
 import { Route as ApiPublicWebhooksHotmartRouteImport } from './routes/api/public/webhooks/hotmart'
@@ -50,6 +54,11 @@ const BergamoRoute = BergamoRouteImport.update({
 const LaboratorioRoute = LaboratorioRouteImport.update({
   id: '/laboratorio',
   path: '/laboratorio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembrosRoute = MembrosRouteImport.update({
+  id: '/membros',
+  path: '/membros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
@@ -102,6 +111,21 @@ const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AdminRoute,
 } as any)
+const CoprodutorBergamoRoute = CoprodutorBergamoRouteImport.update({
+  id: '/coprodutor/bergamo',
+  path: '/coprodutor/bergamo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembrosIndexRoute = MembrosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MembrosRoute,
+} as any)
+const MembrosBergamoRoute = MembrosBergamoRouteImport.update({
+  id: '/bergamo',
+  path: '/bergamo',
+  getParentRoute: () => MembrosRoute,
+} as any)
 const PublicInfluencersIndexRoute = PublicInfluencersIndexRouteImport.update({
   id: '/influencers/',
   path: '/influencers/',
@@ -125,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
+  '/membros': typeof MembrosRouteWithChildren
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -133,7 +158,10 @@ export interface FileRoutesByFullPath {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
+  '/membros/bergamo': typeof MembrosBergamoRoute
   '/admin/': typeof AdminIndexRoute
+  '/membros/': typeof MembrosIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
@@ -150,8 +178,11 @@ export interface FileRoutesByTo {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
+  '/membros/bergamo': typeof MembrosBergamoRoute
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/membros': typeof MembrosIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers': typeof PublicInfluencersIndexRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
@@ -163,6 +194,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
+  '/membros': typeof MembrosRouteWithChildren
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
@@ -171,8 +203,11 @@ export interface FileRoutesById {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
+  '/membros/bergamo': typeof MembrosBergamoRoute
   '/_public/': typeof PublicIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/membros/': typeof MembrosIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/_public/influencers/': typeof PublicInfluencersIndexRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
@@ -185,6 +220,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bergamo'
     | '/laboratorio'
+    | '/membros'
     | '/como-funciona'
     | '/admin/auditoria'
     | '/admin/configuracoes'
@@ -193,7 +229,10 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/coprodutor/bergamo'
+    | '/membros/bergamo'
     | '/admin/'
+    | '/membros/'
     | '/influencers/$slug'
     | '/influencers/'
     | '/api/public/webhooks/hotmart'
@@ -210,8 +249,11 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/coprodutor/bergamo'
+    | '/membros/bergamo'
     | '/'
     | '/admin'
+    | '/membros'
     | '/influencers/$slug'
     | '/influencers'
     | '/api/public/webhooks/hotmart'
@@ -222,6 +264,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/bergamo'
     | '/laboratorio'
+    | '/membros'
     | '/_public/como-funciona'
     | '/admin/auditoria'
     | '/admin/configuracoes'
@@ -230,8 +273,11 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/coprodutor/bergamo'
+    | '/membros/bergamo'
     | '/_public/'
     | '/admin/'
+    | '/membros/'
     | '/_public/influencers/$slug'
     | '/_public/influencers/'
     | '/api/public/webhooks/hotmart'
@@ -243,6 +289,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BergamoRoute: typeof BergamoRoute
   LaboratorioRoute: typeof LaboratorioRoute
+  MembrosRoute: typeof MembrosRouteWithChildren
+  CoprodutorBergamoRoute: typeof CoprodutorBergamoRoute
   ApiPublicWebhooksHotmartRoute: typeof ApiPublicWebhooksHotmartRoute
 }
 
@@ -281,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/laboratorio'
       fullPath: '/laboratorio'
       preLoaderRoute: typeof LaboratorioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membros': {
+      id: '/membros'
+      path: '/membros'
+      fullPath: '/membros'
+      preLoaderRoute: typeof MembrosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_public/': {
@@ -353,6 +408,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsuariosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/coprodutor/bergamo': {
+      id: '/coprodutor/bergamo'
+      path: '/coprodutor/bergamo'
+      fullPath: '/coprodutor/bergamo'
+      preLoaderRoute: typeof CoprodutorBergamoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membros/': {
+      id: '/membros/'
+      path: '/'
+      fullPath: '/membros/'
+      preLoaderRoute: typeof MembrosIndexRouteImport
+      parentRoute: typeof MembrosRoute
+    }
+    '/membros/bergamo': {
+      id: '/membros/bergamo'
+      path: '/bergamo'
+      fullPath: '/membros/bergamo'
+      preLoaderRoute: typeof MembrosBergamoRouteImport
+      parentRoute: typeof MembrosRoute
+    }
     '/_public/influencers/': {
       id: '/_public/influencers/'
       path: '/influencers'
@@ -418,14 +494,39 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface MembrosRouteChildren {
+  MembrosBergamoRoute: typeof MembrosBergamoRoute
+  MembrosIndexRoute: typeof MembrosIndexRoute
+}
+
+const MembrosRouteChildren: MembrosRouteChildren = {
+  MembrosBergamoRoute: MembrosBergamoRoute,
+  MembrosIndexRoute: MembrosIndexRoute,
+}
+
+const MembrosRouteWithChildren =
+  MembrosRoute._addFileChildren(MembrosRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   BergamoRoute: BergamoRoute,
   LaboratorioRoute: LaboratorioRoute,
+  MembrosRoute: MembrosRouteWithChildren,
+  CoprodutorBergamoRoute: CoprodutorBergamoRoute,
   ApiPublicWebhooksHotmartRoute: ApiPublicWebhooksHotmartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

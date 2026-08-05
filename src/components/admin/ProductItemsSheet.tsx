@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { BERGAMO_PROMPTS } from "@/data/bergamo";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ProductItemsSheet({
@@ -23,7 +22,6 @@ export function ProductItemsSheet({
 }) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [busy, setBusy] = useState(false);
 
   const { data: items } = useQuery({
     queryKey: ["admin", "product_items", productId],
@@ -68,38 +66,10 @@ export function ProductItemsSheet({
     else await refresh();
   }
 
-  async function importBergamo() {
-    if (!productId) return;
-    setBusy(true);
-    try {
-      const existing = new Set((items ?? []).map((i) => i.code));
-      const rows = BERGAMO_PROMPTS.filter((p) => !existing.has(p.id)).map((p, index) => ({
-        product_id: productId,
-        code: p.id,
-        title: p.title,
-        category: p.category,
-        prompt: p.prompt,
-        image_url: p.image,
-        is_free: ["01", "26", "79"].includes(p.id),
-        sort_order: index + 1,
-      }));
-      if (rows.length === 0) {
-        toast.info("O catálogo já está sincronizado.");
-        return;
-      }
-      const { error } = await supabase.from("product_items").insert(rows);
-      if (error) throw error;
-      toast.success(`${rows.length} prompts importados.`);
-      await refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao importar.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const filtered = (items ?? []).filter((i) =>
-    !search.trim() || `${i.code ?? ""} ${i.title} ${i.category ?? ""}`.toLowerCase().includes(search.toLowerCase()),
+  const filtered = (items ?? []).filter(
+    (i) =>
+      !search.trim() ||
+      `${i.code ?? ""} ${i.title} ${i.category ?? ""}`.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -120,9 +90,9 @@ export function ProductItemsSheet({
             Adicionar item
           </Button>
           {productSlug === "bergamo" && (
-            <Button size="sm" variant="secondary" onClick={importBergamo} disabled={busy}>
-              {busy ? "Importando..." : "Importar catálogo Bergamo"}
-            </Button>
+            <span className="text-xs text-muted-foreground">
+              Conteúdo do Bergamo agora é gerenciado no workspace do coprodutor.
+            </span>
           )}
           <span className="text-xs text-muted-foreground">{items?.length ?? 0} itens</span>
         </div>
@@ -182,7 +152,9 @@ export function ProductItemsSheet({
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum item. Importe o catálogo ou adicione manualmente.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhum item. Importe o catálogo ou adicione manualmente.
+            </p>
           )}
         </div>
       </SheetContent>

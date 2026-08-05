@@ -2,21 +2,18 @@ import { Lock, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CopyButton } from "@/components/CopyButton";
-import { BERGAMO_CATEGORIES, BERGAMO_PROMPTS, type BergamoPrompt } from "@/data/bergamo";
+import { bergamoImage } from "@/data/bergamoAssets";
+import type { BergamoCatalogItem } from "@/lib/bergamo-catalog.server";
 import { cn } from "@/lib/utils";
 
-/** Prompts liberados como amostra pública; o restante fica bloqueado. */
-const FREE_SAMPLE_IDS = new Set(["01", "26", "79"]);
-
-function PromptTile({ item }: { item: BergamoPrompt }) {
+function PromptTile({ item }: { item: BergamoCatalogItem }) {
   const [open, setOpen] = useState(false);
-  const unlocked = FREE_SAMPLE_IDS.has(item.id);
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-border/70 bg-card">
       <div className="bergamo-vignette relative aspect-[4/5] overflow-hidden">
         <img
-          src={item.image}
+          src={bergamoImage(item.code)}
           alt={`Exemplo de imagem gerada: ${item.title}`}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
@@ -25,7 +22,7 @@ function PromptTile({ item }: { item: BergamoPrompt }) {
           {item.category}
         </span>
         <span className="absolute top-3 right-3 z-10 font-mono text-[10px] text-foreground/70">
-          #{item.id}
+          #{item.code}
         </span>
       </div>
 
@@ -34,7 +31,7 @@ function PromptTile({ item }: { item: BergamoPrompt }) {
           {item.title}
         </h3>
 
-        {unlocked ? (
+        {item.isFree && item.prompt ? (
           <>
             {open && (
               <p className="max-h-48 overflow-y-auto rounded-2xl bg-secondary/60 p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
@@ -71,32 +68,36 @@ function PromptTile({ item }: { item: BergamoPrompt }) {
   );
 }
 
-/** Galeria com busca e filtro por categoria sobre o acervo real do produto. */
-export function BergamoGallery() {
+export interface BergamoGalleryProps {
+  items: BergamoCatalogItem[];
+  categories: string[];
+}
+
+/** Galeria com busca e filtro por categoria sobre o catálogo real do produto (servido pelo backend). */
+export function BergamoGallery({ items, categories }: BergamoGalleryProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("Todos");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return BERGAMO_PROMPTS.filter((item) => {
+    return items.filter((item) => {
       const matchesCategory = category === "Todos" || item.category === category;
       const matchesQuery =
         q.length === 0 ||
         item.title.toLowerCase().includes(q) ||
-        item.category.toLowerCase().includes(q) ||
-        item.prompt.toLowerCase().includes(q);
+        item.category.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [query, category]);
+  }, [items, query, category]);
 
   return (
     <section id="acervo" className="mx-auto w-full max-w-6xl px-5 py-16 lg:py-24">
       <div className="max-w-2xl">
         <p className="text-[11px] font-medium tracking-[0.2em] text-primary uppercase">O acervo</p>
         <h2 className="mt-3 font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
-          {BERGAMO_PROMPTS.length} cenas prontas, cada uma com o prompt exato que gerou a imagem.
+          {items.length} cenas prontas, cada uma com o prompt exato que gerou a imagem.
         </h2>
-        <p className="mt-4 text-muted-foreground">
+        <p className="mt-4 max-w-md text-muted-foreground">
           Navegue pelo acervo real. Três prompts estão liberados para você testar antes de decidir.
         </p>
       </div>
@@ -111,14 +112,14 @@ export function BergamoGallery() {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por cena, luz, roupa, cenário..."
+            placeholder="Buscar por cena, categoria..."
             aria-label="Buscar prompts do acervo"
             className="w-full rounded-full border border-input bg-card py-3 pr-4 pl-11 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           />
         </label>
 
         <div id="categorias" className="flex flex-wrap gap-2">
-          {["Todos", ...BERGAMO_CATEGORIES].map((item) => (
+          {["Todos", ...categories].map((item) => (
             <button
               key={item}
               type="button"
@@ -139,7 +140,7 @@ export function BergamoGallery() {
 
       <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((item) => (
-          <PromptTile key={item.id} item={item} />
+          <PromptTile key={item.code} item={item} />
         ))}
       </div>
 

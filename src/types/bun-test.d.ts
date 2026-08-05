@@ -24,10 +24,14 @@ declare module "bun:test" {
     toEqual(expected: unknown): void;
     toBeNull(): void;
     toBeUndefined(): void;
+    toBeDefined(): void;
     toContain(expected: unknown): void;
     toMatch(expected: RegExp | string): void;
     toThrow(expected?: unknown): void;
     toBeInstanceOf(expected: unknown): void;
+    toHaveLength(length: number): void;
+    toBeGreaterThan(value: number): void;
+    toBeGreaterThanOrEqual(value: number): void;
     not: Matchers<T>;
     rejects: {
       toThrow(expected?: unknown): Promise<void>;

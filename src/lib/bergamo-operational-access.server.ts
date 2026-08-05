@@ -25,22 +25,39 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-/** Um usuário só pode virar conta de validação se não tiver nenhum papel
- * administrativo nem vínculo de colaborador — nunca reaproveita uma conta
- * de equipe. */
-async function assertUserHasNoElevatedAccess(userId: string): Promise<void> {
-  const [{ data: roles }, { data: collaborator }] = await Promise.all([
-    supabaseAdmin.from("user_roles").select("role").eq("user_id", userId),
-    supabaseAdmin
-      .from("product_collaborators")
-      .select("id")
-      .eq("user_id", userId)
-      .maybeSingle(),
-  ]);
-  if ((roles ?? []).length > 0 || collaborator) {
-    throw new Error(
-      "Este e-mail já pertence a uma conta com papel administrativo ou vínculo de colaborador. Use outro e-mail exclusivo.",
-    );
+/**
+ * Um usuário só pode ser (re)usado como conta de validação quando é
+ * comprovadamente dedicado a isso — nunca reaproveita uma conta com
+ * qualquer histórico comercial ou papel de equipe. Isso vale tanto para
+ * decidir se um e-mail existente pode virar a conta de validação quanto
+ * para decidir se essa conta pode ser excluída do Auth: nenhuma role,
+ * nenhum vínculo de colaborador, nenhum pedido (orders), nenhum
+ * product_access fora do par (Bergamo, source = manual_validation).
+ * Um comprador real do Bergamo (source 'hotmart'/'purchase'/'manual'/
+ * 'trial'/'gift'/'coproducer_preview') ou de qualquer outro produto
+ * nunca passa por esta checagem.
+ */
+async function assertUserIsExclusiveToValidation(
+  userId: string,
+  bergamoProductId: string,
+): Promise<void> {
+  const [{ data: roles }, { data: collaborator }, { data: orders }, { data: access }] =
+    await Promise.all([
+      supabaseAdmin.from("user_roles").select("role").eq("user_id", userId),
+      supabaseAdmin.from("product_collaborators").select("id").eq("user_id", userId).maybeSingle(),
+      supabaseAdmin.from("orders").select("id").eq("user_id", userId).limit(1),
+      supabaseAdmin.from("product_access").select("product_id, source").eq("user_id", userId),
+    ]);
+
+  const hasElevatedRole = (roles ?? []).length > 0;
+  const hasCollaboratorLink = Boolean(collaborator);
+  const hasCommercialOrder = (orders ?? []).length > 0;
+  const hasForeignAccess = (access ?? []).some(
+    (row) => row.product_id !== bergamoProductId || row.source !== "manual_validation",
+  );
+
+  if (hasElevatedRole || hasCollaboratorLink || hasCommercialOrder || hasForeignAccess) {
+    throw new Error("Use um e-mail exclusivo para a conta de validação.");
   }
 }
 
@@ -108,7 +125,7 @@ export async function provisionHotmartValidationAccount(
   let restored = false;
 
   if (existingId) {
-    await assertUserHasNoElevatedAccess(existingId);
+    await assertUserIsExclusiveToValidation(existingId, productId);
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(existingId, {
       password: params.password,
       email_confirm: params.confirmEmail,
@@ -226,9 +243,16 @@ export async function revokeHotmartValidationAccess(params: {
   });
 }
 
-/** Exclusão do usuário do Auth — sempre uma segunda confirmação explícita,
- * separada da revogação de acesso. Recusa excluir qualquer conta que não
- * seja exclusivamente uma conta de validação (sem papel, sem vínculo). */
+/**
+ * Exclusão do usuário do Auth — sempre uma segunda confirmação explícita,
+ * separada da revogação de acesso. Recusa excluir qualquer conta que
+ * tenha qualquer histórico comercial (pedido, acesso comprado, acesso a
+ * outro produto, role, vínculo de colaborador) — só exclui uma conta
+ * cujo ÚNICO product_access existente seja (Bergamo, manual_validation).
+ * Antes de excluir o usuário do Auth, revoga esse acesso de validação e
+ * registra a auditoria; nunca apaga pedido, nunca apaga acesso comprado,
+ * nunca apaga um usuário real de cliente.
+ */
 export async function deleteHotmartValidationUser(params: {
   actorId: string;
   userId: string;
@@ -240,28 +264,48 @@ export async function deleteHotmartValidationUser(params: {
   }
   const productId = await resolveBergamoProductId();
 
-  const [{ data: access, error: accessError }, { data: roles }, { data: collaborator }] =
-    await Promise.all([
-      supabaseAdmin
-        .from("product_access")
-        .select("id, source")
-        .eq("user_id", params.userId)
-        .eq("product_id", productId)
-        .maybeSingle(),
-      supabaseAdmin.from("user_roles").select("role").eq("user_id", params.userId),
-      supabaseAdmin
-        .from("product_collaborators")
-        .select("id")
-        .eq("user_id", params.userId)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: allAccess, error: accessError },
+    { data: roles },
+    { data: collaborator },
+    { data: orders },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("product_access")
+      .select("id, product_id, source")
+      .eq("user_id", params.userId),
+    supabaseAdmin.from("user_roles").select("role").eq("user_id", params.userId),
+    supabaseAdmin
+      .from("product_collaborators")
+      .select("id")
+      .eq("user_id", params.userId)
+      .maybeSingle(),
+    supabaseAdmin.from("orders").select("id").eq("user_id", params.userId).limit(1),
+  ]);
   if (accessError) throw new Error(accessError.message);
 
-  if (!access || access.source !== "manual_validation") {
+  const validationAccessRows = (allAccess ?? []).filter(
+    (row) => row.product_id === productId && row.source === "manual_validation",
+  );
+  const hasForeignAccess = (allAccess ?? []).some(
+    (row) => row.product_id !== productId || row.source !== "manual_validation",
+  );
+
+  if (validationAccessRows.length === 0) {
     throw new Error("Este usuário não é uma conta de validação da Hotmart.");
   }
-  if ((roles ?? []).length > 0 || collaborator) {
-    throw new Error("Esta conta tem papel administrativo ou vínculo de colaborador — exclusão bloqueada.");
+  if (hasForeignAccess || (roles ?? []).length > 0 || collaborator || (orders ?? []).length > 0) {
+    throw new Error(
+      "Esta conta tem histórico comercial, papel administrativo ou vínculo de colaborador — exclusão bloqueada.",
+    );
+  }
+
+  for (const row of validationAccessRows) {
+    const { error: revokeError } = await supabaseAdmin
+      .from("product_access")
+      .update({ revoked_at: new Date().toISOString(), status_reason: "validation_deleted" })
+      .eq("id", row.id);
+    if (revokeError) throw new Error(revokeError.message);
   }
 
   const { error } = await supabaseAdmin.auth.admin.deleteUser(params.userId);
@@ -308,7 +352,8 @@ export async function listHotmartValidationAccounts(
       .from("profiles")
       .select("id, email, full_name")
       .in("id", userIds);
-    for (const p of profiles ?? []) profileMap.set(p.id, { email: p.email, full_name: p.full_name });
+    for (const p of profiles ?? [])
+      profileMap.set(p.id, { email: p.email, full_name: p.full_name });
   }
 
   return (accessRows ?? []).map((row) => ({
@@ -371,7 +416,9 @@ export async function linkBergamoCoproducer(params: {
     invited = true;
   }
 
-  const { error: profileError } = await supabaseAdmin.from("profiles").upsert({ id: userId, email });
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .upsert({ id: userId, email });
   if (profileError) throw new Error(profileError.message);
 
   const { data: existingLink, error: linkLookupError } = await supabaseAdmin
@@ -568,7 +615,9 @@ export async function setBergamoCoproducerMemberPreview(params: {
 
   await logAudit({
     actorId: params.actorId,
-    action: params.enabled ? "bergamo.coproducer.preview_grant" : "bergamo.coproducer.preview_revoke",
+    action: params.enabled
+      ? "bergamo.coproducer.preview_grant"
+      : "bergamo.coproducer.preview_revoke",
     entity: "product_access",
     entityId: `${params.userId}:${productId}`,
   });

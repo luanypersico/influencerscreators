@@ -20,6 +20,7 @@ const db: Record<string, Row[]> = {
   product_access: [],
   profiles: [],
   admin_audit_log: [],
+  orders: [],
 };
 
 type AuthUser = { id: string; email: string; password: string; email_confirm: boolean };
@@ -47,6 +48,7 @@ function makeQuery(table: string) {
   const filters: Filter[] = [];
   let orderCol: string | null = null;
   let orderAsc = true;
+  let limitN: number | null = null;
 
   function run(): Row[] {
     let rows = db[table]!.filter((r) => matches(r, filters));
@@ -59,6 +61,7 @@ function makeQuery(table: string) {
       });
       if (!orderAsc) rows.reverse();
     }
+    if (limitN != null) rows = rows.slice(0, limitN);
     return rows;
   }
 
@@ -79,6 +82,10 @@ function makeQuery(table: string) {
     order: (col: string, opts?: { ascending?: boolean }) => {
       orderCol = col;
       orderAsc = opts?.ascending ?? true;
+      return builder;
+    },
+    limit: (n: number) => {
+      limitN = n;
       return builder;
     },
     maybeSingle: () => Promise.resolve({ data: run()[0] ?? null, error: null }),
@@ -470,6 +477,175 @@ describe("provisionHotmartValidationAccount — isolamento de dados concedidos",
   });
 });
 
+describe("provisionHotmartValidationAccount — exclusividade contra reaproveitamento de conta real", () => {
+  const BUYER_HOTMART_ID = "buyer-hotmart-real";
+  const BUYER_ORDER_ID = "buyer-with-order";
+  const COPRODUCER_PREVIEW_ID = "coproducer-with-preview";
+
+  function seedRealBuyer() {
+    authUsers[BUYER_HOTMART_ID] = {
+      id: BUYER_HOTMART_ID,
+      email: "comprador@example.com",
+      password: "x",
+      email_confirm: true,
+    };
+    db["profiles"]!.push({ id: BUYER_HOTMART_ID, email: "comprador@example.com", full_name: "Comprador" });
+    db["product_access"]!.push({
+      id: "access-hotmart-real",
+      user_id: BUYER_HOTMART_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      source: "hotmart",
+      revoked_at: null,
+      suspended_at: null,
+    });
+  }
+
+  it("rejeita um e-mail com product_access a outro produto (usa o membro do baseline)", async () => {
+    await expect(
+      provisionHotmartValidationAccount({
+        actorId: SUPER_ADMIN_ID,
+        email: "member@example.com",
+        password: VALID_PASSWORD,
+        label: "Validação Hotmart",
+        confirmEmail: false,
+        confirmOperation: true,
+      }),
+    ).rejects.toThrow("Use um e-mail exclusivo para a conta de validação.");
+  });
+
+  it("rejeita um comprador real do Bergamo com source 'hotmart'", async () => {
+    seedRealBuyer();
+    await expect(
+      provisionHotmartValidationAccount({
+        actorId: SUPER_ADMIN_ID,
+        email: "comprador@example.com",
+        password: VALID_PASSWORD,
+        label: "Validação Hotmart",
+        confirmEmail: false,
+        confirmOperation: true,
+      }),
+    ).rejects.toThrow("Use um e-mail exclusivo para a conta de validação.");
+
+    // O source real nunca é alterado nem sobrescrito pela tentativa rejeitada.
+    const access = db["product_access"]!.find((r) => r["id"] === "access-hotmart-real");
+    expect(access!["source"]).toBe("hotmart");
+  });
+
+  it("rejeita um usuário com order existente, mesmo sem nenhum product_access", async () => {
+    authUsers[BUYER_ORDER_ID] = {
+      id: BUYER_ORDER_ID,
+      email: "pedido@example.com",
+      password: "x",
+      email_confirm: true,
+    };
+    db["profiles"]!.push({ id: BUYER_ORDER_ID, email: "pedido@example.com", full_name: "Com pedido" });
+    db["orders"]!.push({
+      id: "order-1",
+      user_id: BUYER_ORDER_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      status: "paid",
+    });
+
+    await expect(
+      provisionHotmartValidationAccount({
+        actorId: SUPER_ADMIN_ID,
+        email: "pedido@example.com",
+        password: VALID_PASSWORD,
+        label: "Validação Hotmart",
+        confirmEmail: false,
+        confirmOperation: true,
+      }),
+    ).rejects.toThrow("Use um e-mail exclusivo para a conta de validação.");
+  });
+
+  it("rejeita um coprodutor com pré-visualização concedida", async () => {
+    authUsers[COPRODUCER_PREVIEW_ID] = {
+      id: COPRODUCER_PREVIEW_ID,
+      email: "coprodutor-preview@example.com",
+      password: "x",
+      email_confirm: true,
+    };
+    db["profiles"]!.push({
+      id: COPRODUCER_PREVIEW_ID,
+      email: "coprodutor-preview@example.com",
+      full_name: "Coprodutor",
+    });
+    // Vínculo de coprodutor já é bloqueado por si só, mas aqui simulamos
+    // especificamente o acesso de preview sem vínculo ativo (ex.: vínculo
+    // revogado depois de a pré-visualização ter sido concedida).
+    db["product_access"]!.push({
+      id: "access-preview-1",
+      user_id: COPRODUCER_PREVIEW_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      source: "coproducer_preview",
+      revoked_at: null,
+      suspended_at: null,
+    });
+
+    await expect(
+      provisionHotmartValidationAccount({
+        actorId: SUPER_ADMIN_ID,
+        email: "coprodutor-preview@example.com",
+        password: VALID_PASSWORD,
+        label: "Validação Hotmart",
+        confirmEmail: false,
+        confirmOperation: true,
+      }),
+    ).rejects.toThrow("Use um e-mail exclusivo para a conta de validação.");
+  });
+
+  it("uma conta exclusivamente manual_validation (mesmo revogada) pode ser reativada", async () => {
+    const first = await provisionHotmartValidationAccount({
+      actorId: SUPER_ADMIN_ID,
+      email: "validacao-dedicada@example.com",
+      password: VALID_PASSWORD,
+      label: "Validação Hotmart",
+      confirmEmail: false,
+      confirmOperation: true,
+    });
+    await revokeHotmartValidationAccess({ actorId: SUPER_ADMIN_ID, userId: first.userId });
+
+    const reactivated = await provisionHotmartValidationAccount({
+      actorId: SUPER_ADMIN_ID,
+      email: "validacao-dedicada@example.com",
+      password: "outra-senha-forte-de-novo-123",
+      label: "Validação Hotmart",
+      confirmEmail: false,
+      confirmOperation: true,
+    });
+
+    expect(reactivated.userId).toBe(first.userId);
+    expect(reactivated.restored).toBe(true);
+    const access = db["product_access"]!.find((r) => r["user_id"] === first.userId);
+    expect(access!["revoked_at"]).toBeNull();
+  });
+
+  it("nunca sobrescreve um product_access de source diferente de manual_validation", async () => {
+    seedRealBuyer();
+    try {
+      await provisionHotmartValidationAccount({
+        actorId: SUPER_ADMIN_ID,
+        email: "comprador@example.com",
+        password: VALID_PASSWORD,
+        label: "Validação Hotmart",
+        confirmEmail: false,
+        confirmOperation: true,
+      });
+    } catch {
+      // esperado — a asserção real está nos dados abaixo, não na exceção
+    }
+    const access = db["product_access"]!.find((r) => r["id"] === "access-hotmart-real");
+    expect(access).toEqual({
+      id: "access-hotmart-real",
+      user_id: BUYER_HOTMART_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      source: "hotmart",
+      revoked_at: null,
+      suspended_at: null,
+    });
+  });
+});
+
 describe("revokeHotmartValidationAccess", () => {
   it("revoga o acesso sem excluir o usuário do Auth", async () => {
     const { userId } = await provisionHotmartValidationAccount({
@@ -561,6 +737,70 @@ describe("deleteHotmartValidationUser", () => {
       }),
     ).rejects.toThrow();
   });
+
+  it("bloqueia a exclusão de um comprador real (product_access com source 'hotmart') e nunca apaga o usuário", async () => {
+    const BUYER_ID = "buyer-real-delete-attempt";
+    authUsers[BUYER_ID] = { id: BUYER_ID, email: "comprador2@example.com", password: "x", email_confirm: true };
+    db["profiles"]!.push({ id: BUYER_ID, email: "comprador2@example.com", full_name: "Comprador" });
+    db["product_access"]!.push({
+      id: "access-hotmart-2",
+      user_id: BUYER_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      source: "hotmart",
+      revoked_at: null,
+      suspended_at: null,
+    });
+
+    await expect(
+      deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId: BUYER_ID, confirmDeleteAuthUser: true }),
+    ).rejects.toThrow();
+
+    expect(authUsers[BUYER_ID]).toBeDefined();
+    const access = db["product_access"]!.find((r) => r["id"] === "access-hotmart-2");
+    expect(access!["revoked_at"]).toBeNull();
+    expect(access!["source"]).toBe("hotmart");
+  });
+
+  it("bloqueia a exclusão de um usuário com order existente, mesmo com acesso manual_validation presente", async () => {
+    const BUYER_ID = "buyer-with-order-delete-attempt";
+    authUsers[BUYER_ID] = { id: BUYER_ID, email: "pedido2@example.com", password: "x", email_confirm: true };
+    db["profiles"]!.push({ id: BUYER_ID, email: "pedido2@example.com", full_name: "Com pedido" });
+    db["product_access"]!.push({
+      id: "access-validation-with-order",
+      user_id: BUYER_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      source: "manual_validation",
+      revoked_at: null,
+      suspended_at: null,
+    });
+    db["orders"]!.push({ id: "order-2", user_id: BUYER_ID, product_id: BERGAMO_PRODUCT_ID, status: "paid" });
+
+    await expect(
+      deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId: BUYER_ID, confirmDeleteAuthUser: true }),
+    ).rejects.toThrow();
+
+    expect(authUsers[BUYER_ID]).toBeDefined();
+    expect(db["orders"]!.some((r) => r["id"] === "order-2")).toBe(true);
+  });
+
+  it("permite excluir uma conta exclusivamente dedicada à validação e revoga o acesso antes de excluir", async () => {
+    const { userId } = await provisionHotmartValidationAccount({
+      actorId: SUPER_ADMIN_ID,
+      email: "validacao-dedicada-2@example.com",
+      password: VALID_PASSWORD,
+      label: "Validação Hotmart",
+      confirmEmail: false,
+      confirmOperation: true,
+    });
+
+    await deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId, confirmDeleteAuthUser: true });
+
+    expect(authUsers[userId]).toBeUndefined();
+    const auditEntry = db["admin_audit_log"]!.find(
+      (r) => r["action"] === "bergamo.validation_account.delete_user" && r["entity_id"] === userId,
+    );
+    expect(auditEntry).toBeDefined();
+  });
 });
 
 describe("listHotmartValidationAccounts", () => {
@@ -583,6 +823,33 @@ describe("listHotmartValidationAccounts", () => {
 
   it("rejeita quem não é super_admin", async () => {
     await expect(listHotmartValidationAccounts(ADMIN_ID)).rejects.toThrow();
+  });
+
+  it("nunca lista compradores comuns do Bergamo (source diferente de manual_validation)", async () => {
+    const BUYER_ID = "buyer-listing-check";
+    db["profiles"]!.push({ id: BUYER_ID, email: "comprador-listagem@example.com", full_name: "Comprador" });
+    db["product_access"]!.push(
+      {
+        id: "access-hotmart-listing",
+        user_id: BUYER_ID,
+        product_id: BERGAMO_PRODUCT_ID,
+        source: "hotmart",
+        revoked_at: null,
+        suspended_at: null,
+      },
+      {
+        id: "access-manual-listing",
+        user_id: BUYER_ID,
+        product_id: OTHER_PRODUCT_ID,
+        source: "manual",
+        revoked_at: null,
+        suspended_at: null,
+      },
+    );
+
+    const rows = await listHotmartValidationAccounts(SUPER_ADMIN_ID);
+    expect(rows.some((r) => r.userId === BUYER_ID)).toBe(false);
+    expect(rows.length).toBe(0);
   });
 });
 

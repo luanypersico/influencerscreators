@@ -11,6 +11,7 @@ const NAV = [
   { to: "/admin", label: "Visão geral", exact: true },
   { to: "/admin/produtos", label: "Produtos" },
   { to: "/admin/usuarios", label: "Usuários & acessos" },
+  { to: "/admin/bergamo-usuarios", label: "Usuários do Bergamo", superAdminOnly: true },
   { to: "/admin/pedidos", label: "Vendas & pedidos" },
   { to: "/admin/emails", label: "E-mails" },
   { to: "/admin/integracoes", label: "Integrações" },
@@ -83,7 +84,7 @@ function AdminLayout() {
           </div>
 
           <nav className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-col lg:overflow-visible">
-            {NAV.map((item) => (
+            {NAV.filter((item) => !("superAdminOnly" in item) || isSuperAdmin).map((item) => (
               <Link
                 key={item.to}
                 to={item.to}

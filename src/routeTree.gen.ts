@@ -19,6 +19,7 @@ import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAuditoriaRouteImport } from './routes/admin.auditoria'
+import { Route as AdminBergamoUsuariosRouteImport } from './routes/admin.bergamo-usuarios'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes'
@@ -79,6 +80,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminAuditoriaRoute = AdminAuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBergamoUsuariosRoute = AdminBergamoUsuariosRouteImport.update({
+  id: '/bergamo-usuarios',
+  path: '/bergamo-usuarios',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/membros': typeof MembrosRouteWithChildren
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/bergamo-usuarios': typeof AdminBergamoUsuariosRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/bergamo-usuarios': typeof AdminBergamoUsuariosRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/membros': typeof MembrosRouteWithChildren
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
+  '/admin/bergamo-usuarios': typeof AdminBergamoUsuariosRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/integracoes': typeof AdminIntegracoesRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/membros'
     | '/como-funciona'
     | '/admin/auditoria'
+    | '/admin/bergamo-usuarios'
     | '/admin/configuracoes'
     | '/admin/emails'
     | '/admin/integracoes'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/laboratorio'
     | '/como-funciona'
     | '/admin/auditoria'
+    | '/admin/bergamo-usuarios'
     | '/admin/configuracoes'
     | '/admin/emails'
     | '/admin/integracoes'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/membros'
     | '/_public/como-funciona'
     | '/admin/auditoria'
+    | '/admin/bergamo-usuarios'
     | '/admin/configuracoes'
     | '/admin/emails'
     | '/admin/integracoes'
@@ -364,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/auditoria'
       fullPath: '/admin/auditoria'
       preLoaderRoute: typeof AdminAuditoriaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/bergamo-usuarios': {
+      id: '/admin/bergamo-usuarios'
+      path: '/bergamo-usuarios'
+      fullPath: '/admin/bergamo-usuarios'
+      preLoaderRoute: typeof AdminBergamoUsuariosRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/configuracoes': {
@@ -472,6 +491,7 @@ const PublicRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminAuditoriaRoute: typeof AdminAuditoriaRoute
+  AdminBergamoUsuariosRoute: typeof AdminBergamoUsuariosRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminIntegracoesRoute: typeof AdminIntegracoesRoute
@@ -483,6 +503,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAuditoriaRoute: AdminAuditoriaRoute,
+  AdminBergamoUsuariosRoute: AdminBergamoUsuariosRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminIntegracoesRoute: AdminIntegracoesRoute,

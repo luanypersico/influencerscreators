@@ -814,6 +814,19 @@ export type Database = {
     }
     Functions: {
       find_user_id_by_email: { Args: { _email: string }; Returns: string }
+      get_bergamo_public_catalog: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string | null
+          code: string | null
+          description: string | null
+          is_free: boolean
+          position: number
+          prompt: string | null
+          status: string
+          title: string
+        }[]
+      }
       has_product_access: {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean

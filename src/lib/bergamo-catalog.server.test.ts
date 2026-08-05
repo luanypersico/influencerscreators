@@ -1,7 +1,9 @@
 /**
- * Testes mockados (supabaseAdmin substituído via mock.module) — sem
- * banco real, sem RPC real. Prova que o catálogo público nunca devolve
- * o texto completo do prompt para itens que não são amostra gratuita.
+ * Testes mockados (o cliente anon substituído via mock.module) — sem
+ * banco real, sem RPC real. Prova que o catálogo público (a) nunca usa
+ * supabaseAdmin/service_role, (b) nunca devolve o texto completo do
+ * prompt para itens que não são amostra gratuita, e (c) filtra
+ * published de novo em código como segunda trava independente da RPC.
  */
 import { beforeEach, describe, expect, it, mock } from "bun:test";
 
@@ -17,34 +19,13 @@ interface FakeItem {
 
 let items: FakeItem[] = [];
 
-mock.module("@/integrations/supabase/client.server", () => ({
-  supabaseAdmin: {
-    from(table: string) {
-      if (table === "products") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: { id: "bergamo-id" }, error: null }),
-            }),
-          }),
-        };
+mock.module("@/integrations/supabase/client", () => ({
+  supabase: {
+    rpc: (fn: string) => {
+      if (fn !== "get_bergamo_public_catalog") {
+        throw new Error(`rpc não mockada neste teste: ${fn}`);
       }
-      if (table === "product_items") {
-        return {
-          select: () => ({
-            eq: () => ({
-              eq: () => ({
-                order: () =>
-                  Promise.resolve({
-                    data: items.filter((i) => i.status === "published"),
-                    error: null,
-                  }),
-              }),
-            }),
-          }),
-        };
-      }
-      throw new Error(`tabela não mockada: ${table}`);
+      return Promise.resolve({ data: items, error: null });
     },
   },
 }));
@@ -97,7 +78,7 @@ describe("getBergamoPublicCatalog — nunca vaza prompt completo de item bloquea
     expect(JSON.stringify(catalog)).not.toContain("PROMPT SECRETO QUE NUNCA PODE VAZAR");
   });
 
-  it("itens em draft nunca aparecem no catálogo público", async () => {
+  it("itens em draft nunca aparecem no catálogo público (segunda trava em código, mesmo que a RPC devolva um por engano)", async () => {
     const catalog = await getBergamoPublicCatalog();
     expect(catalog.items.find((i) => i.code === "03")).toBeUndefined();
     expect(catalog.totalCount).toBe(2);

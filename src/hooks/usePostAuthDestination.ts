@@ -1,11 +1,15 @@
-import { useServerFn } from "@tanstack/react-start";
 import { useCallback } from "react";
 
-import { getPostAuthDestinationFn } from "@/lib/post-auth-redirect.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 /** Client adapter for the single server-side post-auth destination resolver. */
 export function usePostAuthDestination() {
-  const getDestination = useServerFn(getPostAuthDestinationFn);
-
-  return useCallback(() => getDestination(), [getDestination]);
+  return useCallback(async () => {
+    const { data, error } = await supabase.rpc("get_my_post_auth_destination");
+    if (error) throw error;
+    if (data !== "/admin" && data !== "/coprodutor/bergamo" && data !== "/membros") {
+      throw new Error("Destino de acesso inválido.");
+    }
+    return data;
+  }, []);
 }

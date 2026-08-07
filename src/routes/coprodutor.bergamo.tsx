@@ -250,12 +250,16 @@ function PromptEditorDialog({
   const update = useServerFn(coproducerUpdatePromptFn);
 
   const editing = item !== "new" ? item : null;
+  const [code, setCode] = useState(editing?.code ?? "");
+  const [isFree, setIsFree] = useState(editing?.isFree ?? false);
   const [title, setTitle] = useState(editing?.title ?? "");
   const [category, setCategory] = useState(editing?.category ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [prompt, setPrompt] = useState(editing?.prompt ?? "");
 
   useEffect(() => {
+    setCode(editing?.code ?? "");
+    setIsFree(editing?.isFree ?? false);
     setTitle(editing?.title ?? "");
     setCategory(editing?.category ?? "");
     setDescription(editing?.description ?? "");
@@ -265,10 +269,12 @@ function PromptEditorDialog({
   async function save() {
     try {
       if (item === "new") {
-        await create({ data: { title, category, description, prompt } });
+        await create({ data: { code, isFree, title, category, description, prompt } });
         toast.success("Prompt criado como rascunho.");
       } else if (item) {
-        await update({ data: { itemId: item.id, title, category, description, prompt } });
+        await update({
+          data: { itemId: item.id, code, isFree, title, category, description, prompt },
+        });
         toast.success("Prompt atualizado.");
       }
       await qc.invalidateQueries({ queryKey: ["coproducer", "bergamo", "prompts"] });
@@ -288,6 +294,20 @@ function PromptEditorDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="prompt-code">Código</Label>
+              <Input id="prompt-code" value={code} onChange={(e) => setCode(e.target.value)} />
+            </div>
+            <label className="flex items-center gap-2 pt-6 text-sm">
+              <input
+                type="checkbox"
+                checked={isFree}
+                onChange={(e) => setIsFree(e.target.checked)}
+              />{" "}
+              Gratuito
+            </label>
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="prompt-title">Título</Label>
             <Input id="prompt-title" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -436,7 +456,8 @@ function PromptsTab() {
                 {item.title} <span className="text-xs text-muted-foreground">#{item.code}</span>
               </p>
               <p className="text-xs text-muted-foreground">
-                {item.category} · {item.status}
+                {item.category} · {item.status} · posição {item.sortOrder} ·{" "}
+                {item.isFree ? "gratuito" : "bloqueado"}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">

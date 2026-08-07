@@ -161,7 +161,8 @@ export type PromptStatus = "draft" | "published" | "archived";
 
 export interface CoproducerPromptRow {
   id: string;
-  code: string | null;
+  code?: string | null;
+  isFree?: boolean;
   title: string;
   category: string | null;
   description: string | null;
@@ -175,13 +176,16 @@ export async function listBergamoPrompts(userId: string): Promise<CoproducerProm
   const { productId } = await assertBergamoAccess(userId);
   const { data, error } = await supabaseAdmin
     .from("product_items")
-    .select("id, code, title, category, description, prompt, status, sort_order, updated_at")
+    .select(
+      "id, code, title, category, description, prompt, is_free, status, sort_order, updated_at",
+    )
     .eq("product_id", productId)
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []).map((row) => ({
     id: row.id,
     code: row.code,
+    isFree: row.is_free,
     title: row.title,
     category: row.category,
     description: row.description,
@@ -239,6 +243,8 @@ async function assertItemBelongsToBergamo(itemId: string, productId: string): Pr
 
 export async function createBergamoPrompt(params: {
   actorId: string;
+  code?: string | null;
+  isFree?: boolean;
   title: string;
   category: string | null;
   description: string | null;
@@ -260,6 +266,8 @@ export async function createBergamoPrompt(params: {
     .insert({
       product_id: productId,
       item_type: "prompt",
+      code: params.code ?? null,
+      is_free: params.isFree ?? false,
       title: params.title,
       category: params.category,
       description: params.description,
@@ -287,6 +295,8 @@ export async function createBergamoPrompt(params: {
 export async function updateBergamoPrompt(params: {
   actorId: string;
   itemId: string;
+  code?: string | null | undefined;
+  isFree?: boolean | undefined;
   title?: string | undefined;
   category?: string | null | undefined;
   description?: string | null | undefined;
@@ -296,6 +306,8 @@ export async function updateBergamoPrompt(params: {
   await assertItemBelongsToBergamo(params.itemId, productId);
 
   const patch: ProductItemsUpdate = { updated_by: params.actorId };
+  if (params.code !== undefined) patch.code = params.code;
+  if (params.isFree !== undefined) patch.is_free = params.isFree;
   if (params.title !== undefined) patch.title = params.title;
   if (params.category !== undefined) patch.category = params.category;
   if (params.description !== undefined) patch.description = params.description;

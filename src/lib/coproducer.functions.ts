@@ -55,6 +55,8 @@ export const coproducerCreatePromptFn = createServerFn({ method: "POST" })
   .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
+      code: strOrNull(raw["code"]),
+      isFree: raw["isFree"] === true,
       title: str(raw["title"]),
       category: strOrNull(raw["category"]),
       description: strOrNull(raw["description"]),
@@ -73,6 +75,8 @@ export const coproducerUpdatePromptFn = createServerFn({ method: "POST" })
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       itemId: str(raw["itemId"]),
+      code: "code" in raw ? strOrNull(raw["code"]) : undefined,
+      isFree: typeof raw["isFree"] === "boolean" ? raw["isFree"] : undefined,
       title: typeof raw["title"] === "string" ? raw["title"] : undefined,
       category: "category" in raw ? strOrNull(raw["category"]) : undefined,
       description: "description" in raw ? strOrNull(raw["description"]) : undefined,

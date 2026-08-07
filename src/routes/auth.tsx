@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -22,10 +22,19 @@ export const Route = createFileRoute("/auth")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: AuthPage,
+  component: AuthRoute,
 });
 
 const MAGIC_LINK_COOLDOWN_SECONDS = 30;
+
+/** Renders child auth flows without exposing the login form underneath them. */
+function AuthRoute() {
+  const matchRoute = useMatchRoute();
+  const isSetPasswordRoute = matchRoute({ to: "/auth/set-password", fuzzy: false });
+
+  if (isSetPasswordRoute) return <Outlet />;
+  return <AuthPage />;
+}
 
 function AuthPage() {
   const router = useRouter();

@@ -808,6 +808,10 @@ export type Database = {
     };
     Functions: {
       find_user_id_by_email: { Args: { _email: string }; Returns: string };
+      get_my_post_auth_destination: {
+        Args: Record<PropertyKey, never>;
+        Returns: string;
+      };
       get_bergamo_public_catalog: {
         Args: Record<PropertyKey, never>;
         Returns: {

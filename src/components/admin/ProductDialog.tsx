@@ -154,7 +154,10 @@ export function ProductDialog({
             />
           </Field>
           <Field label="Link de checkout principal">
-            <Input value={form.checkout_url ?? ""} onChange={(e) => set("checkout_url", e.target.value)} />
+            <Input
+              value={form.checkout_url ?? ""}
+              onChange={(e) => set("checkout_url", e.target.value)}
+            />
           </Field>
           <Field label="Link de checkout secundário">
             <Input
@@ -175,7 +178,9 @@ export function ProductDialog({
           <div className="flex items-center justify-between rounded-lg border border-border p-3 sm:col-span-2">
             <div>
               <p className="text-sm font-medium">Produto em co-produção</p>
-              <p className="text-xs text-muted-foreground">Define o split de receita com o parceiro.</p>
+              <p className="text-xs text-muted-foreground">
+                Define o split de receita com o parceiro.
+              </p>
             </div>
             <Switch
               checked={Boolean(form.is_coproduction)}

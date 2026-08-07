@@ -28,7 +28,7 @@ export const adminOverviewFn = createServerFn({ method: "GET" })
 
 export const adminListUsersFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { search?: string } | undefined) => ({ search: data?.search ?? "" }))
+  .validator((data: { search?: string } | undefined) => ({ search: data?.search ?? "" }))
   .handler(async ({ context, data }) => {
     await assertAdmin(context.userId);
     return listUsers(data.search);
@@ -36,7 +36,7 @@ export const adminListUsersFn = createServerFn({ method: "GET" })
 
 export const adminCreateUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: {
       email: string;
       password?: string;
@@ -74,7 +74,7 @@ export const adminCreateUserFn = createServerFn({ method: "POST" })
 
 export const adminDeleteUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string }) => {
+  .validator((data: { userId: string }) => {
     if (!data?.userId) throw new Error("Usuário inválido.");
     return { userId: data.userId };
   })
@@ -86,7 +86,7 @@ export const adminDeleteUserFn = createServerFn({ method: "POST" })
 
 export const adminSetPasswordFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string; password: string }) => {
+  .validator((data: { userId: string; password: string }) => {
     if (!data?.userId) throw new Error("Usuário inválido.");
     if (!data?.password || data.password.length < 8)
       throw new Error("Senha muito curta (mínimo 8).");
@@ -104,7 +104,7 @@ export const adminSetPasswordFn = createServerFn({ method: "POST" })
 
 export const adminSetRoleFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { userId: string; role: AdminRole; enabled: boolean }) => {
+  .validator((data: { userId: string; role: AdminRole; enabled: boolean }) => {
     if (!data?.userId || !data?.role) throw new Error("Dados inválidos.");
     return { userId: data.userId, role: data.role, enabled: Boolean(data.enabled) };
   })
@@ -116,7 +116,7 @@ export const adminSetRoleFn = createServerFn({ method: "POST" })
 
 export const adminSetAccessFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: { userId: string; productId: string; enabled: boolean; expiresAt?: string | null }) => {
       if (!data?.userId || !data?.productId) throw new Error("Dados inválidos.");
       return {
@@ -135,7 +135,7 @@ export const adminSetAccessFn = createServerFn({ method: "POST" })
 
 export const adminPreviewAudienceFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: {
       audience: "all" | "buyers" | "leads" | "product" | "manual";
       productId?: string | null;
@@ -154,7 +154,7 @@ export const adminPreviewAudienceFn = createServerFn({ method: "GET" })
 
 export const adminSendEmailFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: {
       subject: string;
       html: string;
@@ -195,7 +195,7 @@ export const adminSendEmailFn = createServerFn({ method: "POST" })
 
 export const adminCreateCollaboratorFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     const role = raw["role"];
     return {
@@ -215,7 +215,7 @@ export const adminCreateCollaboratorFn = createServerFn({ method: "POST" })
 
 export const adminRevokeCollaboratorFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       productId: typeof raw["productId"] === "string" ? raw["productId"] : "",

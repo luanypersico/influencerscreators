@@ -23,9 +23,7 @@ export function PromptBuilder() {
 
   const randomize = useCallback(() => {
     setSelection(
-      Object.fromEntries(
-        FIELDS.map((f) => [f.id, Math.floor(Math.random() * f.options.length)]),
-      ),
+      Object.fromEntries(FIELDS.map((f) => [f.id, Math.floor(Math.random() * f.options.length)])),
     );
   }, []);
 

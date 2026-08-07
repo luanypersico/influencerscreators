@@ -33,7 +33,10 @@ function EmailsPage() {
   const { data: products } = useQuery({
     queryKey: ["admin", "products", "options"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("id, name").order("sort_order");
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name")
+        .order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -61,7 +64,9 @@ function EmailsPage() {
     mutationFn: () =>
       previewAudience({ data: { audience, productId: productId || null, manual: manualList } }),
     onSuccess: (res) =>
-      toast.info(`${res.count} destinatário(s). Ex.: ${res.sample.join(", ") || "—"}`, { duration: 8000 }),
+      toast.info(`${res.count} destinatário(s). Ex.: ${res.sample.join(", ") || "—"}`, {
+        duration: 8000,
+      }),
     onError: (err) => toast.error(err instanceof Error ? err.message : "Erro."),
   });
 
@@ -161,7 +166,12 @@ function EmailsPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => preview.mutate()} disabled={preview.isPending}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => preview.mutate()}
+            disabled={preview.isPending}
+          >
             Ver destinatários
           </Button>
           <Button size="sm" onClick={() => send.mutate()} disabled={send.isPending}>
@@ -173,7 +183,10 @@ function EmailsPage() {
       <Panel title="Histórico de envios">
         <div className="space-y-1 text-sm">
           {(messages ?? []).map((m) => (
-            <div key={m.id} className="flex flex-wrap justify-between gap-2 border-b border-border/60 py-2">
+            <div
+              key={m.id}
+              className="flex flex-wrap justify-between gap-2 border-b border-border/60 py-2"
+            >
               <span className="min-w-0 truncate">
                 {m.to_email} — {m.subject}
               </span>
@@ -183,7 +196,9 @@ function EmailsPage() {
               </span>
             </div>
           ))}
-          {messages?.length === 0 && <p className="text-muted-foreground">Nenhum e-mail enviado ainda.</p>}
+          {messages?.length === 0 && (
+            <p className="text-muted-foreground">Nenhum e-mail enviado ainda.</p>
+          )}
         </div>
       </Panel>
     </AdminPage>

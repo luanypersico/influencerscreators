@@ -34,13 +34,28 @@ function AdminDashboard() {
       {data && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Receita paga" value={brl(data.revenueCents)} hint={`${data.paidOrders} pedidos pagos`} />
-            <StatCard label="Clientes com acesso" value={String(data.accessCount)} hint="liberações ativas" />
-            <StatCard label="Usuários" value={String(data.users)} hint={`${data.admins} com painel`} />
+            <StatCard
+              label="Receita paga"
+              value={brl(data.revenueCents)}
+              hint={`${data.paidOrders} pedidos pagos`}
+            />
+            <StatCard
+              label="Clientes com acesso"
+              value={String(data.accessCount)}
+              hint="liberações ativas"
+            />
+            <StatCard
+              label="Usuários"
+              value={String(data.users)}
+              hint={`${data.admins} com painel`}
+            />
             <StatCard label="Leads capturados" value={String(data.leads)} />
           </div>
 
-          <Panel title="Desempenho por produto" description="Inclui produtos em co-produção e o seu split.">
+          <Panel
+            title="Desempenho por produto"
+            description="Inclui produtos em co-produção e o seu split."
+          >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
@@ -79,7 +94,8 @@ function AdminDashboard() {
           <Panel title="Receita dos últimos dias">
             {data.revenueByDay.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Nenhuma venda registrada ainda. Registre pedidos em Vendas & pedidos ou conecte seu checkout.
+                Nenhuma venda registrada ainda. Registre pedidos em Vendas & pedidos ou conecte seu
+                checkout.
               </p>
             ) : (
               <div className="flex items-end gap-2">

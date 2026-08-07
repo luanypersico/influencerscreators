@@ -59,8 +59,7 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "assimetria",
         label: "Assimetria facial",
         hint: "Nada de rosto espelhado",
-        fragment:
-          "natural facial asymmetry: one eyebrow sits higher, the smile pulls to one side",
+        fragment: "natural facial asymmetry: one eyebrow sits higher, the smile pulls to one side",
       },
       {
         id: "labio",
@@ -109,7 +108,8 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "tecido",
         label: "Tecido com peso",
         hint: "Ruga e dobra natural",
-        fragment: "clothing with real weight: natural creasing at the elbows and waist, slight pilling",
+        fragment:
+          "clothing with real weight: natural creasing at the elbows and waist, slight pilling",
       },
     ],
   },
@@ -174,7 +174,8 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "golden",
         label: "Golden hour lateral",
         hint: "Rim light quente no cabelo",
-        fragment: "low golden-hour sun raking from the side, warm rim light on the hair, long shadows",
+        fragment:
+          "low golden-hour sun raking from the side, warm rim light on the hair, long shadows",
       },
       {
         id: "solduro",
@@ -232,7 +233,8 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "corte",
         label: "Enquadramento torto",
         hint: "Ninguém enquadra perfeito",
-        fragment: "slightly crooked horizon and imperfect composition, too much headroom on one side",
+        fragment:
+          "slightly crooked horizon and imperfect composition, too much headroom on one side",
       },
     ],
   },
@@ -300,7 +302,8 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "micro",
         label: "Microexpressões",
         hint: "Piscada e respiração",
-        fragment: "subtle facial micro-expressions, natural blinking every 2-3 seconds, visible breathing",
+        fragment:
+          "subtle facial micro-expressions, natural blinking every 2-3 seconds, visible breathing",
       },
       {
         id: "identidade",
@@ -352,7 +355,8 @@ export const COMMAND_GROUPS: CommandGroup[] = [
         id: "ambiente",
         label: "Ruído de ambiente",
         hint: "Rua, cozinha, ventilador",
-        fragment: "quiet ambient background noise appropriate to the location, slightly clipping at peaks",
+        fragment:
+          "quiet ambient background noise appropriate to the location, slightly clipping at peaks",
       },
     ],
   },

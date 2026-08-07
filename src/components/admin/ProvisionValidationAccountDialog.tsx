@@ -100,12 +100,10 @@ export function ProvisionValidationAccountDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Senha inicial (mínimo 12 caracteres)</Label>
-            <Input
-              type="text"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <Label className="text-xs text-muted-foreground">
+              Senha inicial (mínimo 12 caracteres)
+            </Label>
+            <Input type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="space-y-2">

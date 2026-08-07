@@ -70,7 +70,9 @@ describe("Cartão bloqueado — cópia e cadeado exigidos pela vitrine protegida
 describe("Barreira contra captura — ligada nas páginas protegidas", () => {
   it("/bergamo renderiza PrivacyCurtain e marca o conteúdo como protected-content", () => {
     const source = readSrc("src/routes/bergamo.tsx");
-    expect(source).toMatch(/import\s*\{\s*PrivacyCurtain\s*\}\s*from\s*["']@\/components\/security\/PrivacyCurtain["']/);
+    expect(source).toMatch(
+      /import\s*\{\s*PrivacyCurtain\s*\}\s*from\s*["']@\/components\/security\/PrivacyCurtain["']/,
+    );
     expect(source).toContain("<PrivacyCurtain />");
     expect(source).toContain("protected-content");
     expect(source).toContain("print-protected-notice");
@@ -91,7 +93,9 @@ describe("Barreira contra captura — ligada nas páginas protegidas", () => {
 
   it("o CSS global bloqueia impressão do conteúdo protegido e mostra o aviso", () => {
     const css = readSrc("src/styles.css");
-    expect(css).toMatch(/@media print[\s\S]*\.protected-content[\s\S]*display:\s*none\s*!important/);
+    expect(css).toMatch(
+      /@media print[\s\S]*\.protected-content[\s\S]*display:\s*none\s*!important/,
+    );
     expect(css).toMatch(/\.print-protected-notice[\s\S]*display:\s*block\s*!important/);
   });
 });

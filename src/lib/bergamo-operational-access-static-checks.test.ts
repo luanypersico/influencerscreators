@@ -37,7 +37,10 @@ describe("bergamo-operational-access.server.ts — senha nunca logada", () => {
     expect(assignments.length).toBeGreaterThan(0);
     for (const match of assignments) {
       const before = source.slice(Math.max(0, match.index! - 400), match.index!);
-      const lastAuthCall = Math.max(before.lastIndexOf("createUser"), before.lastIndexOf("updateUserById"));
+      const lastAuthCall = Math.max(
+        before.lastIndexOf("createUser"),
+        before.lastIndexOf("updateUserById"),
+      );
       const lastTableWrite = Math.max(
         before.lastIndexOf('.from("profiles")'),
         before.lastIndexOf('.from("product_access")'),
@@ -51,7 +54,7 @@ describe("bergamo-operational-access.server.ts — senha nunca logada", () => {
 describe("bergamo-operational-access.functions.ts — ator nunca vem do cliente", () => {
   const source = readSrc("src/lib/bergamo-operational-access.functions.ts");
 
-  it("nenhum inputValidator lê 'actorId' do payload bruto", () => {
+  it("nenhum validator lê 'actorId' do payload bruto", () => {
     expect(source).not.toMatch(/raw\[["']actorId["']\]/);
   });
 
@@ -64,8 +67,12 @@ describe("bergamo-operational-access.functions.ts — ator nunca vem do cliente"
 describe("Painel 'Usuários do Bergamo' — restrito a super_admin", () => {
   it("o item de navegação está marcado como superAdminOnly", () => {
     const source = readSrc("src/routes/admin.tsx");
-    expect(source).toMatch(/bergamo-usuarios["'],?\s*label:\s*["']Usuários do Bergamo["'],?\s*superAdminOnly:\s*true/);
-    expect(source).toMatch(/NAV\.filter\(\(item\) => !\("superAdminOnly" in item\) \|\| isSuperAdmin\)/);
+    expect(source).toMatch(
+      /bergamo-usuarios["'],?\s*label:\s*["']Usuários do Bergamo["'],?\s*superAdminOnly:\s*true/,
+    );
+    expect(source).toMatch(
+      /NAV\.filter\(\(item\) => !\("superAdminOnly" in item\) \|\| isSuperAdmin\)/,
+    );
   });
 
   it("a página em si também recusa acesso quando não é super_admin (defesa em profundidade)", () => {
@@ -108,7 +115,15 @@ describe("Migration — novas origens de product_access nunca se confundem com c
     const source = readSrc(
       "supabase/migrations/20260805010000_bergamo-operational-access-sources.sql",
     );
-    for (const value of ["manual", "purchase", "gift", "trial", "hotmart", "manual_validation", "coproducer_preview"]) {
+    for (const value of [
+      "manual",
+      "purchase",
+      "gift",
+      "trial",
+      "hotmart",
+      "manual_validation",
+      "coproducer_preview",
+    ]) {
       expect(source).toContain(`'${value}'::text`);
     }
   });

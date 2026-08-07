@@ -41,14 +41,18 @@ function AuditPage() {
             <tbody>
               {(data ?? []).map((row) => (
                 <tr key={row.id} className="border-t border-border/60 align-top">
-                  <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">{dateBR(row.created_at)}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                    {dateBR(row.created_at)}
+                  </td>
                   <td className="py-2 pr-4">{row.actor_email ?? "—"}</td>
                   <td className="py-2 pr-4 font-medium">{row.action}</td>
                   <td className="py-2 pr-4 text-muted-foreground">
                     {row.entity ?? "—"}
                     {row.entity_id ? ` · ${row.entity_id.slice(0, 8)}` : ""}
                   </td>
-                  <td className="py-2 font-mono text-xs text-muted-foreground">{JSON.stringify(row.meta)}</td>
+                  <td className="py-2 font-mono text-xs text-muted-foreground">
+                    {JSON.stringify(row.meta)}
+                  </td>
                 </tr>
               ))}
               {data?.length === 0 && (

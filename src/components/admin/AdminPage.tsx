@@ -25,15 +25,7 @@ export function AdminPage({
   );
 }
 
-export function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
+export function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -43,7 +35,15 @@ export function StatCard({
   );
 }
 
-export function Panel({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+export function Panel({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>

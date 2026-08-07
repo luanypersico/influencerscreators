@@ -24,7 +24,10 @@ function OrdersPage() {
   const { data: products } = useQuery({
     queryKey: ["admin", "products", "options"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("id, name, price_cents").order("sort_order");
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, price_cents")
+        .order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -89,7 +92,10 @@ function OrdersPage() {
   }
 
   return (
-    <AdminPage title="Vendas & pedidos" description="Registre vendas, acompanhe status e veja os leads capturados.">
+    <AdminPage
+      title="Vendas & pedidos"
+      description="Registre vendas, acompanhe status e veja os leads capturados."
+    >
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Receita paga" value={brl(paid.reduce((s, o) => s + o.amount_cents, 0))} />
         <StatCard label="Pedidos pagos" value={String(paid.length)} />
@@ -151,7 +157,9 @@ function OrdersPage() {
             <tbody>
               {(orders ?? []).map((o) => (
                 <tr key={o.id} className="border-t border-border/60">
-                  <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">{dateBR(o.created_at)}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                    {dateBR(o.created_at)}
+                  </td>
                   <td className="py-2 pr-4">{o.buyer_email}</td>
                   <td className="py-2 pr-4">{productName(o.product_id)}</td>
                   <td className="py-2 pr-4">{brl(o.amount_cents)}</td>
@@ -186,7 +194,10 @@ function OrdersPage() {
       <Panel title="Leads">
         <div className="space-y-1 text-sm">
           {(leads ?? []).map((l) => (
-            <div key={l.id} className="flex flex-wrap justify-between gap-2 border-b border-border/60 py-2">
+            <div
+              key={l.id}
+              className="flex flex-wrap justify-between gap-2 border-b border-border/60 py-2"
+            >
               <span>{l.email}</span>
               <span className="text-xs text-muted-foreground">
                 {l.source ?? "site"} · {dateBR(l.created_at)}

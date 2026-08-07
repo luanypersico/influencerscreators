@@ -65,12 +65,18 @@ function SettingsPage() {
   }
 
   return (
-    <AdminPage title="Configurações" description="Identidade da empresa, remetente de e-mail e sua própria conta.">
+    <AdminPage
+      title="Configurações"
+      description="Identidade da empresa, remetente de e-mail e sua própria conta."
+    >
       <Panel title="Marca">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Empresa</Label>
-            <Input value={brand.company ?? ""} onChange={(e) => setBrand({ ...brand, company: e.target.value })} />
+            <Input
+              value={brand.company ?? ""}
+              onChange={(e) => setBrand({ ...brand, company: e.target.value })}
+            />
           </div>
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">E-mail de suporte</Label>
@@ -80,12 +86,20 @@ function SettingsPage() {
             />
           </div>
         </div>
-        <Button className="mt-4" size="sm" disabled={!isSuperAdmin} onClick={() => save("brand", brand)}>
+        <Button
+          className="mt-4"
+          size="sm"
+          disabled={!isSuperAdmin}
+          onClick={() => save("brand", brand)}
+        >
           Salvar marca
         </Button>
       </Panel>
 
-      <Panel title="Remetente de e-mail" description="Usado em todos os envios do painel. Precisa ser um domínio verificado.">
+      <Panel
+        title="Remetente de e-mail"
+        description="Usado em todos os envios do painel. Precisa ser um domínio verificado."
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Nome do remetente</Label>
@@ -103,7 +117,12 @@ function SettingsPage() {
             />
           </div>
         </div>
-        <Button className="mt-4" size="sm" disabled={!isSuperAdmin} onClick={() => save("email", emailCfg)}>
+        <Button
+          className="mt-4"
+          size="sm"
+          disabled={!isSuperAdmin}
+          onClick={() => save("email", emailCfg)}
+        >
           Salvar remetente
         </Button>
       </Panel>

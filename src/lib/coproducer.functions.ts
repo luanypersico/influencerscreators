@@ -42,7 +42,7 @@ export const coproducerListPromptsFn = createServerFn({ method: "GET" })
 
 export const coproducerListPromptRevisionsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => ({
+  .validator((data: unknown) => ({
     itemId: str((data as Record<string, unknown>)?.["itemId"]),
   }))
   .handler(async ({ context, data }) => {
@@ -52,7 +52,7 @@ export const coproducerListPromptRevisionsFn = createServerFn({ method: "GET" })
 
 export const coproducerCreatePromptFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       title: str(raw["title"]),
@@ -69,7 +69,7 @@ export const coproducerCreatePromptFn = createServerFn({ method: "POST" })
 
 export const coproducerUpdatePromptFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       itemId: str(raw["itemId"]),
@@ -87,7 +87,7 @@ export const coproducerUpdatePromptFn = createServerFn({ method: "POST" })
 
 export const coproducerSetPromptStatusFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     const status = raw["status"];
     return {
@@ -105,7 +105,7 @@ export const coproducerSetPromptStatusFn = createServerFn({ method: "POST" })
 
 export const coproducerReorderPromptsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     const ids = raw["orderedIds"];
     return {
@@ -126,7 +126,7 @@ export const coproducerListUpdatesFn = createServerFn({ method: "GET" })
 
 export const coproducerCreateUpdateFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return { title: str(raw["title"]), content: str(raw["content"]) };
   })
@@ -138,7 +138,7 @@ export const coproducerCreateUpdateFn = createServerFn({ method: "POST" })
 
 export const coproducerUpdateUpdateFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       updateId: str(raw["updateId"]),
@@ -154,7 +154,7 @@ export const coproducerUpdateUpdateFn = createServerFn({ method: "POST" })
 
 export const coproducerSetUpdateStatusFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     const status = raw["status"];
     return {

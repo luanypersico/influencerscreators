@@ -108,12 +108,8 @@ mock.module("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const {
-  getMyProductAccess,
-  getBergamoMemberContent,
-  maskEmailForWatermark,
-  shortIdForWatermark,
-} = await import("./member.server");
+const { getMyProductAccess, getBergamoMemberContent, maskEmailForWatermark, shortIdForWatermark } =
+  await import("./member.server");
 
 describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece como ativo", () => {
   beforeEach(() => {

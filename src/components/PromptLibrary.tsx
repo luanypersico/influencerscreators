@@ -36,8 +36,8 @@ export function PromptLibrary() {
             </span>
             <h2 className="mt-2 text-4xl md:text-5xl">{PROMPTS.length} prompts prontos</h2>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              Cada um escrito em inglês, com câmera, lente, luz e imperfeição já especificados. Copie
-              e cole direto no seu gerador.
+              Cada um escrito em inglês, com câmera, lente, luz e imperfeição já especificados.
+              Copie e cole direto no seu gerador.
             </p>
           </div>
 

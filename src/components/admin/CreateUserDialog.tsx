@@ -4,7 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -110,7 +116,9 @@ export function CreateUserDialog({
                   <Switch
                     checked={selected.includes(p.id)}
                     onCheckedChange={(v) =>
-                      setSelected((prev) => (v ? [...prev, p.id] : prev.filter((id) => id !== p.id)))
+                      setSelected((prev) =>
+                        v ? [...prev, p.id] : prev.filter((id) => id !== p.id),
+                      )
                     }
                   />
                 </label>

@@ -49,7 +49,10 @@ export function PromptCard({ prompt, suffix }: PromptCardProps) {
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         {prompt.tags.map((tag) => (
-          <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[0.65rem] text-muted-foreground">
+          <span
+            key={tag}
+            className="rounded-full border border-border px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+          >
             {tag}
           </span>
         ))}

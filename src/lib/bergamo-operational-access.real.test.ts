@@ -26,7 +26,11 @@ import { describe, expect, it } from "bun:test";
 
 const SUPABASE_URL = process.env["SUPABASE_URL"];
 const SUPABASE_PUBLISHABLE_KEY = process.env["SUPABASE_PUBLISHABLE_KEY"];
-const canRun = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+// Testes contra o banco vivo são opt-in. Ambientes locais, CI e previews podem
+// possuir as variáveis públicas sem terem acesso de rede ao projeto Supabase.
+const canRun =
+  process.env["RUN_REAL_SUPABASE_TESTS"] === "true" &&
+  Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 
 describe("RLS ao vivo — product_access / product_collaborators (anon)", () => {
   it.skipIf(!canRun)(

@@ -25,9 +25,7 @@ export function CommandPanel({ mode, selected, onToggle }: CommandPanelProps) {
 
       <div className="mt-4 flex flex-wrap gap-1.5">
         {groups.map((group) => {
-          const count = group.commands.filter((c) =>
-            selected.has(`${group.id}:${c.id}`),
-          ).length;
+          const count = group.commands.filter((c) => selected.has(`${group.id}:${c.id}`)).length;
           return (
             <button
               key={group.id}

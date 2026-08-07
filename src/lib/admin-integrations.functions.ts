@@ -54,7 +54,7 @@ export const adminListBergamoWebhookEventsFn = createServerFn({ method: "GET" })
 
 export const adminUpdateBergamoIntegrationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(parseUpdateBergamoIntegrationInput)
+  .validator(parseUpdateBergamoIntegrationInput)
   .handler(async ({ context, data }) => {
     return updateBergamoHotmartIntegration({ actorId: context.userId, ...data });
   });

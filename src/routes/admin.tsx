@@ -23,10 +23,16 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Painel de controle — CEO" },
-      { name: "description", content: "Controle total de produtos, usuários, acessos, vendas e e-mails." },
+      {
+        name: "description",
+        content: "Controle total de produtos, usuários, acessos, vendas e e-mails.",
+      },
       { name: "robots", content: "noindex, nofollow" },
       { property: "og:title", content: "Painel de controle — CEO" },
-      { property: "og:description", content: "Controle total de produtos, usuários, acessos, vendas e e-mails." },
+      {
+        property: "og:description",
+        content: "Controle total de produtos, usuários, acessos, vendas e e-mails.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

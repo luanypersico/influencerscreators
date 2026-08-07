@@ -54,7 +54,10 @@ function UsersPage() {
   const { data: products } = useQuery({
     queryKey: ["admin", "products", "options"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("id, name").order("sort_order");
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name")
+        .order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -105,7 +108,10 @@ function UsersPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {u.roles.map((r) => (
-                    <span key={r} className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary">
+                    <span
+                      key={r}
+                      className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary"
+                    >
                       {ROLE_LABEL[r] ?? r}
                     </span>
                   ))}
@@ -118,17 +124,25 @@ function UsersPage() {
               {expanded === u.id && (
                 <div className="space-y-4 border-t border-border/60 p-4">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Papéis</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Papéis
+                    </p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                       {Object.keys(ROLE_LABEL).map((role) => (
-                        <label key={role} className="flex items-center justify-between gap-2 text-sm">
+                        <label
+                          key={role}
+                          className="flex items-center justify-between gap-2 text-sm"
+                        >
                           <span>{ROLE_LABEL[role]}</span>
                           <Switch
                             disabled={!isSuperAdmin}
                             checked={u.roles.includes(role as "member")}
                             onCheckedChange={(v) =>
                               run(
-                                () => setRole({ data: { userId: u.id, role: role as "member", enabled: v } }),
+                                () =>
+                                  setRole({
+                                    data: { userId: u.id, role: role as "member", enabled: v },
+                                  }),
                                 "Papel atualizado.",
                               )
                             }
@@ -144,13 +158,21 @@ function UsersPage() {
                     </p>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                       {(products ?? []).map((p) => (
-                        <label key={p.id} className="flex items-center justify-between gap-2 text-sm">
+                        <label
+                          key={p.id}
+                          className="flex items-center justify-between gap-2 text-sm"
+                        >
                           <span className="min-w-0 truncate">{p.name}</span>
                           <Switch
-                            checked={u.products.some((up) => up.product_id === p.id && !up.revoked_at)}
+                            checked={u.products.some(
+                              (up) => up.product_id === p.id && !up.revoked_at,
+                            )}
                             onCheckedChange={(v) =>
                               run(
-                                () => setAccess({ data: { userId: u.id, productId: p.id, enabled: v } }),
+                                () =>
+                                  setAccess({
+                                    data: { userId: u.id, productId: p.id, enabled: v },
+                                  }),
                                 v ? "Acesso liberado." : "Acesso revogado.",
                               )
                             }
@@ -209,7 +231,9 @@ function UsersPage() {
               )}
             </div>
           ))}
-          {users?.length === 0 && <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>}
+          {users?.length === 0 && (
+            <p className="text-sm text-muted-foreground">Nenhum usuário encontrado.</p>
+          )}
         </div>
       </Panel>
 

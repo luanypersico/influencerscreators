@@ -20,15 +20,7 @@ export interface Prompt {
 }
 
 export type CategoryId =
-  | "retrato"
-  | "selfie"
-  | "ugc"
-  | "lifestyle"
-  | "fitness"
-  | "moda"
-  | "viagem"
-  | "video"
-  | "motion";
+  "retrato" | "selfie" | "ugc" | "lifestyle" | "fitness" | "moda" | "viagem" | "video" | "motion";
 
 export interface Category {
   id: CategoryId;
@@ -59,7 +51,8 @@ const MOTION_LOCK =
   "Motion constraints: the face keeps identical proportions and identity for the entire duration, no morphing, no drifting features, no extra fingers, no limbs changing length. Clothing and hair move with real weight and inertia. Exactly one continuous take, no cuts, no speed ramps, no zoom punches unless described. Frame rate 24fps with natural motion blur on moving edges.";
 
 /** Reusable English fragment appended to stills to kill the plastic look. */
-const RAW = "Unretouched skin with visible pores, peach fuzz and subtle blemishes. No beauty filter, no smoothing, no HDR glow. Natural asymmetry in the face.";
+const RAW =
+  "Unretouched skin with visible pores, peach fuzz and subtle blemishes. No beauty filter, no smoothing, no HDR glow. Natural asymmetry in the face.";
 
 export const PROMPTS: Prompt[] = [
   {

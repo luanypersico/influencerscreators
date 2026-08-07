@@ -121,7 +121,11 @@ function makeQuery(table: string) {
       if (existing) {
         Object.assign(existing, payload);
       } else {
-        db[table]!.push({ created_at: new Date().toISOString(), updated_at: new Date().toISOString(), ...payload });
+        db[table]!.push({
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...payload,
+        });
       }
       return Promise.resolve({ data: null, error: null });
     },
@@ -184,7 +188,8 @@ mock.module("@/integrations/supabase/client.server", () => ({
         },
         updateUserById: (id: string, patch: { password?: string; email_confirm?: boolean }) => {
           const user = authUsers[id];
-          if (!user) return Promise.resolve({ data: null, error: { message: "usuário não encontrado" } });
+          if (!user)
+            return Promise.resolve({ data: null, error: { message: "usuário não encontrado" } });
           if (patch.password !== undefined) user.password = patch.password;
           if (patch.email_confirm !== undefined) user.email_confirm = patch.email_confirm;
           return Promise.resolve({ data: { user: { id } }, error: null });
@@ -231,8 +236,18 @@ function seedBaseline() {
     password: "x",
     email_confirm: true,
   };
-  authUsers[ADMIN_ID] = { id: ADMIN_ID, email: "admin@example.com", password: "x", email_confirm: true };
-  authUsers[MEMBER_ID] = { id: MEMBER_ID, email: "member@example.com", password: "x", email_confirm: true };
+  authUsers[ADMIN_ID] = {
+    id: ADMIN_ID,
+    email: "admin@example.com",
+    password: "x",
+    email_confirm: true,
+  };
+  authUsers[MEMBER_ID] = {
+    id: MEMBER_ID,
+    email: "member@example.com",
+    password: "x",
+    email_confirm: true,
+  };
   authUsers[COPRODUCER_ROLE_ID] = {
     id: COPRODUCER_ROLE_ID,
     email: "coprole@example.com",
@@ -415,7 +430,9 @@ describe("provisionHotmartValidationAccount — isolamento de dados concedidos",
     const roles = db["user_roles"]!.filter((r) => r["user_id"] === result.userId);
     expect(roles.length).toBe(0);
 
-    const collaborators = db["product_collaborators"]!.filter((r) => r["user_id"] === result.userId);
+    const collaborators = db["product_collaborators"]!.filter(
+      (r) => r["user_id"] === result.userId,
+    );
     expect(collaborators.length).toBe(0);
 
     const access = db["product_access"]!.filter((r) => r["user_id"] === result.userId);
@@ -470,9 +487,9 @@ describe("provisionHotmartValidationAccount — isolamento de dados concedidos",
 
     expect(second.userId).toBe(first.userId);
     expect(second.restored).toBe(true);
-    expect(
-      Object.values(authUsers).filter((u) => u.email === "validacao@example.com").length,
-    ).toBe(1);
+    expect(Object.values(authUsers).filter((u) => u.email === "validacao@example.com").length).toBe(
+      1,
+    );
     expect(db["product_access"]!.filter((r) => r["user_id"] === first.userId).length).toBe(1);
   });
 });
@@ -489,7 +506,11 @@ describe("provisionHotmartValidationAccount — exclusividade contra reaproveita
       password: "x",
       email_confirm: true,
     };
-    db["profiles"]!.push({ id: BUYER_HOTMART_ID, email: "comprador@example.com", full_name: "Comprador" });
+    db["profiles"]!.push({
+      id: BUYER_HOTMART_ID,
+      email: "comprador@example.com",
+      full_name: "Comprador",
+    });
     db["product_access"]!.push({
       id: "access-hotmart-real",
       user_id: BUYER_HOTMART_ID,
@@ -538,7 +559,11 @@ describe("provisionHotmartValidationAccount — exclusividade contra reaproveita
       password: "x",
       email_confirm: true,
     };
-    db["profiles"]!.push({ id: BUYER_ORDER_ID, email: "pedido@example.com", full_name: "Com pedido" });
+    db["profiles"]!.push({
+      id: BUYER_ORDER_ID,
+      email: "pedido@example.com",
+      full_name: "Com pedido",
+    });
     db["orders"]!.push({
       id: "order-1",
       user_id: BUYER_ORDER_ID,
@@ -702,7 +727,11 @@ describe("deleteHotmartValidationUser", () => {
       confirmOperation: true,
     });
     await expect(
-      deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId, confirmDeleteAuthUser: false }),
+      deleteHotmartValidationUser({
+        actorId: SUPER_ADMIN_ID,
+        userId,
+        confirmDeleteAuthUser: false,
+      }),
     ).rejects.toThrow();
     expect(authUsers[userId]).toBeDefined();
   });
@@ -716,7 +745,11 @@ describe("deleteHotmartValidationUser", () => {
       confirmEmail: false,
       confirmOperation: true,
     });
-    await deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId, confirmDeleteAuthUser: true });
+    await deleteHotmartValidationUser({
+      actorId: SUPER_ADMIN_ID,
+      userId,
+      confirmDeleteAuthUser: true,
+    });
     expect(authUsers[userId]).toBeUndefined();
   });
 
@@ -740,7 +773,12 @@ describe("deleteHotmartValidationUser", () => {
 
   it("bloqueia a exclusão de um comprador real (product_access com source 'hotmart') e nunca apaga o usuário", async () => {
     const BUYER_ID = "buyer-real-delete-attempt";
-    authUsers[BUYER_ID] = { id: BUYER_ID, email: "comprador2@example.com", password: "x", email_confirm: true };
+    authUsers[BUYER_ID] = {
+      id: BUYER_ID,
+      email: "comprador2@example.com",
+      password: "x",
+      email_confirm: true,
+    };
     db["profiles"]!.push({ id: BUYER_ID, email: "comprador2@example.com", full_name: "Comprador" });
     db["product_access"]!.push({
       id: "access-hotmart-2",
@@ -752,7 +790,11 @@ describe("deleteHotmartValidationUser", () => {
     });
 
     await expect(
-      deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId: BUYER_ID, confirmDeleteAuthUser: true }),
+      deleteHotmartValidationUser({
+        actorId: SUPER_ADMIN_ID,
+        userId: BUYER_ID,
+        confirmDeleteAuthUser: true,
+      }),
     ).rejects.toThrow();
 
     expect(authUsers[BUYER_ID]).toBeDefined();
@@ -763,7 +805,12 @@ describe("deleteHotmartValidationUser", () => {
 
   it("bloqueia a exclusão de um usuário com order existente, mesmo com acesso manual_validation presente", async () => {
     const BUYER_ID = "buyer-with-order-delete-attempt";
-    authUsers[BUYER_ID] = { id: BUYER_ID, email: "pedido2@example.com", password: "x", email_confirm: true };
+    authUsers[BUYER_ID] = {
+      id: BUYER_ID,
+      email: "pedido2@example.com",
+      password: "x",
+      email_confirm: true,
+    };
     db["profiles"]!.push({ id: BUYER_ID, email: "pedido2@example.com", full_name: "Com pedido" });
     db["product_access"]!.push({
       id: "access-validation-with-order",
@@ -773,10 +820,19 @@ describe("deleteHotmartValidationUser", () => {
       revoked_at: null,
       suspended_at: null,
     });
-    db["orders"]!.push({ id: "order-2", user_id: BUYER_ID, product_id: BERGAMO_PRODUCT_ID, status: "paid" });
+    db["orders"]!.push({
+      id: "order-2",
+      user_id: BUYER_ID,
+      product_id: BERGAMO_PRODUCT_ID,
+      status: "paid",
+    });
 
     await expect(
-      deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId: BUYER_ID, confirmDeleteAuthUser: true }),
+      deleteHotmartValidationUser({
+        actorId: SUPER_ADMIN_ID,
+        userId: BUYER_ID,
+        confirmDeleteAuthUser: true,
+      }),
     ).rejects.toThrow();
 
     expect(authUsers[BUYER_ID]).toBeDefined();
@@ -793,7 +849,11 @@ describe("deleteHotmartValidationUser", () => {
       confirmOperation: true,
     });
 
-    await deleteHotmartValidationUser({ actorId: SUPER_ADMIN_ID, userId, confirmDeleteAuthUser: true });
+    await deleteHotmartValidationUser({
+      actorId: SUPER_ADMIN_ID,
+      userId,
+      confirmDeleteAuthUser: true,
+    });
 
     expect(authUsers[userId]).toBeUndefined();
     const auditEntry = db["admin_audit_log"]!.find(
@@ -827,7 +887,11 @@ describe("listHotmartValidationAccounts", () => {
 
   it("nunca lista compradores comuns do Bergamo (source diferente de manual_validation)", async () => {
     const BUYER_ID = "buyer-listing-check";
-    db["profiles"]!.push({ id: BUYER_ID, email: "comprador-listagem@example.com", full_name: "Comprador" });
+    db["profiles"]!.push({
+      id: BUYER_ID,
+      email: "comprador-listagem@example.com",
+      full_name: "Comprador",
+    });
     db["product_access"]!.push(
       {
         id: "access-hotmart-listing",
@@ -908,7 +972,9 @@ describe("linkBergamoCoproducer — autorização e idempotência", () => {
     expect(link!["status"]).toBe("active");
     expect(link!["revoked_at"]).toBeNull();
 
-    const allLinksForUser = db["product_collaborators"]!.filter((r) => r["user_id"] === first.userId);
+    const allLinksForUser = db["product_collaborators"]!.filter(
+      (r) => r["user_id"] === first.userId,
+    );
     expect(allLinksForUser.length).toBe(1);
   });
 
@@ -949,7 +1015,11 @@ describe("listBergamoCoproducers", () => {
 describe("setBergamoCoproducerMemberPreview — independente do vínculo", () => {
   it("recusa conceder pré-visualização sem vínculo ativo de coprodutor", async () => {
     await expect(
-      setBergamoCoproducerMemberPreview({ actorId: SUPER_ADMIN_ID, userId: MEMBER_ID, enabled: true }),
+      setBergamoCoproducerMemberPreview({
+        actorId: SUPER_ADMIN_ID,
+        userId: MEMBER_ID,
+        enabled: true,
+      }),
     ).rejects.toThrow();
   });
 

@@ -35,7 +35,7 @@ export const adminListHotmartValidationAccountsFn = createServerFn({ method: "GE
 
 export const adminProvisionHotmartValidationAccountFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return {
       email: str(raw["email"]),
@@ -53,7 +53,7 @@ export const adminProvisionHotmartValidationAccountFn = createServerFn({ method:
 
 export const adminRevokeHotmartValidationAccessFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return { userId: str(raw["userId"]) };
   })
@@ -65,9 +65,12 @@ export const adminRevokeHotmartValidationAccessFn = createServerFn({ method: "PO
 
 export const adminDeleteHotmartValidationUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
-    return { userId: str(raw["userId"]), confirmDeleteAuthUser: bool(raw["confirmDeleteAuthUser"]) };
+    return {
+      userId: str(raw["userId"]),
+      confirmDeleteAuthUser: bool(raw["confirmDeleteAuthUser"]),
+    };
   })
   .handler(async ({ context, data }) => {
     if (!data.userId) throw new Error("Usuário inválido.");
@@ -85,7 +88,7 @@ export const adminListBergamoCoproducersFn = createServerFn({ method: "GET" })
 
 export const adminLinkBergamoCoproducerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return { email: str(raw["email"]) };
   })
@@ -96,7 +99,7 @@ export const adminLinkBergamoCoproducerFn = createServerFn({ method: "POST" })
 
 export const adminRevokeBergamoCoproducerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return { userId: str(raw["userId"]) };
   })
@@ -108,7 +111,7 @@ export const adminRevokeBergamoCoproducerFn = createServerFn({ method: "POST" })
 
 export const adminSetBergamoCoproducerMemberPreviewFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => {
+  .validator((data: unknown) => {
     const raw = (data ?? {}) as Record<string, unknown>;
     return { userId: str(raw["userId"]), enabled: bool(raw["enabled"]) };
   })

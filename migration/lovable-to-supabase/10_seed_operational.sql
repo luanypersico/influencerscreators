@@ -1,0 +1,5 @@
+-- Snapshot operacional: 0 orders, 0 product_access, 0 product_collaborators,
+-- 0 revisions, 0 updates, 0 webhook_events e 0 audit rows.
+-- A única profile/role depende do novo auth.users.id e NÃO é inserida aqui.
+-- Recrie o Auth com segurança e execute o mapeamento descrito em
+-- docs/migration/auth-migration-plan.md e id-mapping-plan.md.

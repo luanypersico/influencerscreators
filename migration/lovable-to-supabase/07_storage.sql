@@ -1,0 +1,11 @@
+-- HOLD DE SEGURANÇA: não cria nem altera Storage nesta rodada.
+-- O banco vivo contém o bucket privado bergamo-member-images (0 objetos),
+-- limite 10 MiB e MIME image/jpeg,image/png,image/webp, além de uma policy SELECT.
+-- Esses objetos correspondem exatamente à migration da branch WIP
+-- feat/bergamo-private-member-images, ausente da main. Só aplicar após revisão.
+-- A policy viva é:
+-- CREATE POLICY "bergamo buyers read their private images" ON storage.objects
+-- FOR SELECT TO authenticated USING (
+--   bucket_id = 'bergamo-member-images' AND public.has_product_access(
+--     auth.uid(), (SELECT id FROM public.products WHERE slug='bergamo'))
+-- );

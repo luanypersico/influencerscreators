@@ -64,6 +64,13 @@ describe("fluxo de Auth do Supabase", () => {
     expect(source).toContain("supabase.auth.updateUser({ password })");
   });
 
+  it("não declara um convite implícito expirado antes do processamento do callback", () => {
+    const source = readSrc("src/hooks/useSetPasswordSession.ts");
+    expect(source).toContain('event === "SIGNED_IN"');
+    expect(source).toContain('event === "PASSWORD_RECOVERY"');
+    expect(source).toContain("AUTH_LINK_TIMEOUT_MS");
+  });
+
   it("valida divergência e não envia senha a logs", () => {
     const source = readSrc("src/routes/auth.set-password.tsx");
     expect(source).toContain("password !== confirmation");

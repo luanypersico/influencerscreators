@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
 import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
-import { useSession } from "@/hooks/useAuth";
+import { useSetPasswordSession } from "@/hooks/useSetPasswordSession";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth/set-password")({
@@ -21,7 +21,7 @@ const MINIMUM_PASSWORD_LENGTH = 12;
 
 function SetPasswordPage() {
   const router = useRouter();
-  const { session, loading } = useSession();
+  const { session, state } = useSetPasswordSession();
   const getPostAuthDestination = usePostAuthDestination();
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -58,9 +58,9 @@ function SetPasswordPage() {
     }
   }
 
-  if (loading) return <CenteredPanel title="Validando link..." />;
+  if (state === "processing") return <CenteredPanel title="Validando seu link..." />;
 
-  if (!session) {
+  if (state === "invalid" || !session) {
     return (
       <CenteredPanel title="Link inválido ou expirado">
         <p className="mt-2 text-sm text-muted-foreground">

@@ -44,15 +44,14 @@ describe("Magic link — redirect seguro, sem open redirect", () => {
   const source = readSrc("src/routes/auth.tsx");
 
   it("emailRedirectTo aponta para um caminho interno fixo, nunca para um parâmetro da URL", () => {
-    expect(source).toMatch(/emailRedirectTo:\s*`\$\{window\.location\.origin\}\/membros`/);
+    expect(source).toMatch(/emailRedirectTo:\s*`\$\{window\.location\.origin\}\/auth`/);
     // Nunca lê redirect de query string, hash ou params — não há open redirect possível.
     expect(source).not.toMatch(/searchParams|location\.search|redirectTo\s*=\s*.*params/);
   });
 
   it("o destino pós-login é decidido pelo papel do usuário no servidor (roles), não por um parâmetro do cliente", () => {
-    expect(source).toMatch(
-      /router\.navigate\(\{\s*to:\s*isAdmin\s*\?\s*"\/admin"\s*:\s*"\/membros"\s*\}\)/,
-    );
+    expect(source).toContain("getPostAuthDestination()");
+    expect(source).toContain("router.navigate({ to: destination })");
   });
 
   it("login por senha continua disponível (preservado para a equipe/administração)", () => {

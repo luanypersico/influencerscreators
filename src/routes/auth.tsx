@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
-import { useRoles, useSession } from "@/hooks/useAuth";
+import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
+import { useSession } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
@@ -28,8 +29,8 @@ const MAGIC_LINK_COOLDOWN_SECONDS = 30;
 
 function AuthPage() {
   const router = useRouter();
-  const { session, user, loading } = useSession();
-  const { isAdmin, loading: rolesLoading } = useRoles(user?.id);
+  const { session, loading } = useSession();
+  const getPostAuthDestination = usePostAuthDestination();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -39,12 +40,20 @@ function AuthPage() {
 
   useEffect(() => {
     if (loading || !session) return;
-    if (rolesLoading) return;
-    // Redirect seguro: destino é sempre um dos dois caminhos internos fixos
-    // abaixo, escolhido pelo papel do usuário — nunca por um parâmetro vindo
-    // da URL ou de qualquer entrada do usuário (sem open redirect).
-    router.navigate({ to: isAdmin ? "/admin" : "/membros" });
-  }, [loading, session, rolesLoading, isAdmin, router]);
+    let active = true;
+    // O servidor resolve um único caminho interno a partir da sessão validada;
+    // nunca há destino vindo da URL ou de entrada do navegador.
+    getPostAuthDestination()
+      .then((destination) => {
+        if (active) void router.navigate({ to: destination });
+      })
+      .catch(() => {
+        if (active) toast.error("Não foi possível concluir o login. Tente novamente.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [getPostAuthDestination, loading, router, session]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -58,7 +67,7 @@ function AuthPage() {
     try {
       if (mode === "reset") {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/auth/set-password`,
         });
         if (error) throw error;
         toast.success("Se esse e-mail existir, um link de redefinição foi enviado.");
@@ -71,7 +80,8 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithOtp({
           email: email.trim(),
           options: {
-            emailRedirectTo: `${window.location.origin}/membros`,
+            emailRedirectTo: `${window.location.origin}/auth`,
+            shouldCreateUser: false,
           },
         });
         if (error) throw error;

@@ -26,6 +26,7 @@ import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
+import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
 import { Route as CoprodutorBergamoRouteImport } from './routes/coprodutor.bergamo'
 import { Route as MembrosIndexRouteImport } from './routes/membros.index'
 import { Route as MembrosBergamoRouteImport } from './routes/membros.bergamo'
@@ -117,6 +118,11 @@ const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AdminRoute,
 } as any)
+const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
+  id: '/set-password',
+  path: '/set-password',
+  getParentRoute: () => AuthRoute,
+} as any)
 const CoprodutorBergamoRoute = CoprodutorBergamoRouteImport.update({
   id: '/coprodutor/bergamo',
   path: '/coprodutor/bergamo',
@@ -152,7 +158,7 @@ const ApiPublicWebhooksHotmartRoute =
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
   '/admin/': typeof AdminIndexRoute
@@ -174,7 +181,7 @@ export interface FileRoutesByFullPath {
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
   '/': typeof PublicIndexRoute
@@ -199,7 +207,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_public': typeof PublicRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
   '/_public/': typeof PublicIndexRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
     | '/admin/'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
     | '/'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
     | '/_public/'
@@ -298,7 +310,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   BergamoRoute: typeof BergamoRoute
   LaboratorioRoute: typeof LaboratorioRoute
   MembrosRoute: typeof MembrosRouteWithChildren
@@ -427,6 +439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsuariosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/auth/set-password': {
+      id: '/auth/set-password'
+      path: '/set-password'
+      fullPath: '/auth/set-password'
+      preLoaderRoute: typeof AuthSetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/coprodutor/bergamo': {
       id: '/coprodutor/bergamo'
       path: '/coprodutor/bergamo'
@@ -515,6 +534,16 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface AuthRouteChildren {
+  AuthSetPasswordRoute: typeof AuthSetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthSetPasswordRoute: AuthSetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface MembrosRouteChildren {
   MembrosBergamoRoute: typeof MembrosBergamoRoute
   MembrosIndexRoute: typeof MembrosIndexRoute
@@ -531,7 +560,7 @@ const MembrosRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   BergamoRoute: BergamoRoute,
   LaboratorioRoute: LaboratorioRoute,
   MembrosRoute: MembrosRouteWithChildren,

@@ -44,7 +44,9 @@ describe("Magic link — redirect seguro, sem open redirect", () => {
   const source = readSrc("src/routes/auth.tsx");
 
   it("emailRedirectTo aponta para um caminho interno fixo, nunca para um parâmetro da URL", () => {
-    expect(source).toMatch(/emailRedirectTo:\s*`\$\{window\.location\.origin\}\/auth`/);
+    expect(source).toMatch(
+      /emailRedirectTo:\s*`\$\{window\.location\.origin\}\/auth\/callback\?next=\/membros`/,
+    );
     // Nunca lê redirect de query string, hash ou params — não há open redirect possível.
     expect(source).not.toMatch(/searchParams|location\.search|redirectTo\s*=\s*.*params/);
   });

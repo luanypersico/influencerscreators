@@ -31,8 +31,9 @@ const MAGIC_LINK_COOLDOWN_SECONDS = 30;
 function AuthRoute() {
   const matchRoute = useMatchRoute();
   const isSetPasswordRoute = matchRoute({ to: "/auth/set-password", fuzzy: false });
+  const isCallbackRoute = matchRoute({ to: "/auth/callback", fuzzy: false });
 
-  if (isSetPasswordRoute) return <Outlet />;
+  if (isSetPasswordRoute || isCallbackRoute) return <Outlet />;
   return <AuthPage />;
 }
 
@@ -76,7 +77,7 @@ function AuthPage() {
     try {
       if (mode === "reset") {
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/auth/set-password`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/auth/set-password`,
         });
         if (error) throw error;
         toast.success("Se esse e-mail existir, um link de redefinição foi enviado.");
@@ -89,7 +90,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithOtp({
           email: email.trim(),
           options: {
-            emailRedirectTo: `${window.location.origin}/auth`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/membros`,
             shouldCreateUser: false,
           },
         });

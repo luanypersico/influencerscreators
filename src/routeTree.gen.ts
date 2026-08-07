@@ -26,6 +26,7 @@ import { Route as AdminIntegracoesRouteImport } from './routes/admin.integracoes
 import { Route as AdminPedidosRouteImport } from './routes/admin.pedidos'
 import { Route as AdminProdutosRouteImport } from './routes/admin.produtos'
 import { Route as AdminUsuariosRouteImport } from './routes/admin.usuarios'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthSetPasswordRouteImport } from './routes/auth.set-password'
 import { Route as CoprodutorBergamoRouteImport } from './routes/coprodutor.bergamo'
 import { Route as MembrosIndexRouteImport } from './routes/membros.index'
@@ -118,6 +119,11 @@ const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   path: '/usuarios',
   getParentRoute: () => AdminRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthSetPasswordRoute = AuthSetPasswordRouteImport.update({
   id: '/set-password',
   path: '/set-password',
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/set-password': typeof AuthSetPasswordRoute
   '/coprodutor/bergamo': typeof CoprodutorBergamoRoute
   '/membros/bergamo': typeof MembrosBergamoRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/callback'
     | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/callback'
     | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/produtos'
     | '/admin/usuarios'
+    | '/auth/callback'
     | '/auth/set-password'
     | '/coprodutor/bergamo'
     | '/membros/bergamo'
@@ -439,6 +451,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsuariosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/auth/set-password': {
       id: '/auth/set-password'
       path: '/set-password'
@@ -535,10 +554,12 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
   AuthSetPasswordRoute: typeof AuthSetPasswordRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
   AuthSetPasswordRoute: AuthSetPasswordRoute,
 }
 

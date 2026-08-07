@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 
+import { verifyPasswordSetupSession } from "./passwordSetup";
+
 export type SetPasswordSessionState = "processing" | "valid" | "invalid";
 
 const AUTH_LINK_TIMEOUT_MS = 10_000;
@@ -27,7 +29,7 @@ export function isSessionEstablishingEvent(event: AuthChangeEvent): boolean {
  * Invite links use the implicit callback flow, so this deliberately does not
  * require a PKCE `code` or call exchangeCodeForSession.
  */
-export function useSetPasswordSession(): {
+export function useSetPasswordSession(options?: { requirePasswordSetupProof?: boolean }): {
   session: Session | null;
   state: SetPasswordSessionState;
 } {
@@ -38,6 +40,7 @@ export function useSetPasswordSession(): {
     let active = true;
     let settled = false;
     const hasCallbackPayload = hasAuthCallbackPayload(window.location);
+    const requirePasswordSetupProof = options?.requirePasswordSetupProof ?? false;
 
     function markValid(nextSession: Session) {
       if (!active) return;
@@ -53,9 +56,24 @@ export function useSetPasswordSession(): {
       setState("invalid");
     }
 
+    async function validateSession(nextSession: Session) {
+      if (!requirePasswordSetupProof) {
+        markValid(nextSession);
+        return;
+      }
+
+      const method = await verifyPasswordSetupSession(supabase.auth, nextSession);
+      if (!active) return;
+      if (method) {
+        markValid(nextSession);
+      } else if (!hasCallbackPayload) {
+        markInvalid();
+      }
+    }
+
     const { data: subscription } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (nextSession && isSessionEstablishingEvent(event)) {
-        markValid(nextSession);
+        void validateSession(nextSession);
         return;
       }
 
@@ -68,7 +86,7 @@ export function useSetPasswordSession(): {
       if (error) {
         markInvalid();
       } else if (data.session) {
-        markValid(data.session);
+        void validateSession(data.session);
       }
       // A null first result is intentionally not terminal: supabase-js may
       // still be consuming an implicit invite/recovery callback from the URL.
@@ -82,7 +100,7 @@ export function useSetPasswordSession(): {
       window.clearTimeout(timeout);
       subscription.subscription.unsubscribe();
     };
-  }, []);
+  }, [options?.requirePasswordSetupProof]);
 
   return { session, state };
 }

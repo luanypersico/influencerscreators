@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
+import { completePasswordSetup } from "@/hooks/passwordSetup";
 import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
 import { useSetPasswordSession } from "@/hooks/useSetPasswordSession";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,7 @@ const MINIMUM_PASSWORD_LENGTH = 12;
 
 function SetPasswordPage() {
   const router = useRouter();
-  const { session, state } = useSetPasswordSession();
+  const { session, state } = useSetPasswordSession({ requirePasswordSetupProof: true });
   const getPostAuthDestination = usePostAuthDestination();
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -42,9 +43,9 @@ function SetPasswordPage() {
 
     setBusy(true);
     try {
-      // This password only goes directly to Supabase Auth from the browser.
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      // The password goes only to Supabase Auth after the signed recovery/invite
+      // claim is revalidated for this exact authenticated user.
+      await completePasswordSetup(supabase.auth, session, password);
 
       const destination = await getPostAuthDestination();
       toast.success("Senha definida com sucesso.");

@@ -19,7 +19,7 @@ describe("initialization of invite and recovery sessions", () => {
     expect(isSessionEstablishingEvent("INITIAL_SESSION")).toBe(true);
   });
 
-  it("accepts an existing session or optional PKCE callback without requiring PKCE for invites", () => {
+  it("recognizes an optional PKCE callback without treating its query as authorization", () => {
     expect(hasAuthCallbackPayload(callbackLocation("", "?code=optional-code"))).toBe(true);
     expect(hasAuthCallbackPayload(callbackLocation())).toBe(false);
   });

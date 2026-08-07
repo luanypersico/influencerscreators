@@ -61,7 +61,8 @@ describe("fluxo de Auth do Supabase", () => {
     const source = readSrc("src/routes/auth.set-password.tsx");
     expect(source).toContain("if (!session || busy) return;");
     expect(source).toContain("Link inválido ou expirado");
-    expect(source).toContain("supabase.auth.updateUser({ password })");
+    expect(source).toContain("completePasswordSetup(supabase.auth, session, password)");
+    expect(source).toContain("requirePasswordSetupProof: true");
   });
 
   it("não declara um convite implícito expirado antes do processamento do callback", () => {
@@ -73,8 +74,10 @@ describe("fluxo de Auth do Supabase", () => {
 
   it("valida divergência e não envia senha a logs", () => {
     const source = readSrc("src/routes/auth.set-password.tsx");
+    const proofSource = readSrc("src/hooks/passwordSetup.ts");
     expect(source).toContain("password !== confirmation");
     expect(source).not.toMatch(/console\.(log|info|warn|error)\([^)]*password/i);
+    expect(proofSource).not.toMatch(/console\.(log|info|warn|error)/);
   });
 
   it("mantém /laboratorio sem alteração nesta rodada", () => {

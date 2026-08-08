@@ -29,7 +29,7 @@ export function HowItWorksSection({ bordered = true }: HowItWorksSectionProps) {
 
         <ol className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
           {STEPS.map((step, i) => (
-            <li key={step.title} className="relative rounded-2xl border border-border bg-card p-6">
+            <li key={step.title} className="studio-surface relative rounded-2xl p-6">
               <span className="font-mono text-xs text-primary">
                 {String(i + 1).padStart(2, "0")}
               </span>

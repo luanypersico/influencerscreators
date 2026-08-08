@@ -31,7 +31,7 @@ export function MoreThanAFaceSection() {
           subtitle="Isso não é uma imagem aleatória de IA. É um personagem completo, pronto para trabalhar."
         />
 
-        <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <div className="studio-surface mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl bg-border sm:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((pillar) => (
             <div key={pillar.title} className="bg-background p-6">
               <h3 className="text-xl leading-tight">{pillar.title}</h3>

@@ -28,7 +28,11 @@ export function FinalCtaSection() {
   return (
     <section className="border-t border-border px-6 py-20 md:px-10">
       <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col items-start gap-6 rounded-3xl border border-border bg-card p-8 md:flex-row md:items-center md:justify-between md:p-12">
+        <div className="studio-surface relative flex flex-col items-start gap-6 overflow-hidden rounded-3xl p-8 md:flex-row md:items-center md:justify-between md:p-12">
+          <div
+            aria-hidden="true"
+            className="absolute -right-24 -bottom-32 size-80 rounded-full bg-primary/20 blur-3xl"
+          />
           <div>
             <h2 className="text-3xl md:text-4xl">Sua próxima influencer está esperando.</h2>
             <p className="mt-2 text-sm text-muted-foreground">

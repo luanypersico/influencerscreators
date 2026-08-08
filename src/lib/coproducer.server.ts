@@ -40,6 +40,65 @@ async function assertBergamoAccess(userId: string): Promise<{ productId: string 
   return { productId: product.id };
 }
 
+/**
+ * Autoriza somente a operacao de cortesia: administradores globais ou o
+ * coprodutor ativo do Bergamo. O produto e sempre resolvido pelo slug no
+ * servidor; nenhum product_id vindo do navegador participa da decisao.
+ */
+async function assertBergamoCourtesyManager(userId: string): Promise<{ productId: string }> {
+  const { data: product, error: productError } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .eq("slug", "bergamo")
+    .maybeSingle();
+  if (productError) throw new Error(productError.message);
+  if (!product) throw new Error("Produto Bergamo não encontrado.");
+
+  const { data: roles, error: rolesError } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  if (rolesError) throw new Error(rolesError.message);
+  if ((roles ?? []).some((row) => row.role === "super_admin" || row.role === "admin")) {
+    return { productId: product.id };
+  }
+
+  const { data: collaborator, error: collaboratorError } = await supabaseAdmin
+    .from("product_collaborators")
+    .select("id")
+    .eq("product_id", product.id)
+    .eq("user_id", userId)
+    .eq("role", "coproducer")
+    .eq("status", "active")
+    .maybeSingle();
+  if (collaboratorError) throw new Error(collaboratorError.message);
+  if (!collaborator) throw new Error("Acesso restrito ao coprodutor ativo do Bergamo.");
+
+  return { productId: product.id };
+}
+
+const PRODUCTION_ORIGIN = "https://influencerscreators.pages.dev";
+
+export function getBergamoInviteRedirectUrl(env: NodeJS.ProcessEnv = process.env): string {
+  const configuredOrigin = env["APP_ORIGIN"]?.trim() || env["CF_PAGES_URL"]?.trim();
+  const url = new URL(configuredOrigin || PRODUCTION_ORIGIN);
+  const isProduction = url.origin === PRODUCTION_ORIGIN;
+  const isLocal = url.origin === "http://localhost:4173";
+  const isProjectPreview =
+    url.protocol === "https:" &&
+    url.port === "" &&
+    url.hostname.endsWith(".influencerscreators.pages.dev");
+
+  if (url.username || url.password || (!isProduction && !isLocal && !isProjectPreview)) {
+    throw new Error("Origem confiável de convite não configurada.");
+  }
+
+  url.pathname = "/auth/callback";
+  url.search = "?next=/auth/set-password";
+  url.hash = "";
+  return url.toString();
+}
+
 // ---------------------------------------------------------------------
 // A. Visão geral
 // ---------------------------------------------------------------------
@@ -98,58 +157,313 @@ export async function getBergamoOverview(userId: string): Promise<BergamoOvervie
 // Sempre filtrado pelo product_id do Bergamo no servidor.
 // ---------------------------------------------------------------------
 export interface BergamoCustomerRow {
+  userId: string | null;
   name: string | null;
   email: string;
-  purchasedAt: string | null;
-  orderStatus: string;
+  origin: "purchase" | "manual";
+  grantedAt: string;
   accessStatus: "active" | "suspended" | "revoked" | "none";
+  canRevokeCourtesy: boolean;
 }
 
 export async function listBergamoCustomers(userId: string): Promise<BergamoCustomerRow[]> {
   const { productId } = await assertBergamoAccess(userId);
 
-  const { data: orders, error } = await supabaseAdmin
-    .from("orders")
-    .select("user_id, buyer_email, buyer_name, status, paid_at, created_at")
-    .eq("product_id", productId)
-    .order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
+  const [{ data: orders, error: ordersError }, { data: accessRows, error: accessError }] =
+    await Promise.all([
+      supabaseAdmin
+        .from("orders")
+        .select("user_id, buyer_email, buyer_name, paid_at, created_at")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("product_access")
+        .select("user_id, source, revoked_at, suspended_at, created_at")
+        .eq("product_id", productId),
+    ]);
+  if (ordersError) throw new Error(ordersError.message);
+  if (accessError) throw new Error(accessError.message);
 
-  const userIds = Array.from(
-    new Set((orders ?? []).map((o) => o.user_id).filter(Boolean)),
-  ) as string[];
+  const customerAccess = accessRows ?? [];
+  const accessByUser = new Map(customerAccess.map((row) => [row.user_id, row]));
+  const accessUserIds = Array.from(new Set(customerAccess.map((row) => row.user_id)));
+  const profileByUser = new Map<string, { email: string; full_name: string | null }>();
 
-  const accessByUser = new Map<
-    string,
-    { revoked_at: string | null; suspended_at: string | null }
-  >();
-  if (userIds.length > 0) {
-    const { data: accessRows } = await supabaseAdmin
-      .from("product_access")
-      .select("user_id, revoked_at, suspended_at")
-      .eq("product_id", productId)
-      .in("user_id", userIds);
-    for (const row of accessRows ?? []) {
-      accessByUser.set(row.user_id, { revoked_at: row.revoked_at, suspended_at: row.suspended_at });
+  if (accessUserIds.length > 0) {
+    const { data: profiles, error: profilesError } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email, full_name")
+      .in("id", accessUserIds);
+    if (profilesError) throw new Error(profilesError.message);
+    for (const profile of profiles ?? []) {
+      if (profile.email) profileByUser.set(profile.id, profile);
     }
   }
 
-  return (orders ?? []).map((order) => {
+  function statusFor(access: (typeof customerAccess)[number] | undefined) {
+    if (!access) return "none" as const;
+    if (access.revoked_at) return "revoked" as const;
+    if (access.suspended_at) return "suspended" as const;
+    return "active" as const;
+  }
+
+  const rows = new Map<string, BergamoCustomerRow>();
+  for (const order of orders ?? []) {
+    const key = order.user_id ?? order.buyer_email.trim().toLowerCase();
+    if (rows.has(key)) continue;
     const access = order.user_id ? accessByUser.get(order.user_id) : undefined;
-    let accessStatus: BergamoCustomerRow["accessStatus"] = "none";
-    if (access) {
-      if (access.revoked_at) accessStatus = "revoked";
-      else if (access.suspended_at) accessStatus = "suspended";
-      else accessStatus = "active";
-    }
-    return {
+    rows.set(key, {
+      userId: order.user_id,
       name: order.buyer_name,
       email: order.buyer_email,
-      purchasedAt: order.paid_at ?? order.created_at,
-      orderStatus: order.status,
+      origin: "purchase",
+      grantedAt: order.paid_at ?? order.created_at,
+      accessStatus: statusFor(access),
+      canRevokeCourtesy: false,
+    });
+  }
+
+  for (const access of customerAccess) {
+    if (access.source !== "manual" || rows.has(access.user_id)) continue;
+    const profile = profileByUser.get(access.user_id);
+    if (!profile) continue;
+    const accessStatus = statusFor(access);
+    rows.set(access.user_id, {
+      userId: access.user_id,
+      name: profile.full_name,
+      email: profile.email,
+      origin: "manual",
+      grantedAt: access.created_at,
       accessStatus,
-    };
+      canRevokeCourtesy: accessStatus === "active",
+    });
+  }
+
+  return Array.from(rows.values()).sort((a, b) => b.grantedAt.localeCompare(a.grantedAt));
+}
+
+export interface GrantBergamoCourtesyAccessParams {
+  actorId: string;
+  name: string;
+  email: string;
+  note?: string | null | undefined;
+}
+
+export interface GrantBergamoCourtesyAccessResult {
+  userId: string;
+  invited: boolean;
+  access: "created" | "restored" | "already_active" | "already_has_access";
+}
+
+function normalizeCustomerEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+export async function grantBergamoCourtesyAccess(
+  params: GrantBergamoCourtesyAccessParams,
+): Promise<GrantBergamoCourtesyAccessResult> {
+  const { productId } = await assertBergamoCourtesyManager(params.actorId);
+  const name = params.name.trim();
+  const email = normalizeCustomerEmail(params.email);
+  const note = params.note?.trim() || null;
+
+  if (!name || name.length > 120) throw new Error("Informe um nome válido.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    throw new Error("Informe um e-mail válido.");
+  }
+  if (note && note.length > 500) throw new Error("A observação deve ter no máximo 500 caracteres.");
+
+  const { data: existingUserId, error: lookupError } = await supabaseAdmin.rpc(
+    "find_user_id_by_email",
+    { _email: email },
+  );
+  if (lookupError) throw new Error(lookupError.message);
+
+  let userId = existingUserId;
+  let invited = false;
+
+  if (!userId) {
+    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      data: { full_name: name },
+      redirectTo: getBergamoInviteRedirectUrl(),
+    });
+    if (error || !data.user) {
+      throw new Error(error?.message ?? "Não foi possível convidar o cliente.");
+    }
+    userId = data.user.id;
+    invited = true;
+  }
+
+  try {
+    const { data: profile, error: profileLookupError } = await supabaseAdmin
+      .from("profiles")
+      .select("id, full_name")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileLookupError) throw new Error(profileLookupError.message);
+
+    if (profile) {
+      if (!profile.full_name) {
+        const { error } = await supabaseAdmin
+          .from("profiles")
+          .update({ full_name: name })
+          .eq("id", userId);
+        if (error) throw new Error(error.message);
+      }
+    } else {
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .insert({ id: userId, email, full_name: name });
+      if (error) throw new Error(error.message);
+    }
+
+    if (invited) {
+      const { data: roles, error: rolesError } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (rolesError) throw new Error(rolesError.message);
+      const roleNames = (roles ?? []).map((row) => row.role);
+      if (
+        !roleNames.includes("member") ||
+        roleNames.some((role) => role === "admin" || role === "super_admin")
+      ) {
+        throw new Error("O fluxo padrão de profile/member não foi concluído.");
+      }
+    }
+
+    const [
+      { data: existingAccess, error: accessLookupError },
+      { data: commercialOrders, error: ordersError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("product_access")
+        .select("id, source, revoked_at, suspended_at")
+        .eq("user_id", userId)
+        .eq("product_id", productId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("orders")
+        .select("id")
+        .eq("product_id", productId)
+        .eq("user_id", userId)
+        .limit(1),
+    ]);
+    if (accessLookupError) throw new Error(accessLookupError.message);
+    if (ordersError) throw new Error(ordersError.message);
+
+    let access: GrantBergamoCourtesyAccessResult["access"];
+    let auditSource = "manual";
+    if ((commercialOrders ?? []).length > 0) {
+      if (existingAccess && !existingAccess.revoked_at && !existingAccess.suspended_at) {
+        access = "already_has_access";
+        auditSource = existingAccess.source;
+      } else {
+        throw new Error("Uma compra comercial não pode ser convertida em cortesia.");
+      }
+    } else if (existingAccess) {
+      if (existingAccess.source !== "manual") {
+        if (!existingAccess.revoked_at && !existingAccess.suspended_at) {
+          access = "already_has_access";
+          auditSource = existingAccess.source;
+        } else {
+          throw new Error("Um acesso de outra origem não pode ser convertido em cortesia.");
+        }
+      } else if (!existingAccess.revoked_at && !existingAccess.suspended_at) {
+        access = "already_active";
+      } else {
+        const { error } = await supabaseAdmin
+          .from("product_access")
+          .update({
+            granted_by: params.actorId,
+            revoked_at: null,
+            suspended_at: null,
+            status_reason: "manual_courtesy",
+          })
+          .eq("id", existingAccess.id)
+          .eq("source", "manual");
+        if (error) throw new Error(error.message);
+        access = "restored";
+      }
+    } else {
+      const { error } = await supabaseAdmin.from("product_access").insert({
+        user_id: userId,
+        product_id: productId,
+        source: "manual",
+        granted_by: params.actorId,
+        status_reason: "manual_courtesy",
+      });
+      if (error) throw new Error(error.message);
+      access = "created";
+    }
+
+    await logAudit({
+      actorId: params.actorId,
+      action:
+        access === "already_has_access"
+          ? "bergamo.courtesy_access.skip_existing"
+          : "bergamo.courtesy_access.grant",
+      entity: "product_access",
+      entityId: `${productId}:${userId}`,
+      meta: { targetUserId: userId, productId, source: auditSource, note, invited, result: access },
+    });
+
+    return { userId, invited, access };
+  } catch (error) {
+    if (invited) await supabaseAdmin.auth.admin.deleteUser(userId);
+    throw error;
+  }
+}
+
+export async function revokeBergamoCourtesyAccess(params: {
+  actorId: string;
+  userId: string;
+}): Promise<{ alreadyRevoked: boolean }> {
+  const { productId } = await assertBergamoCourtesyManager(params.actorId);
+  const { data: access, error: accessError } = await supabaseAdmin
+    .from("product_access")
+    .select("id, source, revoked_at")
+    .eq("user_id", params.userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+  if (accessError) throw new Error(accessError.message);
+  if (!access || access.source !== "manual") {
+    throw new Error("Somente acessos de cortesia podem ser revogados por este workspace.");
+  }
+
+  const { data: commercialOrders, error: ordersError } = await supabaseAdmin
+    .from("orders")
+    .select("id")
+    .eq("product_id", productId)
+    .eq("user_id", params.userId)
+    .limit(1);
+  if (ordersError) throw new Error(ordersError.message);
+  if ((commercialOrders ?? []).length > 0) {
+    throw new Error("Acesso ligado a uma compra comercial não pode ser revogado como cortesia.");
+  }
+
+  if (access.revoked_at) return { alreadyRevoked: true };
+
+  const { error } = await supabaseAdmin
+    .from("product_access")
+    .update({
+      revoked_at: new Date().toISOString(),
+      suspended_at: null,
+      status_reason: "manual_courtesy_revoked",
+    })
+    .eq("id", access.id)
+    .eq("source", "manual");
+  if (error) throw new Error(error.message);
+
+  await logAudit({
+    actorId: params.actorId,
+    action: "bergamo.courtesy_access.revoke",
+    entity: "product_access",
+    entityId: `${productId}:${params.userId}`,
+    meta: { targetUserId: params.userId, productId, source: "manual" },
   });
+
+  return { alreadyRevoked: false };
 }
 
 // ---------------------------------------------------------------------

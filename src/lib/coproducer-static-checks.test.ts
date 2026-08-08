@@ -17,19 +17,42 @@ describe("Coproducer — sem escrita direta do navegador em tabelas sensíveis",
     expect(source).not.toMatch(/from\s+["']@\/integrations\/supabase\/client["']/);
   });
 
-  it("coproducer.server.ts nunca escreve em orders, product_access, products ou payment_integrations", () => {
+  it("coproducer.server.ts nunca escreve em orders, products ou payment_integrations", () => {
     const source = readSrc("src/lib/coproducer.server.ts");
-    // As únicas tabelas mutadas por este módulo são product_items,
-    // product_item_revisions e product_updates (conteúdo do Bergamo).
+    // Além do conteúdo do Bergamo, este módulo só pode mutar
+    // product_access com a origem manual de cortesia e o log de auditoria.
     // Ancorado diretamente em .from("tabela").<verbo>( — com espaço em
     // branco/quebra de linha tolerados no meio, mas sem "pular" para uma
     // mutação de OUTRA tabela mais adiante no arquivo.
-    for (const table of ["orders", "product_access", "products", "payment_integrations"]) {
+    for (const table of ["orders", "products", "payment_integrations"]) {
       for (const verb of ["update", "insert", "delete"]) {
         const pattern = new RegExp(`from\\("${table}"\\)\\s*\\.\\s*${verb}\\s*\\(`);
         expect(source).not.toMatch(pattern);
       }
     }
+  });
+
+  it("a cortesia usa somente source manual e nunca escreve em user_roles", () => {
+    const source = readSrc("src/lib/coproducer.server.ts");
+    expect(source).toContain('source: "manual"');
+    expect(source).toContain('.eq("source", "manual")');
+    expect(source).not.toMatch(/from\("user_roles"\)\s*\.\s*(insert|update|delete)\s*\(/);
+  });
+
+  it("convite Auth fica no servidor e usa redirect de allowlist, nunca dado do browser", () => {
+    const serverSource = readSrc("src/lib/coproducer.server.ts");
+    const functionsSource = readSrc("src/lib/coproducer.functions.ts");
+    expect(serverSource).toContain("auth.admin.inviteUserByEmail");
+    expect(serverSource).toContain("getBergamoInviteRedirectUrl()");
+    expect(functionsSource).not.toMatch(/raw\["(?:productId|product_id|role|redirectTo|order)"\]/);
+  });
+
+  it("a UI oferece somente nome, e-mail e observação para a cortesia", () => {
+    const routeSource = readSrc("src/routes/coprodutor.bergamo.tsx");
+    expect(routeSource).toContain("+ Adicionar cliente");
+    expect(routeSource).toContain("Conceder acesso cortesia");
+    expect(routeSource).toContain("Revogar cortesia");
+    expect(routeSource).not.toMatch(/courtesy-password|type="password"/);
   });
 });
 

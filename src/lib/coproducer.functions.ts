@@ -5,12 +5,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   createBergamoPrompt,
   createBergamoUpdate,
+  grantBergamoCourtesyAccess,
   getBergamoOverview,
   listBergamoCustomers,
   listBergamoPromptRevisions,
   listBergamoPrompts,
   listBergamoUpdates,
   reorderBergamoPrompts,
+  revokeBergamoCourtesyAccess,
   setBergamoPromptStatus,
   setBergamoUpdateStatus,
   updateBergamoPrompt,
@@ -35,6 +37,31 @@ export const coproducerGetOverviewFn = createServerFn({ method: "GET" })
 export const coproducerListCustomersFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => listBergamoCustomers(context.userId));
+
+export const coproducerGrantCourtesyAccessFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => {
+    const raw = (data ?? {}) as Record<string, unknown>;
+    return {
+      name: str(raw["name"]),
+      email: str(raw["email"]),
+      note: strOrNull(raw["note"]),
+    };
+  })
+  .handler(async ({ context, data }) =>
+    grantBergamoCourtesyAccess({ actorId: context.userId, ...data }),
+  );
+
+export const coproducerRevokeCourtesyAccessFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) => {
+    const raw = (data ?? {}) as Record<string, unknown>;
+    return { userId: str(raw["userId"]) };
+  })
+  .handler(async ({ context, data }) => {
+    if (!data.userId) throw new Error("Cliente inválido.");
+    return revokeBergamoCourtesyAccess({ actorId: context.userId, userId: data.userId });
+  });
 
 export const coproducerListPromptsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

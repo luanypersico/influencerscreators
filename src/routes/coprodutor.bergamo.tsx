@@ -23,11 +23,13 @@ import {
   coproducerCreatePromptFn,
   coproducerCreateUpdateFn,
   coproducerGetOverviewFn,
+  coproducerGrantCourtesyAccessFn,
   coproducerListCustomersFn,
   coproducerListPromptRevisionsFn,
   coproducerListPromptsFn,
   coproducerListUpdatesFn,
   coproducerReorderPromptsFn,
+  coproducerRevokeCourtesyAccessFn,
   coproducerSetPromptStatusFn,
   coproducerSetUpdateStatusFn,
   coproducerUpdatePromptFn,
@@ -207,7 +209,16 @@ function OverviewTab(props: {
 }
 
 function CustomersTab() {
+  const qc = useQueryClient();
   const getCustomers = useServerFn(coproducerListCustomersFn);
+  const grantCourtesy = useServerFn(coproducerGrantCourtesyAccessFn);
+  const revokeCourtesy = useServerFn(coproducerRevokeCourtesyAccessFn);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [revokingUserId, setRevokingUserId] = useState<string | null>(null);
   const { data: customers, isLoading } = useQuery({
     queryKey: ["coproducer", "bergamo", "customers"],
     queryFn: () => getCustomers(),
@@ -220,42 +231,159 @@ function CustomersTab() {
     none: "Sem acesso",
   };
 
+  async function submitCourtesyAccess() {
+    setSubmitting(true);
+    try {
+      const result = await grantCourtesy({ data: { name, email, note } });
+      const message = result.invited
+        ? "Convite enviado e acesso cortesia concedido."
+        : result.access === "already_has_access" || result.access === "already_active"
+          ? "Este usuário já possui acesso ao Bergamo."
+          : result.access === "restored"
+            ? "Acesso cortesia restaurado."
+            : "Acesso cortesia concedido.";
+      toast.success(message);
+      setDialogOpen(false);
+      setName("");
+      setEmail("");
+      setNote("");
+      await qc.invalidateQueries({ queryKey: ["coproducer", "bergamo"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível conceder o acesso.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function revokeCourtesyAccess(userId: string) {
+    setRevokingUserId(userId);
+    try {
+      await revokeCourtesy({ data: { userId } });
+      toast.success("Acesso cortesia revogado.");
+      await qc.invalidateQueries({ queryKey: ["coproducer", "bergamo"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível revogar o acesso.");
+    } finally {
+      setRevokingUserId(null);
+    }
+  }
+
   return (
-    <Panel
-      title="Clientes do Bergamo"
-      description="Só clientes deste produto. Sem telefone, notas internas, dados técnicos ou de outros produtos."
-    >
-      {isLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}
-      {!isLoading && (!customers || customers.length === 0) && (
-        <p className="text-sm text-muted-foreground">Nenhum cliente ainda.</p>
-      )}
-      {!!customers?.length && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-muted-foreground">
-              <tr>
-                <th className="py-2 pr-4 font-medium">Nome</th>
-                <th className="py-2 pr-4 font-medium">E-mail</th>
-                <th className="py-2 pr-4 font-medium">Compra</th>
-                <th className="py-2 pr-4 font-medium">Pedido</th>
-                <th className="py-2 pr-4 font-medium">Acesso</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c, index) => (
-                <tr key={`${c.email}-${index}`} className="border-t border-border">
-                  <td className="py-2 pr-4">{c.name ?? "—"}</td>
-                  <td className="py-2 pr-4">{c.email}</td>
-                  <td className="py-2 pr-4">{c.purchasedAt ? dateBR(c.purchasedAt) : "—"}</td>
-                  <td className="py-2 pr-4">{c.orderStatus}</td>
-                  <td className="py-2 pr-4">{ACCESS_LABEL[c.accessStatus] ?? c.accessStatus}</td>
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => setDialogOpen(true)}>
+          + Adicionar cliente
+        </Button>
+      </div>
+
+      <Panel
+        title="Clientes do Bergamo"
+        description="Compras e acessos cortesia deste produto. Cortesias não criam pedidos nem entram no faturamento."
+      >
+        {isLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}
+        {!isLoading && (!customers || customers.length === 0) && (
+          <p className="text-sm text-muted-foreground">Nenhum cliente ainda.</p>
+        )}
+        {!!customers?.length && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-4 font-medium">Nome</th>
+                  <th className="py-2 pr-4 font-medium">E-mail</th>
+                  <th className="py-2 pr-4 font-medium">Origem</th>
+                  <th className="py-2 pr-4 font-medium">Status do acesso</th>
+                  <th className="py-2 pr-4 font-medium">Data</th>
+                  <th className="py-2 font-medium">Ação</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </Panel>
+              </thead>
+              <tbody>
+                {customers.map((customer) => (
+                  <tr
+                    key={`${customer.origin}:${customer.userId ?? customer.email}`}
+                    className="border-t border-border"
+                  >
+                    <td className="py-2 pr-4">{customer.name ?? "—"}</td>
+                    <td className="py-2 pr-4">{customer.email}</td>
+                    <td className="py-2 pr-4">
+                      {customer.origin === "manual" ? "Cortesia / Manual" : "Compra"}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {ACCESS_LABEL[customer.accessStatus] ?? customer.accessStatus}
+                    </td>
+                    <td className="py-2 pr-4">{dateBR(customer.grantedAt)}</td>
+                    <td className="py-2">
+                      {customer.canRevokeCourtesy && customer.userId ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={revokingUserId === customer.userId}
+                          onClick={() => void revokeCourtesyAccess(customer.userId!)}
+                        >
+                          {revokingUserId === customer.userId ? "Revogando..." : "Revogar cortesia"}
+                        </Button>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar cliente</DialogTitle>
+            <DialogDescription>
+              Concede acesso cortesia ao Bergamo sem criar venda, pedido ou faturamento.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="courtesy-name">Nome</Label>
+              <Input
+                id="courtesy-name"
+                value={name}
+                maxLength={120}
+                autoComplete="name"
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="courtesy-email">E-mail</Label>
+              <Input
+                id="courtesy-email"
+                type="email"
+                value={email}
+                maxLength={254}
+                autoComplete="email"
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="courtesy-note">Observação (opcional)</Label>
+              <Textarea
+                id="courtesy-note"
+                value={note}
+                maxLength={500}
+                onChange={(event) => setNote(event.target.value)}
+              />
+            </div>
+            <Button
+              className="w-full"
+              disabled={submitting || !name.trim() || !email.trim()}
+              onClick={() => void submitCourtesyAccess()}
+            >
+              {submitting ? "Concedendo..." : "Conceder acesso cortesia"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 

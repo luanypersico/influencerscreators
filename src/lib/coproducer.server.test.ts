@@ -6,7 +6,7 @@
  * isolamento por produto, o não-hard-delete, a geração de revisão e
  * auditoria sem conteúdo completo do prompt.
  */
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 
 type Row = Record<string, unknown>;
 type Filter = [string, "eq" | "is" | "in", unknown];
@@ -24,8 +24,16 @@ const db: Record<string, Row[]> = {
   admin_audit_log: [],
 };
 
+type AuthUser = { id: string; email: string };
+let authUsers: Record<string, AuthUser> = {};
+let authIdSeq = 0;
+let inviteCalls: Array<{ email: string; redirectTo?: string; fullName?: string }> = [];
+
 function resetDb() {
   for (const key of Object.keys(db)) db[key] = [];
+  authUsers = {};
+  authIdSeq = 0;
+  inviteCalls = [];
 }
 
 function matches(row: Row, filters: Filter[]): boolean {
@@ -133,16 +141,57 @@ function makeQuery(table: string) {
 mock.module("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     from: (table: string) => makeQuery(table),
+    rpc: (fn: string, args: Record<string, unknown>) => {
+      if (fn !== "find_user_id_by_email") throw new Error(`rpc não mockada: ${fn}`);
+      const email = String(args["_email"] ?? "")
+        .trim()
+        .toLowerCase();
+      const user = Object.values(authUsers).find((candidate) => candidate.email === email);
+      return Promise.resolve({ data: user?.id ?? null, error: null });
+    },
+    auth: {
+      admin: {
+        inviteUserByEmail: (
+          email: string,
+          options?: { data?: { full_name?: string }; redirectTo?: string },
+        ) => {
+          const normalized = email.trim().toLowerCase();
+          authIdSeq += 1;
+          const id = `invited-user-${authIdSeq}`;
+          authUsers[id] = { id, email: normalized };
+          const call: { email: string; redirectTo?: string; fullName?: string } = {
+            email: normalized,
+          };
+          if (options?.redirectTo) call.redirectTo = options.redirectTo;
+          if (options?.data?.full_name) call.fullName = options.data.full_name;
+          inviteCalls.push(call);
+          db["profiles"]!.push({
+            id,
+            email: normalized,
+            full_name: options?.data?.full_name ?? null,
+          });
+          db["user_roles"]!.push({ user_id: id, role: "member" });
+          return Promise.resolve({ data: { user: { id } }, error: null });
+        },
+        deleteUser: (id: string) => {
+          delete authUsers[id];
+          return Promise.resolve({ error: null });
+        },
+      },
+    },
   },
 }));
 
 const {
   getBergamoOverview,
+  getBergamoInviteRedirectUrl,
+  grantBergamoCourtesyAccess,
   listBergamoCustomers,
   listBergamoPrompts,
   createBergamoPrompt,
   updateBergamoPrompt,
   setBergamoPromptStatus,
+  revokeBergamoCourtesyAccess,
   listBergamoPromptRevisions,
   listBergamoUpdates,
   createBergamoUpdate,
@@ -206,6 +255,7 @@ function seedBase() {
     },
   ];
   db["profiles"] = [{ id: SUPER_ADMIN_ID, email: "ceo@example.com" }];
+  authUsers[SUPER_ADMIN_ID] = { id: SUPER_ADMIN_ID, email: "ceo@example.com" };
 }
 
 describe("Autorização do workspace do coprodutor", () => {
@@ -303,7 +353,15 @@ describe("Isolamento por produto", () => {
     const customers = await listBergamoCustomers(COPRODUCER_ID);
     const keys = Object.keys(customers[0] as object);
     expect(keys.sort()).toEqual(
-      ["accessStatus", "email", "name", "orderStatus", "purchasedAt"].sort(),
+      [
+        "accessStatus",
+        "canRevokeCourtesy",
+        "email",
+        "grantedAt",
+        "name",
+        "origin",
+        "userId",
+      ].sort(),
     );
   });
 
@@ -315,6 +373,265 @@ describe("Isolamento por produto", () => {
 
   it("coprodutor de outro produto não consegue listar prompts do Bergamo", async () => {
     await expect(listBergamoPrompts(COPRODUCER_OTHER_ID)).rejects.toThrow();
+  });
+});
+
+describe("Acesso cortesia do Bergamo", () => {
+  const originalAppOrigin = process.env["APP_ORIGIN"];
+
+  beforeEach(() => {
+    seedBase();
+    process.env["APP_ORIGIN"] = "https://preview.influencerscreators.pages.dev";
+  });
+
+  afterEach(() => {
+    if (originalAppOrigin === undefined) delete process.env["APP_ORIGIN"];
+    else process.env["APP_ORIGIN"] = originalAppOrigin;
+  });
+
+  it("A. usuário existente sem Bergamo ganha acesso manual sem alterar roles", async () => {
+    const userId = "existing-member";
+    authUsers[userId] = { id: userId, email: "existing@example.com" };
+    db["profiles"]!.push({ id: userId, email: "existing@example.com", full_name: "Existente" });
+    db["user_roles"]!.push({ user_id: userId, role: "member" });
+
+    const beforeRoles = db["user_roles"]!.filter((row) => row["user_id"] === userId).map(
+      (row) => row["role"],
+    );
+    const result = await grantBergamoCourtesyAccess({
+      actorId: COPRODUCER_ID,
+      name: "Nome ignorado se o perfil já tem nome",
+      email: " EXISTING@example.com ",
+      note: "Cortesia da equipe",
+    });
+
+    expect(result).toEqual({ userId, invited: false, access: "created" });
+    const access = db["product_access"]!.find((row) => row["user_id"] === userId);
+    expect(access?.["product_id"]).toBe(BERGAMO_ID);
+    expect(access?.["source"]).toBe("manual");
+    expect(access?.["status_reason"]).toBe("manual_courtesy");
+    expect(access?.["status_reason"]).not.toBe("Cortesia da equipe");
+    const audit = db["admin_audit_log"]!.find(
+      (row) => row["action"] === "bergamo.courtesy_access.grant",
+    );
+    expect((audit?.["meta"] as Row | undefined)?.["note"]).toBe("Cortesia da equipe");
+    expect(
+      db["user_roles"]!.filter((row) => row["user_id"] === userId).map((row) => row["role"]),
+    ).toEqual(beforeRoles);
+  });
+
+  it("B. usuário com cortesia ativa é idempotente e não duplica", async () => {
+    const userId = "existing-courtesy";
+    authUsers[userId] = { id: userId, email: "courtesy@example.com" };
+    db["profiles"]!.push({ id: userId, email: "courtesy@example.com", full_name: "Cortesia" });
+    db["product_access"]!.push({
+      id: "manual-access",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      source: "manual",
+      revoked_at: null,
+      suspended_at: null,
+      created_at: "2026-08-08T00:00:00Z",
+    });
+
+    const result = await grantBergamoCourtesyAccess({
+      actorId: SUPER_ADMIN_ID,
+      name: "Cortesia",
+      email: "courtesy@example.com",
+    });
+
+    expect(result.access).toBe("already_active");
+    expect(db["product_access"]!.filter((row) => row["user_id"] === userId)).toHaveLength(1);
+  });
+
+  it("a lista identifica cortesia e só oferece revogação quando ativa", async () => {
+    const granted = await grantBergamoCourtesyAccess({
+      actorId: COPRODUCER_ID,
+      name: "Cliente Cortesia",
+      email: "lista-cortesia@example.com",
+    });
+
+    let customers = await listBergamoCustomers(COPRODUCER_ID);
+    let customer = customers.find((row) => row.userId === granted.userId);
+    expect(customer?.origin).toBe("manual");
+    expect(customer?.accessStatus).toBe("active");
+    expect(customer?.canRevokeCourtesy).toBe(true);
+
+    await revokeBergamoCourtesyAccess({ actorId: COPRODUCER_ID, userId: granted.userId });
+    customers = await listBergamoCustomers(COPRODUCER_ID);
+    customer = customers.find((row) => row.userId === granted.userId);
+    expect(customer?.accessStatus).toBe("revoked");
+    expect(customer?.canRevokeCourtesy).toBe(false);
+  });
+
+  it("C. e-mail novo recebe convite oficial, profile/member e acesso apenas ao Bergamo", async () => {
+    const result = await grantBergamoCourtesyAccess({
+      actorId: ADMIN_ID,
+      name: "Nova Cliente",
+      email: "nova@example.com",
+      note: "Parceira convidada",
+    });
+
+    expect(result.invited).toBe(true);
+    expect(inviteCalls).toEqual([
+      {
+        email: "nova@example.com",
+        fullName: "Nova Cliente",
+        redirectTo:
+          "https://preview.influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
+      },
+    ]);
+    const profile = db["profiles"]!.find((row) => row["id"] === result.userId);
+    expect(profile?.["email"]).toBe("nova@example.com");
+    expect(profile?.["full_name"]).toBe("Nova Cliente");
+    expect(db["user_roles"]!.filter((row) => row["user_id"] === result.userId)).toEqual([
+      { user_id: result.userId, role: "member" },
+    ]);
+    const accesses = db["product_access"]!.filter((row) => row["user_id"] === result.userId);
+    expect(accesses).toHaveLength(1);
+    expect(accesses[0]?.["product_id"]).toBe(BERGAMO_ID);
+    expect(accesses[0]?.["source"]).toBe("manual");
+  });
+
+  it("D. revogar cortesia remove a validade e registra auditoria", async () => {
+    const userId = "manual-user";
+    db["product_access"]!.push({
+      id: "manual-access",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      source: "manual",
+      revoked_at: null,
+      suspended_at: null,
+    });
+
+    await expect(revokeBergamoCourtesyAccess({ actorId: COPRODUCER_ID, userId })).resolves.toEqual({
+      alreadyRevoked: false,
+    });
+    expect(typeof db["product_access"]![0]?.["revoked_at"]).toBe("string");
+    const audit = db["admin_audit_log"]!.find(
+      (row) => row["action"] === "bergamo.courtesy_access.revoke",
+    );
+    expect(audit?.["entity"]).toBe("product_access");
+  });
+
+  it("E. coprodutor não revoga compra comercial nem converte origem Hotmart", async () => {
+    const userId = "commercial-user";
+    authUsers[userId] = { id: userId, email: "buyer@example.com" };
+    db["profiles"]!.push({ id: userId, email: "buyer@example.com", full_name: "Buyer" });
+    db["product_access"]!.push({
+      id: "hotmart-access",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      source: "hotmart",
+      revoked_at: null,
+      suspended_at: null,
+    });
+    db["orders"]!.push({ id: "order-1", user_id: userId, product_id: BERGAMO_ID, status: "paid" });
+
+    await expect(revokeBergamoCourtesyAccess({ actorId: COPRODUCER_ID, userId })).rejects.toThrow(
+      "Somente acessos de cortesia",
+    );
+    const grant = await grantBergamoCourtesyAccess({
+      actorId: COPRODUCER_ID,
+      name: "Buyer",
+      email: "buyer@example.com",
+    });
+    expect(grant.access).toBe("already_has_access");
+    expect(db["product_access"]![0]?.["source"]).toBe("hotmart");
+  });
+
+  it("E2. order comercial sem product_access não pode virar cortesia", async () => {
+    const userId = "order-without-access";
+    authUsers[userId] = { id: userId, email: "order-only@example.com" };
+    db["profiles"]!.push({ id: userId, email: "order-only@example.com", full_name: "Order" });
+    db["orders"]!.push({
+      id: "order-only",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      status: "paid",
+    });
+
+    await expect(
+      grantBergamoCourtesyAccess({
+        actorId: COPRODUCER_ID,
+        name: "Order",
+        email: "order-only@example.com",
+      }),
+    ).rejects.toThrow("compra comercial");
+    expect(db["product_access"]).toHaveLength(0);
+  });
+
+  it("E3. nem uma linha manual pode ser revogada se houver order comercial", async () => {
+    const userId = "manual-with-order";
+    db["product_access"]!.push({
+      id: "manual-with-order-access",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      source: "manual",
+      revoked_at: null,
+      suspended_at: null,
+    });
+    db["orders"]!.push({
+      id: "commercial-order",
+      user_id: userId,
+      product_id: BERGAMO_ID,
+      status: "paid",
+    });
+
+    await expect(revokeBergamoCourtesyAccess({ actorId: COPRODUCER_ID, userId })).rejects.toThrow(
+      "compra comercial",
+    );
+    expect(db["product_access"]![0]?.["revoked_at"]).toBeNull();
+  });
+
+  it("F. concessão e revogação não criam orders nem alteram métricas comerciais", async () => {
+    const ordersBefore = structuredClone(db["orders"]);
+    const result = await grantBergamoCourtesyAccess({
+      actorId: COPRODUCER_ID,
+      name: "Sem Venda",
+      email: "sem-venda@example.com",
+    });
+    await revokeBergamoCourtesyAccess({ actorId: COPRODUCER_ID, userId: result.userId });
+    expect(db["orders"]).toEqual(ordersBefore);
+  });
+
+  it("nega member, anon-equivalente, coprodutor de outro produto e vínculo revogado", async () => {
+    for (const actorId of [MEMBER_ID, "anon", COPRODUCER_OTHER_ID, REVOKED_COLLAB_ID]) {
+      await expect(
+        grantBergamoCourtesyAccess({
+          actorId,
+          name: "Sem permissão",
+          email: `${actorId}@example.com`,
+        }),
+      ).rejects.toThrow();
+    }
+    expect(inviteCalls).toHaveLength(0);
+    expect(db["product_access"]).toHaveLength(0);
+  });
+
+  it("não aceita outro produto, role, redirect ou order como entrada", () => {
+    const params: Parameters<typeof grantBergamoCourtesyAccess>[0] = {
+      actorId: COPRODUCER_ID,
+      name: "Cliente",
+      email: "cliente@example.com",
+    };
+    expect(params).not.toHaveProperty("productId");
+    expect(params).not.toHaveProperty("product_id");
+    expect(params).not.toHaveProperty("role");
+    expect(params).not.toHaveProperty("redirectTo");
+    expect(params).not.toHaveProperty("order");
+  });
+
+  it("aceita somente origem oficial, localhost ou preview do projeto", () => {
+    expect(getBergamoInviteRedirectUrl({})).toBe(
+      "https://influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
+    );
+    expect(getBergamoInviteRedirectUrl({ APP_ORIGIN: "http://localhost:4173" })).toBe(
+      "http://localhost:4173/auth/callback?next=/auth/set-password",
+    );
+    expect(() => getBergamoInviteRedirectUrl({ APP_ORIGIN: "https://attacker.pages.dev" })).toThrow(
+      "Origem confiável",
+    );
   });
 });
 
@@ -453,8 +770,8 @@ describe("Atualizações do produto (product_updates)", () => {
   });
 });
 
-describe("Controle de preço e comercial — nenhuma função exposta para o coprodutor", () => {
-  it("o módulo do coprodutor não exporta nenhuma função para alterar preço, checkout, status do produto, payment_integrations, pedidos ou concessão/revogação de acesso", async () => {
+describe("Controle de preço e comercial — somente cortesia escopada ao Bergamo", () => {
+  it("não exporta funções para alterar preço, checkout, status do produto, payment_integrations ou pedidos", async () => {
     const mod = await import("./coproducer.server");
     const exportNames = Object.keys(mod);
     const forbiddenExact = [
@@ -477,9 +794,11 @@ describe("Controle de preço e comercial — nenhuma função exposta para o cop
     for (const forbidden of forbiddenExact) {
       expect(exportNames).not.toContain(forbidden);
     }
-    // listBergamoCustomers e getBergamoOverview são leitura; reorderBergamoPrompts
-    // reordena o próprio conteúdo (legítimo) — nenhum dos dois toca em orders/product_access.
+    // A concessão/revogação exportada é exclusivamente a cortesia manual
+    // do Bergamo; nenhuma API genérica de acesso ou pedido é exposta.
     expect(exportNames).toContain("listBergamoCustomers");
     expect(exportNames).toContain("reorderBergamoPrompts");
+    expect(exportNames).toContain("grantBergamoCourtesyAccess");
+    expect(exportNames).toContain("revokeBergamoCourtesyAccess");
   });
 });

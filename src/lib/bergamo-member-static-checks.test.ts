@@ -54,6 +54,12 @@ describe("Área do aluno — ativação única e login com senha", () => {
     expect(buyerSource).toContain("router.navigate({ to: destination })");
   });
 
+  it("permite mostrar e ocultar a senha sem alterar o valor digitado", () => {
+    expect(buyerSource).toContain('type={showPassword ? "text" : "password"}');
+    expect(buyerSource).toContain('aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}');
+    expect(buyerSource).toContain("setShowPassword((visible) => !visible)");
+  });
+
   it("não cria usuário pelo browser e mantém resposta neutra", () => {
     expect(buyerSource).not.toContain("signUp(");
     expect(buyerSource).not.toContain("signInWithOtp");

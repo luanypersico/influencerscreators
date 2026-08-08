@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
-import { ArrowRight, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -53,6 +53,7 @@ function BuyerAuthPage() {
   const getPostAuthDestination = usePostAuthDestination();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState<BuyerAuthMode>("first-access");
   const [accessEmailSent, setAccessEmailSent] = useState(false);
@@ -83,6 +84,7 @@ function BuyerAuthPage() {
     setMode(nextMode);
     setAccessEmailSent(false);
     setPassword("");
+    setShowPassword(false);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -225,15 +227,31 @@ function BuyerAuthPage() {
                   Esqueci minha senha
                 </button>
               </div>
-              <Input
-                id="buyer-password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="h-12 rounded-xl border-white/15 bg-black/25 px-4 text-base text-white focus-visible:border-primary"
-              />
+              <div className="relative">
+                <Input
+                  id="buyer-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="h-12 rounded-xl border-white/15 bg-black/25 pr-12 pl-4 text-base text-white focus-visible:border-primary"
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-pressed={showPassword}
+                  title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  className="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4.5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="size-4.5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
           )}
 

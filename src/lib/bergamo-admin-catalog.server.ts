@@ -36,6 +36,7 @@ export async function getBergamoFullCatalog(): Promise<BergamoPublicCatalog> {
     description: row.description,
     isFree: row.is_free,
     prompt: row.prompt,
+    imageUrl: null,
   }));
 
   const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort(

@@ -109,7 +109,7 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
                     className="bergamo-vignette group relative overflow-hidden rounded-2xl border border-border/70 bg-card transition-transform duration-500 hover:-translate-y-1 sm:rounded-3xl"
                   >
                     <img
-                      src={bergamoImage(item.code)}
+                      src={item.imageUrl ?? bergamoImage(item.code)}
                       alt={`Resultado gerado com o prompt ${item.title}`}
                       width={760}
                       height={1018}

@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 import { getBergamoFullCatalog } from "./bergamo-admin-catalog.server";
 import type { BergamoPublicCatalog } from "./bergamo-catalog.server";
+import { attachBergamoPrivateImages } from "./bergamo-private-images.server";
 
 export type BergamoViewerDestination =
   "/admin" | "/coprodutor/bergamo" | "/membros/bergamo" | "/membros";
@@ -100,6 +101,10 @@ export async function getBergamoAuthenticatedExperience(
   const email = profile?.email ?? "";
   const displayName = profile?.full_name?.trim() || email.split("@")[0] || "Minha conta";
 
+  const catalog = authorization.hasFullAccess
+    ? await attachBergamoPrivateImages(await getBergamoFullCatalog())
+    : null;
+
   return {
     viewer: {
       displayName,
@@ -107,6 +112,6 @@ export async function getBergamoAuthenticatedExperience(
       avatarUrl: profile?.avatar_url ?? null,
       ...authorization,
     },
-    catalog: authorization.hasFullAccess ? await getBergamoFullCatalog() : null,
+    catalog,
   };
 }

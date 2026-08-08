@@ -20,7 +20,7 @@ function PromptTile({
     <article className="group overflow-hidden rounded-3xl border border-border/70 bg-card">
       <div className="bergamo-vignette relative aspect-[4/5] overflow-hidden">
         <img
-          src={bergamoImage(item.code)}
+          src={item.imageUrl ?? bergamoImage(item.code)}
           alt={
             locked
               ? `Prévia bloqueada do prompt ${item.title}`

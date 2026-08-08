@@ -54,6 +54,7 @@ function BergamoPage() {
     queryFn: () => getAuthenticatedExperience(),
     enabled: Boolean(session),
     retry: false,
+    refetchInterval: session ? 10 * 60 * 1000 : false,
   });
 
   const { data: offer } = useQuery({

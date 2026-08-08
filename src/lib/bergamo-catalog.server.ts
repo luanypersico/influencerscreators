@@ -24,6 +24,7 @@ export interface BergamoCatalogItem {
   description: string | null;
   isFree: boolean;
   prompt: string | null;
+  imageUrl: string | null;
 }
 
 export interface BergamoPublicCatalog {
@@ -50,6 +51,7 @@ export async function getBergamoPublicCatalog(): Promise<BergamoPublicCatalog> {
       // Reforço em código, não só na RPC: nunca devolve o texto do
       // prompt para itens que não são a amostra gratuita.
       prompt: row.is_free ? row.prompt : null,
+      imageUrl: null,
     }));
 
   const categories = Array.from(new Set(items.map((item) => item.category).filter(Boolean))).sort(

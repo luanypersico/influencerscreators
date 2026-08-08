@@ -11,8 +11,8 @@ const NAV_LINK_ACTIVE_CLASS = "bg-secondary text-foreground";
 /** Public header: wordmark + nav. Never links to /laboratorio — that route stays unlisted. */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-40 px-3 pt-3">
+      <Container className="studio-surface flex h-16 items-center justify-between rounded-2xl px-4 backdrop-blur-xl sm:px-5">
         <Link
           to="/"
           className="rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"

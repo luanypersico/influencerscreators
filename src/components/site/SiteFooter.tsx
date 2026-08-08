@@ -4,7 +4,7 @@ import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border px-6 py-12 md:px-10">
+    <footer className="mx-3 mb-3 mt-10 rounded-3xl border border-border/70 bg-card/55 px-6 py-12 backdrop-blur-sm md:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
           <ArsenalLogo className="w-36" />

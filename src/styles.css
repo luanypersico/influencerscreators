@@ -4,23 +4,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
-  --font-display: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -65,57 +51,62 @@
 }
 
 :root {
-  /* Paleta roxo/magenta oficial, derivada diretamente de /bergamo. */
+  /* InfluencerCreator: azul-noite, violeta elétrico e superfícies em camadas. */
   color-scheme: dark;
-  --radius: 0.25rem;
-  --background: oklch(0.114 0.056 316.5);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.167 0.084 311.4);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.167 0.084 311.4);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.637 0.283 325.3);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.327 0.166 306.5);
+  --radius: 0.875rem;
+  --background: oklch(0.105 0.028 282);
+  --foreground: oklch(0.975 0.008 285);
+  --card: oklch(0.16 0.045 281);
+  --card-foreground: oklch(0.975 0.008 285);
+  --popover: oklch(0.18 0.05 281);
+  --popover-foreground: oklch(0.975 0.008 285);
+  --primary: oklch(0.67 0.22 292);
+  --primary-foreground: oklch(0.99 0.004 285);
+  --secondary: oklch(0.24 0.075 281);
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.2 0.09 312);
-  --muted-foreground: oklch(0.787 0.091 320.1);
-  --accent: oklch(0.517 0.229 311.7);
+  --muted: oklch(0.19 0.04 281);
+  --muted-foreground: oklch(0.72 0.045 285);
+  --accent: oklch(0.58 0.22 306);
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.62 0.2 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.637 0.283 325.3 / 24%);
-  --input: oklch(0.637 0.283 325.3 / 30%);
-  --ring: oklch(0.637 0.283 325.3);
-  --chart-1: oklch(0.637 0.283 325.3);
-  --chart-2: oklch(0.517 0.229 311.7);
-  --chart-3: oklch(0.327 0.166 306.5);
-  --chart-4: oklch(0.787 0.091 320.1);
-  --chart-5: oklch(0.704 0.221 346.6);
-  --sidebar: oklch(0.143 0.07 314);
+  --border: oklch(0.64 0.11 289 / 22%);
+  --input: oklch(0.64 0.11 289 / 28%);
+  --ring: oklch(0.67 0.22 292);
+  --chart-1: oklch(0.67 0.22 292);
+  --chart-2: oklch(0.58 0.22 306);
+  --chart-3: oklch(0.62 0.17 269);
+  --chart-4: oklch(0.78 0.1 299);
+  --chart-5: oklch(0.67 0.17 329);
+  --sidebar: oklch(0.13 0.035 282);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.637 0.283 325.3);
+  --sidebar-primary: oklch(0.67 0.22 292);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.327 0.166 306.5);
+  --sidebar-accent: oklch(0.24 0.075 281);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.637 0.283 325.3 / 24%);
-  --sidebar-ring: oklch(0.637 0.283 325.3);
+  --sidebar-border: oklch(0.64 0.11 289 / 22%);
+  --sidebar-ring: oklch(0.67 0.22 292);
+  /* Alias preserved for existing Bergamo CTA components. */
   --gradient-bergamo: linear-gradient(
     90deg,
-    oklch(0.327 0.166 306.5) 0%,
-    oklch(0.517 0.229 311.7) 50%,
-    oklch(0.637 0.283 325.3) 100%
+    oklch(0.52 0.2 272),
+    oklch(0.67 0.22 292) 48%,
+    oklch(0.58 0.22 306)
   );
-  /* Film grain overlay + brilho magenta usado pelos heróis. */
+  --gradient-studio: linear-gradient(
+    135deg,
+    oklch(0.52 0.2 272),
+    oklch(0.67 0.22 292) 52%,
+    oklch(0.58 0.22 306)
+  );
   --glow-ember: radial-gradient(
-    60% 55% at 50% 0%,
-    color-mix(in oklab, var(--primary) 22%, transparent),
-    transparent 70%
+    60% 60% at 50% 0%,
+    color-mix(in oklab, var(--primary) 28%, transparent),
+    transparent 72%
   );
 }
 
 .dark {
-  /* The app is dark-only; .dark mirrors :root so shadcn variants stay valid. */
   color-scheme: dark;
 }
 
@@ -126,6 +117,18 @@
 
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(
+        ellipse 65% 42% at 50% -12%,
+        color-mix(in oklab, var(--primary) 19%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 42% 30% at 100% 52%,
+        color-mix(in oklab, var(--accent) 8%, transparent),
+        transparent 72%
+      );
+    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -135,12 +138,11 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: -0.045em;
   }
 }
 
-/* Subtle film grain so flat dark surfaces read as photographic, not synthetic. */
 @utility grain {
   position: relative;
   &::after {
@@ -153,45 +155,34 @@
   }
 }
 
-/*
- * Bergamo — referência visual oficial do produto.
- * A paleta vive em :root e abastece todo o app. Este escopo preserva apenas
- * os detalhes tipográficos e de raio próprios da landing.
- */
+/* The Bergamo scope keeps its content structure but now inherits the global family. */
 .bergamo-theme {
   --radius: 1rem;
-  /* Tipografia Bergamo: display ultra-pesada + corpo neutro de alta leitura. */
-  --font-display: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   color-scheme: dark;
 }
 
-/* Headlines do Bergamo: pesadas, apertadas, com muito impacto. */
 .bergamo-theme :is(h1, h2, h3),
 .bergamo-theme .font-display {
-  font-family: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
-  font-weight: 400;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.045em;
 }
 
 .bergamo-theme :is(h1, h2) {
   line-height: 0.98;
 }
-
 .bergamo-theme :is(h4, h5, h6),
 .bergamo-theme button,
 .bergamo-theme a {
   letter-spacing: -0.015em;
 }
 
-/* CTA principal do Bergamo — gradiente roxo → magenta. */
 @utility bergamo-cta {
   background-image: var(--gradient-bergamo);
   color: oklch(1 0 0);
 }
 
-/* Brilho magenta usado nas seções do Bergamo. */
 .bergamo-glow {
   background-image: radial-gradient(
     70% 60% at 50% 0%,
@@ -200,7 +191,6 @@
   );
 }
 
-/* Textura sutil de vinheta nos cards da galeria. */
 .bergamo-vignette::after {
   content: "";
   position: absolute;
@@ -213,15 +203,70 @@
   pointer-events: none;
 }
 
-/* Bloqueio de impressão das áreas protegidas. */
+/* Shared visual primitives for the product and the public sales experience. */
+.studio-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.studio-page::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground) 4%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, black, transparent 58%);
+}
+
+.studio-surface {
+  border: 1px solid color-mix(in oklab, var(--border) 85%, var(--foreground) 15%);
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--card) 91%, var(--foreground) 9%),
+    color-mix(in oklab, var(--card) 96%, var(--background) 4%)
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--foreground) 9%, transparent),
+    0 22px 60px color-mix(in oklab, var(--background) 64%, transparent);
+}
+
+.studio-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.studio-aurora {
+  background:
+    radial-gradient(
+      ellipse 85% 75% at 18% 12%,
+      color-mix(in oklab, var(--primary) 46%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 48% 55% at 87% 18%,
+      color-mix(in oklab, var(--accent) 42%, transparent),
+      transparent 64%
+    ),
+    linear-gradient(135deg, oklch(0.12 0.048 274), var(--background) 66%);
+}
+
 .print-protected-notice {
   display: none;
 }
 
-/*
- * Marca-d'água repetida sobre a área de membros — texto vem sempre do
- * servidor (ver SessionWatermark). Decorativa e não bloqueia cliques.
- */
 .session-watermark {
   position: fixed;
   inset: 0;
@@ -234,13 +279,9 @@
   .session-watermark {
     display: none !important;
   }
-}
-
-@media print {
   .protected-content {
     display: none !important;
   }
-
   .print-protected-notice {
     display: block !important;
     padding: 4rem 1rem;

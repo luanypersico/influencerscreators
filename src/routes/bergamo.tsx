@@ -10,9 +10,10 @@ import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
 import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
-import { useRoles, useSession } from "@/hooks/useAuth";
+import { useSession } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/useLogout";
 import {
-  getBergamoAdminCatalogFn,
+  getBergamoAuthenticatedExperienceFn,
   getBergamoOfferFn,
   getBergamoPublicCatalogFn,
 } from "@/lib/bergamo-catalog.functions";
@@ -38,9 +39,9 @@ export const Route = createFileRoute("/bergamo")({
 /** Página de vendas isolada do produto Bergamo (tema próprio, sem layout do site). */
 function BergamoPage() {
   const { session } = useSession();
-  const { isAdmin } = useRoles(session?.user.id);
+  const { logout, isSigningOut } = useLogout();
   const getCatalog = useServerFn(getBergamoPublicCatalogFn);
-  const getAdminCatalog = useServerFn(getBergamoAdminCatalogFn);
+  const getAuthenticatedExperience = useServerFn(getBergamoAuthenticatedExperienceFn);
   const getOffer = useServerFn(getBergamoOfferFn);
 
   const { data: publicCatalog } = useQuery({
@@ -48,10 +49,10 @@ function BergamoPage() {
     queryFn: () => getCatalog(),
   });
 
-  const { data: adminCatalog } = useQuery({
-    queryKey: ["bergamo", "admin-catalog", session?.user.id],
-    queryFn: () => getAdminCatalog(),
-    enabled: isAdmin,
+  const { data: authenticatedExperience } = useQuery({
+    queryKey: ["bergamo", "authenticated-experience", session?.user.id],
+    queryFn: () => getAuthenticatedExperience(),
+    enabled: Boolean(session),
     retry: false,
   });
 
@@ -60,7 +61,7 @@ function BergamoPage() {
     queryFn: () => getOffer(),
   });
 
-  const data = adminCatalog ?? publicCatalog;
+  const data = authenticatedExperience?.catalog ?? publicCatalog;
 
   const items = data?.items ?? [];
   const categories = data?.categories ?? [];
@@ -70,7 +71,12 @@ function BergamoPage() {
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
       <PrivacyCurtain />
-      <BergamoHeader ctaHref={checkoutUrl} />
+      <BergamoHeader
+        ctaHref={checkoutUrl}
+        viewer={authenticatedExperience?.viewer ?? null}
+        onLogout={logout}
+        isSigningOut={isSigningOut}
+      />
       <main className="protected-content">
         <BergamoHero items={items} totalCount={totalCount} checkoutUrl={checkoutUrl} />
         <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />

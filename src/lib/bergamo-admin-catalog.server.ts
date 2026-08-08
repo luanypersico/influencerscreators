@@ -10,6 +10,14 @@ import type { BergamoCatalogItem, BergamoPublicCatalog } from "./bergamo-catalog
 export async function getBergamoAdminCatalog(userId: string): Promise<BergamoPublicCatalog> {
   await assertAdmin(userId);
 
+  return getBergamoFullCatalog();
+}
+
+/**
+ * Leitura completa do catálogo. Esta função não decide autorização e só deve
+ * ser chamada por fluxos server-side que já validaram o usuário.
+ */
+export async function getBergamoFullCatalog(): Promise<BergamoPublicCatalog> {
   const { data, error } = await supabaseAdmin
     .from("product_items")
     .select(

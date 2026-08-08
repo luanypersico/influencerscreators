@@ -13,7 +13,8 @@ describe("/bergamo — catálogo administrativo separado", () => {
     const functions = readSrc("src/lib/bergamo-catalog.functions.ts");
 
     expect(route).toContain("getBergamoPublicCatalogFn");
-    expect(route).toContain("getBergamoAdminCatalogFn");
+    expect(route).toContain("getBergamoAuthenticatedExperienceFn");
+    expect(route).not.toContain("useRoles");
     expect(functions).toContain(".middleware([requireSupabaseAuth])");
     expect(functions).toContain("context.supabase.auth.getUser()");
   });
@@ -41,6 +42,7 @@ describe("/bergamo — catálogo administrativo separado", () => {
       expect(readSrc(file)).toContain("checkoutUrl");
     }
     expect(readSrc("src/components/bergamo/BergamoHeader.tsx")).toContain("ctaHref");
+    expect(readSrc("src/components/bergamo/BergamoHeader.tsx")).toContain("viewer.displayName");
     expect(readSrc("src/components/bergamo/BergamoPricing.tsx")).not.toContain('checkoutUrl: "#"');
   });
 });

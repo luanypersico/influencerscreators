@@ -112,9 +112,7 @@ describe("bergamo-operational-access.server.ts — sem escrita direta em tabelas
 
 describe("Migration — novas origens de product_access nunca se confundem com compra real", () => {
   it("adiciona manual_validation e coproducer_preview sem remover as origens comerciais existentes", () => {
-    const source = readSrc(
-      "supabase/migrations/20260805010000_bergamo-operational-access-sources.sql",
-    );
+    const source = readSrc("supabase/migrations/20260807162723_lovable_03a_keys_checks.sql");
     for (const value of [
       "manual",
       "purchase",

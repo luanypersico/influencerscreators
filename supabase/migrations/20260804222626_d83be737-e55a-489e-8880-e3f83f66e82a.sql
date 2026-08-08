@@ -1,2 +1,0 @@
-ALTER TABLE public.payment_integrations ADD COLUMN IF NOT EXISTS hottok text;
-COMMENT ON COLUMN public.payment_integrations.hottok IS 'Token de postback da Hotmart; leitura restrita a admins/service_role via RLS.';

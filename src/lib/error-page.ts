@@ -6,14 +6,14 @@ export function renderErrorPage(): string {
     <title>This page didn't load</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: #fafafa; color: #111; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
-      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
+      body { font: 15px/1.5 "Plus Jakarta Sans", system-ui, -apple-system, sans-serif; background: oklch(0.114 0.056 316.5); color: #fff; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; border: 1px solid oklch(0.637 0.283 325.3 / 24%); border-radius: 1rem; background: oklch(0.167 0.084 311.4); }
       h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: #4b5563; margin: 0 0 1.5rem; }
+      p { color: oklch(0.787 0.091 320.1); margin: 0 0 1.5rem; }
       .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
-      a, button { padding: 0.5rem 1rem; border-radius: 0.375rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: #111; color: #fff; }
-      .secondary { background: #fff; color: #111; border-color: #d1d5db; }
+      a, button { padding: 0.5rem 1rem; border-radius: 0.75rem; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
+      .primary { background: linear-gradient(90deg, oklch(0.327 0.166 306.5), oklch(0.517 0.229 311.7), oklch(0.637 0.283 325.3)); color: #fff; }
+      .secondary { background: transparent; color: #fff; border-color: oklch(0.637 0.283 325.3 / 30%); }
     </style>
   </head>
   <body>

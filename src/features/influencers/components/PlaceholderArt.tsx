@@ -8,12 +8,12 @@ import { cn } from "@/lib/utils";
  * repeated under different names.
  */
 const VARIANT_BACKGROUND: Record<PlaceholderVariant, string> = {
-  1: "linear-gradient(135deg, oklch(0.27 0.025 55), oklch(0.14 0.008 60) 70%)",
-  2: "linear-gradient(225deg, oklch(0.22 0.035 38), oklch(0.15 0.01 60) 65%)",
-  3: "radial-gradient(circle at 30% 22%, oklch(0.32 0.06 50), oklch(0.13 0.008 60) 75%)",
-  4: "linear-gradient(180deg, oklch(0.23 0.016 70), oklch(0.12 0.006 60))",
-  5: "conic-gradient(from 210deg at 62% 38%, oklch(0.17 0.01 60), oklch(0.3 0.07 45), oklch(0.14 0.008 60))",
-  6: "repeating-linear-gradient(45deg, oklch(0.19 0.01 60) 0 2px, oklch(0.15 0.008 60) 2px 22px)",
+  1: "linear-gradient(135deg, color-mix(in oklab, var(--primary) 52%, var(--card)), var(--background) 70%)",
+  2: "linear-gradient(225deg, color-mix(in oklab, var(--secondary) 72%, var(--card)), var(--background) 65%)",
+  3: "radial-gradient(circle at 30% 22%, color-mix(in oklab, var(--accent) 62%, var(--card)), var(--background) 75%)",
+  4: "linear-gradient(180deg, color-mix(in oklab, var(--muted-foreground) 20%, var(--card)), var(--background))",
+  5: "conic-gradient(from 210deg at 62% 38%, var(--card), var(--accent), var(--background))",
+  6: "repeating-linear-gradient(45deg, var(--card) 0 2px, var(--background) 2px 22px)",
 };
 
 export interface PlaceholderArtProps {

@@ -65,41 +65,48 @@
 }
 
 :root {
-  /* Single dark, warm, photographic theme — darkroom aesthetic. */
+  /* Paleta roxo/magenta oficial, derivada diretamente de /bergamo. */
+  color-scheme: dark;
   --radius: 0.25rem;
-  --background: oklch(0.15 0.008 60);
-  --foreground: oklch(0.94 0.012 85);
-  --card: oklch(0.19 0.01 60);
-  --card-foreground: oklch(0.94 0.012 85);
-  --popover: oklch(0.19 0.01 60);
-  --popover-foreground: oklch(0.94 0.012 85);
-  --primary: oklch(0.72 0.175 47);
-  --primary-foreground: oklch(0.16 0.02 50);
-  --secondary: oklch(0.25 0.012 60);
-  --secondary-foreground: oklch(0.94 0.012 85);
-  --muted: oklch(0.23 0.01 60);
-  --muted-foreground: oklch(0.67 0.015 75);
-  --accent: oklch(0.28 0.02 55);
-  --accent-foreground: oklch(0.95 0.012 85);
+  --background: oklch(0.114 0.056 316.5);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.167 0.084 311.4);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.167 0.084 311.4);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(0.637 0.283 325.3);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.327 0.166 306.5);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.2 0.09 312);
+  --muted-foreground: oklch(0.787 0.091 320.1);
+  --accent: oklch(0.517 0.229 311.7);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.62 0.2 25);
-  --destructive-foreground: oklch(0.97 0.01 85);
-  --border: oklch(0.98 0.01 85 / 12%);
-  --input: oklch(0.98 0.01 85 / 16%);
-  --ring: oklch(0.72 0.175 47);
-  --chart-1: oklch(0.72 0.175 47);
-  --chart-2: oklch(0.7 0.12 150);
-  --chart-3: oklch(0.65 0.15 250);
-  --chart-4: oklch(0.8 0.16 90);
-  --chart-5: oklch(0.6 0.18 340);
-  --sidebar: oklch(0.17 0.01 60);
-  --sidebar-foreground: oklch(0.94 0.012 85);
-  --sidebar-primary: oklch(0.72 0.175 47);
-  --sidebar-primary-foreground: oklch(0.16 0.02 50);
-  --sidebar-accent: oklch(0.25 0.012 60);
-  --sidebar-accent-foreground: oklch(0.94 0.012 85);
-  --sidebar-border: oklch(0.98 0.01 85 / 12%);
-  --sidebar-ring: oklch(0.72 0.175 47);
-  /* Film grain overlay + warm glow used by the hero. */
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.637 0.283 325.3 / 24%);
+  --input: oklch(0.637 0.283 325.3 / 30%);
+  --ring: oklch(0.637 0.283 325.3);
+  --chart-1: oklch(0.637 0.283 325.3);
+  --chart-2: oklch(0.517 0.229 311.7);
+  --chart-3: oklch(0.327 0.166 306.5);
+  --chart-4: oklch(0.787 0.091 320.1);
+  --chart-5: oklch(0.704 0.221 346.6);
+  --sidebar: oklch(0.143 0.07 314);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.637 0.283 325.3);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.327 0.166 306.5);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.637 0.283 325.3 / 24%);
+  --sidebar-ring: oklch(0.637 0.283 325.3);
+  --gradient-bergamo: linear-gradient(
+    90deg,
+    oklch(0.327 0.166 306.5) 0%,
+    oklch(0.517 0.229 311.7) 50%,
+    oklch(0.637 0.283 325.3) 100%
+  );
+  /* Film grain overlay + brilho magenta usado pelos heróis. */
   --glow-ember: radial-gradient(
     60% 55% at 50% 0%,
     color-mix(in oklab, var(--primary) 22%, transparent),
@@ -147,9 +154,9 @@
 }
 
 /*
- * Bergamo — produto isolado (/bergamo).
- * Tema escopado: noir & gold. Todos os tokens semânticos são sobrescritos
- * apenas dentro deste container, sem afetar o restante do app.
+ * Bergamo — referência visual oficial do produto.
+ * A paleta vive em :root e abastece todo o app. Este escopo preserva apenas
+ * os detalhes tipográficos e de raio próprios da landing.
  */
 .bergamo-theme {
   --radius: 1rem;
@@ -157,30 +164,6 @@
   --font-display: "Archivo Black", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  /* Paleta Bergamo Creators IA — roxo/magenta sobre quase-preto. */
-  --background: oklch(0.114 0.056 316.5);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.167 0.084 311.4);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.167 0.084 311.4);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.637 0.283 325.3);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.327 0.166 306.5);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.2 0.09 312);
-  --muted-foreground: oklch(0.787 0.091 320.1);
-  --accent: oklch(0.517 0.229 311.7);
-  --accent-foreground: oklch(1 0 0);
-  --border: oklch(0.637 0.283 325.3 / 24%);
-  --input: oklch(0.637 0.283 325.3 / 30%);
-  --ring: oklch(0.637 0.283 325.3);
-  --gradient-bergamo: linear-gradient(
-    90deg,
-    oklch(0.327 0.166 306.5) 0%,
-    oklch(0.517 0.229 311.7) 50%,
-    oklch(0.637 0.283 325.3) 100%
-  );
   color-scheme: dark;
 }
 
@@ -208,7 +191,7 @@
   color: oklch(1 0 0);
 }
 
-/* Brilho dourado usado nas seções do Bergamo. */
+/* Brilho magenta usado nas seções do Bergamo. */
 .bergamo-glow {
   background-image: radial-gradient(
     70% 60% at 50% 0%,

@@ -1,6 +1,6 @@
 import { ChevronDown, LogOut } from "lucide-react";
 
-import bergamoBrandLogo from "@/assets/bergamo/arsenal-de-prompts-logo.png";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -51,11 +51,7 @@ export function BergamoHeader({
           aria-label="Arsenal de Prompts — voltar ao topo"
           className="flex min-w-0 items-center"
         >
-          <img
-            src={bergamoBrandLogo}
-            alt="Arsenal de Prompts — Bergamo Creators"
-            className="h-auto w-[92px] object-contain sm:w-[118px]"
-          />
+          <ArsenalLogo className="w-[92px] sm:w-[118px]" />
         </a>
 
         <nav aria-label="Seções" className="hidden items-center gap-7 md:flex">

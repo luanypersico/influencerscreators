@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useRoles, useSession } from "@/hooks/useAuth";
@@ -81,8 +82,14 @@ function AdminLayout() {
       <Toaster />
       <div className="mx-auto flex max-w-[1500px] flex-col lg:flex-row">
         <aside className="border-b border-border bg-card/60 lg:min-h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
-          <div className="flex items-center justify-between p-5">
-            <div className="min-w-0">
+          <div className="space-y-5 p-5">
+            <Link
+              to="/bergamo"
+              className="inline-block rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <ArsenalLogo className="w-32" />
+            </Link>
+            <div className="min-w-0 border-t border-border/70 pt-4">
               <p className="truncate text-sm font-semibold">Painel de controle</p>
               <p className="truncate text-xs text-muted-foreground">
                 {isSuperAdmin ? "Super admin" : "Admin"} · {user?.email}
@@ -141,6 +148,7 @@ function CenteredNote({
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
       <div>
+        <ArsenalLogo className="mx-auto mb-6 w-36" />
         <h1 className="text-lg font-semibold text-foreground">{title}</h1>
         {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
         {action && <div className="mt-4 flex justify-center">{action}</div>}

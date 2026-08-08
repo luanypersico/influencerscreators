@@ -2,6 +2,7 @@ import { Image as ImageIcon, Video } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { CommandPanel } from "@/components/CommandPanel";
 import { PresetRail } from "@/components/PresetRail";
 import { PromptOutput } from "@/components/PromptOutput";
@@ -84,9 +85,7 @@ export function PromptStudio() {
     <div id="studio" className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-6">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-lg text-primary-foreground">
-            ✷
-          </span>
+          <ArsenalLogo className="w-24 shrink-0 sm:w-28" />
           <div className="min-w-0">
             <h1 className="truncate text-2xl leading-tight md:text-3xl">Me dá uma Influencer</h1>
             <p className="truncate text-xs text-muted-foreground">

@@ -1,10 +1,11 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CopyButton } from "@/components/CopyButton";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
 import { SessionWatermark } from "@/components/security/SessionWatermark";
 import { SiteButton } from "@/components/site/SiteButton";
@@ -26,7 +27,10 @@ export const Route = createFileRoute("/membros/bergamo")({
 function CenteredNote({ title }: { title: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
-      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+      <div>
+        <ArsenalLogo className="mx-auto mb-6 w-36" />
+        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+      </div>
     </div>
   );
 }
@@ -137,6 +141,12 @@ function BergamoMembersPage() {
       <SessionWatermark watermark={content.watermark} />
       <header className="protected-content border-b border-border px-6 py-10">
         <div className="mx-auto max-w-5xl">
+          <Link
+            to="/bergamo"
+            className="mb-8 inline-block rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            <ArsenalLogo className="w-36" />
+          </Link>
           <p className="text-xs font-medium tracking-[0.2em] text-primary uppercase">
             Área de membros
           </p>

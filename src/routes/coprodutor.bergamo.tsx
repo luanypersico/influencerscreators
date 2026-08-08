@@ -1,10 +1,11 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminPage, Panel, StatCard } from "@/components/admin/AdminPage";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,6 +57,7 @@ function CenteredNote({ title, description }: { title: string; description?: str
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
       <div>
+        <ArsenalLogo className="mx-auto mb-6 w-36" />
         <h1 className="text-lg font-semibold text-foreground">{title}</h1>
         {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
       </div>
@@ -116,6 +118,14 @@ function CoproducerBergamoPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl p-4 sm:p-8">
+        <div className="mb-8 border-b border-border pb-5">
+          <Link
+            to="/bergamo"
+            className="rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            <ArsenalLogo className="w-28 sm:w-36" />
+          </Link>
+        </div>
         <AdminPage
           title="Workspace Bergamo"
           description="Vendas, clientes e conteúdo do produto Bergamo. Preço e checkout são administrados só pelo super_admin."

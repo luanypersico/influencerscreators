@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { useSession } from "@/hooks/useAuth";
 import { memberGetMyAccessFn } from "@/lib/member.functions";
 
@@ -38,6 +39,12 @@ function MembersPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-4xl px-6 py-16">
+        <Link
+          to="/bergamo"
+          className="mb-10 inline-block rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <ArsenalLogo className="w-36" />
+        </Link>
         <h1 className="text-3xl font-semibold">Meus produtos</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Produtos aos quais você tem acesso ativo.
@@ -89,7 +96,10 @@ function MembersPage() {
 function CenteredNote({ title }: { title: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
-      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+      <div>
+        <ArsenalLogo className="mx-auto mb-6 w-36" />
+        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+      </div>
     </div>
   );
 }

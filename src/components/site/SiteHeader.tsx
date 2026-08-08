@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { Container } from "@/components/site/Container";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 
 const NAV_LINK_CLASS =
   "rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors " +
@@ -14,9 +15,9 @@ export function SiteHeader() {
       <Container className="flex h-16 items-center justify-between">
         <Link
           to="/"
-          className="font-display text-xl tracking-tight text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          A Casa
+          <ArsenalLogo className="w-24 sm:w-28" />
         </Link>
         <nav className="flex items-center gap-1" aria-label="Navegação principal">
           <Link

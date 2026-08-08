@@ -32,7 +32,7 @@ describe("entrega segura das imagens Bergamo", () => {
   });
 
   it("bucket versionado permanece privado e sem policy pública", () => {
-    const migration = readSrc("supabase/migrations/20260808203006_bergamo_private_gallery.sql");
+    const migration = readSrc("supabase/migrations/20260808203020_bergamo_private_gallery.sql");
     expect(migration).toContain("'bergamo-private-gallery'");
     expect(migration).toMatch(/public,\s*file_size_limit[\s\S]*false,/);
     expect(migration).not.toMatch(/create\s+policy/i);

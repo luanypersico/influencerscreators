@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Check, Sparkles } from "lucide-react";
 
 import bergamoHero from "@/assets/bergamo/hero.jpg";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { bergamoImage } from "@/data/bergamoAssets";
 
 export interface AuthExperienceShellProps {
@@ -58,19 +59,9 @@ export function AuthExperienceShell({
       <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12 lg:py-7">
         <Link
           to="/bergamo"
-          className="flex items-center gap-3 rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          <span className="grid size-10 place-items-center rounded-full bg-primary font-display text-sm text-white shadow-[0_0_35px_color-mix(in_oklab,var(--primary)_55%,transparent)]">
-            B
-          </span>
-          <span>
-            <span className="block font-display text-sm leading-none tracking-tight text-white sm:text-base">
-              BERGAMO CREATORS
-            </span>
-            <span className="mt-1 block text-[10px] font-semibold tracking-[0.22em] text-white/55 uppercase">
-              Arsenal de prompts
-            </span>
-          </span>
+          <ArsenalLogo className="w-28 drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)] sm:w-36" />
         </Link>
         <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-[10px] font-semibold tracking-[0.18em] text-white/65 uppercase backdrop-blur-xl sm:text-xs">
           {contextLabel}

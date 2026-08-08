@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 
 import { PromptBuilder } from "@/components/PromptBuilder";
+import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { PromptLibrary } from "@/components/PromptLibrary";
 import { PromptStudio } from "@/components/PromptStudio";
 import { RealismRules } from "@/components/RealismRules";
@@ -41,6 +42,7 @@ function Footer() {
   return (
     <footer className="border-t border-border px-6 py-12 md:px-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-2">
+        <ArsenalLogo className="mb-4 w-32" />
         <p className="text-sm text-muted-foreground">
           Funciona melhor em NanoBanana Pro, GPT Image, Flux e Midjourney. Cole o prompt principal
           e, quando o gerador aceitar, o negative prompt separadamente.

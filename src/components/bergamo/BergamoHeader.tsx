@@ -1,5 +1,6 @@
 import { ChevronDown, LogOut } from "lucide-react";
 
+import bergamoBrandLogo from "@/assets/bergamo/arsenal-de-prompts-logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -44,17 +45,17 @@ export function BergamoHeader({
       )}
       {...rest}
     >
-      <div className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5 md:flex md:justify-between">
-        <a href="#topo" className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-            B
-          </span>
-          <span className="truncate font-display text-base leading-none tracking-tight text-foreground sm:text-lg">
-            Bergamo
-            <span className="ml-1.5 hidden align-middle font-sans text-[10px] tracking-[0.2em] text-muted-foreground uppercase sm:inline">
-              Creators
-            </span>
-          </span>
+      <div className="mx-auto grid h-20 w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:h-24 sm:px-5 md:flex md:justify-between">
+        <a
+          href="#topo"
+          aria-label="Arsenal de Prompts — voltar ao topo"
+          className="flex min-w-0 items-center"
+        >
+          <img
+            src={bergamoBrandLogo}
+            alt="Arsenal de Prompts — Bergamo Creators"
+            className="h-auto w-[92px] object-contain sm:w-[118px]"
+          />
         </a>
 
         <nav aria-label="Seções" className="hidden items-center gap-7 md:flex">

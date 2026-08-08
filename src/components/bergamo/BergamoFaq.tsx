@@ -1,3 +1,5 @@
+import bergamoBrandLogo from "@/assets/bergamo/arsenal-de-prompts-logo.png";
+
 const FAQ = [
   {
     q: "Funciona em qual gerador de imagem?",
@@ -43,9 +45,18 @@ export function BergamoFaq() {
       </section>
 
       <footer className="border-t border-border/60 bg-card/40">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-5 py-10 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Bergamo Creators. Todos os direitos reservados.</p>
-          <p>Produto digital · Conteúdo protegido por direitos autorais</p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-12 text-xs text-muted-foreground sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col items-start gap-4">
+            <img
+              src={bergamoBrandLogo}
+              alt="Arsenal de Prompts — Bergamo Creators"
+              className="h-auto w-44 object-contain sm:w-52"
+            />
+            <p>© {new Date().getFullYear()} Bergamo Creators. Todos os direitos reservados.</p>
+          </div>
+          <p className="max-w-xs leading-relaxed sm:text-right">
+            Produto digital · Conteúdo protegido por direitos autorais
+          </p>
         </div>
       </footer>
     </>

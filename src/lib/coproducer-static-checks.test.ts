@@ -32,3 +32,26 @@ describe("Coproducer — sem escrita direta do navegador em tabelas sensíveis",
     }
   });
 });
+
+describe("Coproducer — logout do workspace", () => {
+  const routeSource = readSrc("src/routes/coprodutor.bergamo.tsx");
+  const logoutSource = readSrc("src/hooks/useLogout.ts");
+
+  it("exibe a acao Sair no cabecalho do workspace", () => {
+    expect(routeSource).toMatch(/actions=\{/);
+    expect(routeSource).toContain('"Sair"');
+    expect(routeSource).toContain("void handleLogout()");
+  });
+
+  it("usa o logout oficial, limpa o cache e redireciona sem open redirect", () => {
+    expect(logoutSource).toContain("auth.signOut()");
+    expect(logoutSource).toContain("queryClient.clear()");
+    expect(logoutSource).toContain('router.navigate({ to: "/auth", replace: true })');
+  });
+
+  it("mantem a protecao da rota depois que a sessao e removida", () => {
+    expect(routeSource).toContain('if (!loading && !session) router.navigate({ to: "/auth" })');
+    expect(routeSource).toMatch(/enabled:\s*Boolean\(session\)/);
+    expect(routeSource).toMatch(/if \(!session\)/);
+  });
+});

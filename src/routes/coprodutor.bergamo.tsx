@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/hooks/useAuth";
+import { useLogout } from "@/hooks/useLogout";
 import {
   coproducerCreatePromptFn,
   coproducerCreateUpdateFn,
@@ -63,7 +64,16 @@ function CenteredNote({ title, description }: { title: string; description?: str
 function CoproducerBergamoPage() {
   const router = useRouter();
   const { session, loading } = useSession();
+  const { logout, isSigningOut } = useLogout();
   const getOverview = useServerFn(coproducerGetOverviewFn);
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível sair da conta.");
+    }
+  }
 
   useEffect(() => {
     if (!loading && !session) router.navigate({ to: "/auth" });
@@ -107,6 +117,17 @@ function CoproducerBergamoPage() {
         <AdminPage
           title="Workspace Bergamo"
           description="Vendas, clientes e conteúdo do produto Bergamo. Preço e checkout são administrados só pelo super_admin."
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              disabled={isSigningOut}
+              onClick={() => void handleLogout()}
+            >
+              {isSigningOut ? "Saindo..." : "Sair"}
+            </Button>
+          }
         >
           <Tabs defaultValue="overview">
             <TabsList>

@@ -11,7 +11,7 @@ import type { BergamoMemberWatermark } from "@/lib/member.server";
 export function buildWatermarkPatternDataUri(watermark: BergamoMemberWatermark): string {
   const text = `${watermark.maskedEmail} · #${watermark.shortId} · ${watermark.label}`;
   const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="180"><text x="170" y="94" transform="rotate(-24 170 94)" font-family="Arial, sans-serif" font-size="13" fill="white" fill-opacity="0.12" text-anchor="middle">${escaped}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="180"><text x="170" y="94" transform="rotate(-24 170 94)" font-family="Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif" font-size="13" fill="white" fill-opacity="0.12" text-anchor="middle">${escaped}</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { AuthExperienceShell } from "@/components/auth/AuthExperienceShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,33 +65,40 @@ function SetPasswordPage() {
   if (state === "invalid" || !session) {
     return (
       <CenteredPanel title="Link inválido ou expirado">
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-3 text-sm text-white/60">
           Solicite um novo link para continuar com segurança.
         </p>
-        <Button asChild className="mt-6">
-          <Link to="/auth">Ir para entrar</Link>
+        <Button asChild className="bergamo-cta mt-6 h-11 rounded-xl border-0 px-6 text-white">
+          <Link to="/auth">Ir para a área do aluno</Link>
         </Button>
       </CenteredPanel>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <AuthExperienceShell
+      badge="Última etapa"
+      title="Crie sua senha e entre no acervo."
+      description="A compra já está vinculada ao seu e-mail. Agora escolha uma senha forte para acessar os 90 prompts sempre que quiser."
+      highlights={[
+        "Sua senha vai diretamente para o Supabase Auth",
+        "O link é validado novamente antes da alteração",
+      ]}
+    >
       <Toaster />
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-lg"
-      >
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Acesso
+      <form onSubmit={handleSubmit} className="w-full">
+        <p className="text-[10px] font-semibold tracking-[0.2em] text-primary uppercase">
+          Ativação segura
         </p>
-        <h1 className="mt-2 text-2xl font-semibold text-foreground">Defina sua nova senha</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h2 className="mt-2 font-display text-2xl text-white">Defina sua nova senha</h2>
+        <p className="mt-2 text-sm leading-relaxed text-white/60">
           Use ao menos {MINIMUM_PASSWORD_LENGTH} caracteres e não reutilize uma senha exposta.
         </p>
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="new-password">Nova senha</Label>
+            <Label htmlFor="new-password" className="text-white/80">
+              Nova senha
+            </Label>
             <Input
               id="new-password"
               type="password"
@@ -99,10 +107,13 @@ function SetPasswordPage() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              className="h-12 rounded-xl border-white/15 bg-black/25 px-4 text-white focus-visible:border-primary"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmar nova senha</Label>
+            <Label htmlFor="confirm-password" className="text-white/80">
+              Confirmar nova senha
+            </Label>
             <Input
               id="confirm-password"
               type="password"
@@ -111,24 +122,35 @@ function SetPasswordPage() {
               required
               value={confirmation}
               onChange={(event) => setConfirmation(event.target.value)}
+              className="h-12 rounded-xl border-white/15 bg-black/25 px-4 text-white focus-visible:border-primary"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Salvando..." : "Definir senha"}
+          <Button
+            type="submit"
+            className="bergamo-cta h-12 w-full rounded-xl border-0 font-bold text-white"
+            disabled={busy}
+          >
+            {busy ? "Salvando..." : "Criar senha e entrar"}
           </Button>
         </div>
       </form>
-    </div>
+    </AuthExperienceShell>
   );
 }
 
 function CenteredPanel({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+    <AuthExperienceShell
+      badge="Validação de acesso"
+      title="Protegendo o seu acervo."
+      description="Validamos o link diretamente com o serviço de autenticação antes de permitir qualquer alteração na conta."
+    >
+      <Toaster />
+      <div className="py-5 text-center">
+        <span className="mx-auto block size-12 animate-pulse rounded-full bg-primary/25 shadow-[0_0_45px_color-mix(in_oklab,var(--primary)_70%,transparent)]" />
+        <h1 className="mt-5 font-display text-2xl text-white">{title}</h1>
         {children}
       </div>
-    </div>
+    </AuthExperienceShell>
   );
 }

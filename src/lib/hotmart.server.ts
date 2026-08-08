@@ -17,6 +17,8 @@ import { timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
+import { getPasswordSetupRedirectUrl } from "./auth-invite.server";
+
 type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
 
 export const MAX_BODY_BYTES = 256 * 1024;
@@ -176,10 +178,11 @@ async function resolveBuyerUserId(email: string, fullName: string | null): Promi
   if (existing.error) throw new Error(`lookup de usuário falhou: ${existing.error.message}`);
   if (existing.data) return existing.data;
 
-  const created = await supabaseAdmin.auth.admin.createUser({
-    email,
-    email_confirm: false,
-    user_metadata: fullName ? { full_name: fullName } : {},
+  // A compra cria a conta e envia um convite oficial. O comprador define a
+  // própria senha; nenhuma senha temporária é gerada, armazenada ou enviada.
+  const created = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    data: fullName ? { full_name: fullName } : {},
+    redirectTo: getPasswordSetupRedirectUrl(),
   });
 
   if (created.data?.user?.id) return created.data.user.id;

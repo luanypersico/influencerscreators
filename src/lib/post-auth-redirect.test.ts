@@ -46,9 +46,11 @@ describe("fluxo de Auth do Supabase", () => {
     expect(source).toContain('eq("status", "active")');
   });
 
-  it("não deixa magic link criar usuário desconhecido e mantém mensagem neutra", () => {
+  it("primeiro acesso não cria usuário no browser e mantém mensagem neutra", () => {
     const source = readSrc("src/routes/auth.tsx");
-    expect(source).toMatch(/signInWithOtp\([\s\S]*shouldCreateUser:\s*false/);
+    expect(source).not.toContain("signUp(");
+    expect(source).not.toContain("signInWithOtp");
+    expect(source).toContain("resetPasswordForEmail");
     expect(source).toMatch(/se esse e-mail estiver associado/i);
   });
 

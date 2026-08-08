@@ -13,6 +13,7 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BergamoRouteImport } from './routes/bergamo'
+import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
 import { Route as MembrosRouteImport } from './routes/membros'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
@@ -53,6 +54,11 @@ const AuthRoute = AuthRouteImport.update({
 const BergamoRoute = BergamoRouteImport.update({
   id: '/bergamo',
   path: '/bergamo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipeRoute = EquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LaboratorioRoute = LaboratorioRouteImport.update({
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
   '/como-funciona': typeof PublicComoFuncionaRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/bergamo'
+    | '/equipe'
     | '/laboratorio'
     | '/membros'
     | '/como-funciona'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/bergamo'
+    | '/equipe'
     | '/laboratorio'
     | '/como-funciona'
     | '/admin/auditoria'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/bergamo'
+    | '/equipe'
     | '/laboratorio'
     | '/membros'
     | '/_public/como-funciona'
@@ -336,6 +348,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   BergamoRoute: typeof BergamoRoute
+  EquipeRoute: typeof EquipeRoute
   LaboratorioRoute: typeof LaboratorioRoute
   MembrosRoute: typeof MembrosRouteWithChildren
   CoprodutorBergamoRoute: typeof CoprodutorBergamoRoute
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/bergamo'
       fullPath: '/bergamo'
       preLoaderRoute: typeof BergamoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipe': {
+      id: '/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof EquipeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/laboratorio': {
@@ -604,6 +624,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   BergamoRoute: BergamoRoute,
+  EquipeRoute: EquipeRoute,
   LaboratorioRoute: LaboratorioRoute,
   MembrosRoute: MembrosRouteWithChildren,
   CoprodutorBergamoRoute: CoprodutorBergamoRoute,

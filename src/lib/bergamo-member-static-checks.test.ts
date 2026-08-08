@@ -1,6 +1,4 @@
-/**
- * Verificações estáticas (leitura de arquivos-fonte, sem mocks, sem rede).
- */
+/** Verificações estáticas (leitura de arquivos-fonte, sem mocks, sem rede). */
 import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -30,42 +28,49 @@ describe("Conteúdo completo do prompt não está mais no bundle público", () =
   }
 
   it("BergamoGallery busca dados via server function, não via array estático", () => {
-    const source = readSrc("src/components/bergamo/BergamoGallery.tsx");
-    expect(source).toContain("BergamoCatalogItem");
+    expect(readSrc("src/components/bergamo/BergamoGallery.tsx")).toContain("BergamoCatalogItem");
   });
 
-  it("a rota pública /bergamo usa o catálogo server-side (getBergamoPublicCatalogFn)", () => {
-    const source = readSrc("src/routes/bergamo.tsx");
-    expect(source).toContain("getBergamoPublicCatalogFn");
+  it("a rota pública /bergamo usa o catálogo server-side", () => {
+    expect(readSrc("src/routes/bergamo.tsx")).toContain("getBergamoPublicCatalogFn");
   });
 });
 
-describe("Magic link — redirect seguro, sem open redirect", () => {
-  const source = readSrc("src/routes/auth.tsx");
+describe("Área do aluno — ativação única e login com senha", () => {
+  const buyerSource = readSrc("src/routes/auth.tsx");
+  const teamSource = readSrc("src/routes/equipe.tsx");
 
-  it("emailRedirectTo aponta para um caminho interno fixo, nunca para um parâmetro da URL", () => {
-    expect(source).toMatch(
-      /emailRedirectTo:\s*`\$\{window\.location\.origin\}\/auth\/callback\?next=\/membros`/,
+  it("primeiro acesso envia recuperação para o caminho interno fixo de criação de senha", () => {
+    expect(buyerSource).toContain("resetPasswordForEmail");
+    expect(buyerSource).toContain(
+      "${window.location.origin}/auth/callback?next=/auth/set-password",
     );
-    // Nunca lê redirect de query string, hash ou params — não há open redirect possível.
-    expect(source).not.toMatch(/searchParams|location\.search|redirectTo\s*=\s*.*params/);
+    expect(buyerSource).not.toMatch(/searchParams|location\.search|redirectTo\s*=\s*.*params/);
   });
 
-  it("o destino pós-login é decidido pelo papel do usuário no servidor (roles), não por um parâmetro do cliente", () => {
-    expect(source).toContain("getPostAuthDestination()");
-    expect(source).toContain("router.navigate({ to: destination })");
+  it("comprador retorna com e-mail e senha, com destino decidido pelo servidor", () => {
+    expect(buyerSource).toContain("signInWithPassword");
+    expect(buyerSource).toContain("getPostAuthDestination()");
+    expect(buyerSource).toContain("router.navigate({ to: destination })");
   });
 
-  it("login por senha continua disponível (preservado para a equipe/administração)", () => {
-    expect(source).toContain("signInWithPassword");
+  it("não cria usuário pelo browser e mantém resposta neutra", () => {
+    expect(buyerSource).not.toContain("signUp(");
+    expect(buyerSource).not.toContain("signInWithOtp");
+    expect(buyerSource).toMatch(/se esse e-mail estiver associado/i);
   });
 
-  it("mensagem de envio do magic link é neutra (não confirma nem nega existência do e-mail)", () => {
-    expect(source).toMatch(/se esse e-mail estiver associado/i);
+  it("não expõe acesso da equipe na experiência do comprador", () => {
+    expect(buyerSource).not.toMatch(/sou da equipe|acesso da equipe|e-mail operacional/i);
+    expect(buyerSource).not.toContain('to="/equipe"');
+    expect(teamSource).toContain('createFileRoute("/equipe")');
+    expect(teamSource).toContain("signInWithPassword");
   });
 
-  it("existe cooldown client-side contra reenvio imediato do magic link", () => {
-    expect(source).toContain("MAGIC_LINK_COOLDOWN_SECONDS");
+  it("usa somente imagens públicas de preview no shell visual", () => {
+    const source = readSrc("src/components/auth/AuthExperienceShell.tsx");
+    expect(source).toContain("bergamoImage");
+    expect(source).not.toMatch(/assets\/bergamo\/gallery/);
   });
 });
 

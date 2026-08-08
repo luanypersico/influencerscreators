@@ -22,6 +22,15 @@ let findUserResult: { data: string | null; error: { message: string } | null } =
   data: "buyer-user-id",
   error: null,
 };
+let inviteCalls: Array<{
+  email: string;
+  redirectTo?: string;
+  fullName?: string;
+}> = [];
+let inviteResult: {
+  data: { user: { id: string } | null };
+  error: { message: string } | null;
+} = { data: { user: { id: "invited-buyer-id" } }, error: null };
 
 mock.module("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
@@ -34,6 +43,21 @@ mock.module("@/integrations/supabase/client.server", () => ({
     }),
     rpc: (fn: string, _args: unknown) =>
       fn === "find_user_id_by_email" ? Promise.resolve(findUserResult) : Promise.resolve(rpcResult),
+    auth: {
+      admin: {
+        inviteUserByEmail: (
+          email: string,
+          options?: { redirectTo?: string; data?: { full_name?: string } },
+        ) => {
+          inviteCalls.push({
+            email,
+            ...(options?.redirectTo ? { redirectTo: options.redirectTo } : {}),
+            ...(options?.data?.full_name ? { fullName: options.data.full_name } : {}),
+          });
+          return Promise.resolve(inviteResult);
+        },
+      },
+    },
   },
 }));
 
@@ -163,6 +187,8 @@ describe("handleHotmartWebhook (mockado — supabaseAdmin substituído, sem banc
     integrationsResult = { data: [], error: null };
     rpcResult = { data: { status: "processed" }, error: null };
     findUserResult = { data: "buyer-user-id", error: null };
+    inviteCalls = [];
+    inviteResult = { data: { user: { id: "invited-buyer-id" } }, error: null };
   });
 
   afterEach(() => {
@@ -301,6 +327,38 @@ describe("handleHotmartWebhook (mockado — supabaseAdmin substituído, sem banc
     expect(res.status).toBe(200);
     const body = (await res.json()) as { status: string };
     expect(body.status).toBe("processed");
+  });
+
+  it("convida comprador novo para criar a própria senha, sem senha temporária", async () => {
+    integrationsResult = {
+      data: [
+        {
+          id: "int-1",
+          product_id: "prod-bergamo",
+          external_product_ucode: "ucode-1",
+          external_offer_id: "offer-1",
+          products: { slug: "bergamo" },
+        },
+      ],
+      error: null,
+    };
+    findUserResult = { data: null, error: null };
+
+    const res = await handleHotmartWebhook(
+      makeRequest({
+        headers: { "x-hotmart-hottok": "segredo-de-teste" },
+        body: JSON.stringify(VALID_PAYLOAD),
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(inviteCalls).toEqual([
+      {
+        email: "comprador@example.com",
+        fullName: "Comprador",
+        redirectTo: "https://influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
+      },
+    ]);
   });
 
   it("responde 500 quando a RPC (mockada) retorna erro", async () => {

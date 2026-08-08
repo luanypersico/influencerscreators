@@ -10,7 +10,12 @@ import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
 import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
-import { getBergamoPublicCatalogFn } from "@/lib/bergamo-catalog.functions";
+import { useRoles, useSession } from "@/hooks/useAuth";
+import {
+  getBergamoAdminCatalogFn,
+  getBergamoOfferFn,
+  getBergamoPublicCatalogFn,
+} from "@/lib/bergamo-catalog.functions";
 
 const TITLE = "Bergamo Creators — 90 prompts de retrato realista com IA";
 const DESCRIPTION =
@@ -32,25 +37,45 @@ export const Route = createFileRoute("/bergamo")({
 
 /** Página de vendas isolada do produto Bergamo (tema próprio, sem layout do site). */
 function BergamoPage() {
+  const { session } = useSession();
+  const { isAdmin } = useRoles(session?.user.id);
   const getCatalog = useServerFn(getBergamoPublicCatalogFn);
-  const { data } = useQuery({
+  const getAdminCatalog = useServerFn(getBergamoAdminCatalogFn);
+  const getOffer = useServerFn(getBergamoOfferFn);
+
+  const { data: publicCatalog } = useQuery({
     queryKey: ["bergamo", "public-catalog"],
     queryFn: () => getCatalog(),
   });
 
+  const { data: adminCatalog } = useQuery({
+    queryKey: ["bergamo", "admin-catalog", session?.user.id],
+    queryFn: () => getAdminCatalog(),
+    enabled: isAdmin,
+    retry: false,
+  });
+
+  const { data: offer } = useQuery({
+    queryKey: ["bergamo", "offer"],
+    queryFn: () => getOffer(),
+  });
+
+  const data = adminCatalog ?? publicCatalog;
+
   const items = data?.items ?? [];
   const categories = data?.categories ?? [];
   const totalCount = data?.totalCount ?? 0;
+  const checkoutUrl = offer?.checkoutUrl ?? null;
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
       <PrivacyCurtain />
-      <BergamoHeader />
+      <BergamoHeader ctaHref={checkoutUrl} />
       <main className="protected-content">
-        <BergamoHero items={items} totalCount={totalCount} />
-        <BergamoGallery items={items} categories={categories} />
+        <BergamoHero items={items} totalCount={totalCount} checkoutUrl={checkoutUrl} />
+        <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />
         <BergamoBonus />
-        <BergamoPricing totalCount={totalCount} />
+        <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />
         <BergamoFaq />
       </main>
       <p className="print-protected-notice">Conteúdo protegido — impressão desativada</p>

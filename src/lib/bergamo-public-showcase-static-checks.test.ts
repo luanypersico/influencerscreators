@@ -62,8 +62,9 @@ describe("Cartão bloqueado — cópia e cadeado exigidos pela vitrine protegida
     expect(source).toMatch(/<Lock\b/);
   });
 
-  it("decide o estado bloqueado a partir de isFree/prompt vindos do servidor, nunca de um valor fixo", () => {
-    expect(source).toMatch(/locked\s*=\s*!item\.isFree\s*\|\|\s*!item\.prompt/);
+  it("decide o estado bloqueado pela presença do prompt vindo do servidor", () => {
+    expect(source).toMatch(/locked\s*=\s*!item\.prompt/);
+    expect(source).toMatch(/item\.isFree\s*\?\s*"Ver prompt grátis"\s*:\s*"Ver prompt completo"/);
   });
 });
 

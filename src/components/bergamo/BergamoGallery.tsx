@@ -6,9 +6,15 @@ import { bergamoImage } from "@/data/bergamoAssets";
 import type { BergamoCatalogItem } from "@/lib/bergamo-catalog.server";
 import { cn } from "@/lib/utils";
 
-function PromptTile({ item }: { item: BergamoCatalogItem }) {
+function PromptTile({
+  item,
+  checkoutUrl,
+}: {
+  item: BergamoCatalogItem;
+  checkoutUrl: string | null;
+}) {
   const [open, setOpen] = useState(false);
-  const locked = !item.isFree || !item.prompt;
+  const locked = !item.prompt;
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-border/70 bg-card">
@@ -34,12 +40,18 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-2 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pt-10 pb-4 text-center">
             <Lock className="size-4 text-white/90" aria-hidden="true" />
             <p className="text-[11px] font-medium text-white/90">Disponível na área de membros</p>
-            <a
-              href="#planos"
-              className="pointer-events-auto rounded-full bg-white px-3.5 py-1.5 text-[11px] font-semibold text-black transition-transform hover:-translate-y-0.5"
-            >
-              Desbloquear os 90 prompts
-            </a>
+            {checkoutUrl ? (
+              <a
+                href={checkoutUrl}
+                className="pointer-events-auto rounded-full bg-white px-3.5 py-1.5 text-[11px] font-semibold text-black transition-transform hover:-translate-y-0.5"
+              >
+                Desbloquear os 90 prompts
+              </a>
+            ) : (
+              <span className="rounded-full bg-white/70 px-3.5 py-1.5 text-[11px] font-semibold text-black/60">
+                Carregando checkout
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -49,7 +61,7 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
           {item.title}
         </h3>
 
-        {item.isFree && item.prompt ? (
+        {item.prompt ? (
           <>
             {open && (
               <p className="max-h-48 overflow-y-auto rounded-2xl bg-secondary/60 p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
@@ -62,7 +74,11 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
                 onClick={() => setOpen((v) => !v)}
                 className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/60 hover:text-primary"
               >
-                {open ? "Ocultar prompt" : "Ver prompt grátis"}
+                {open
+                  ? "Ocultar prompt"
+                  : item.isFree
+                    ? "Ver prompt grátis"
+                    : "Ver prompt completo"}
               </button>
               <CopyButton value={item.prompt} />
             </div>
@@ -73,12 +89,16 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
               <Lock className="size-3.5 text-primary" aria-hidden="true" />
               Prompt completo no acervo
             </p>
-            <a
-              href="#planos"
-              className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              Desbloquear
-            </a>
+            {checkoutUrl ? (
+              <a
+                href={checkoutUrl}
+                className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Desbloquear
+              </a>
+            ) : (
+              <span className="text-xs font-semibold text-muted-foreground">Carregando</span>
+            )}
           </div>
         )}
       </div>
@@ -89,10 +109,11 @@ function PromptTile({ item }: { item: BergamoCatalogItem }) {
 export interface BergamoGalleryProps {
   items: BergamoCatalogItem[];
   categories: string[];
+  checkoutUrl: string | null;
 }
 
 /** Galeria com busca e filtro por categoria sobre o catálogo real do produto (servido pelo backend). */
-export function BergamoGallery({ items, categories }: BergamoGalleryProps) {
+export function BergamoGallery({ items, categories, checkoutUrl }: BergamoGalleryProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>("Todos");
 
@@ -158,7 +179,7 @@ export function BergamoGallery({ items, categories }: BergamoGalleryProps) {
 
       <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((item) => (
-          <PromptTile key={item.code} item={item} />
+          <PromptTile key={item.code} item={item} checkoutUrl={checkoutUrl} />
         ))}
       </div>
 

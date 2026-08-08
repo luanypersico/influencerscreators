@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils";
 
 export interface BergamoHeaderProps extends React.ComponentProps<"header"> {
   /** Âncora usada pelo CTA principal do topo. */
-  ctaHref?: string;
+  ctaHref: string | null;
 }
 
 /** Header fixo e minimalista, isolado do restante do site. */
-export function BergamoHeader({ ctaHref = "#planos", className, ...rest }: BergamoHeaderProps) {
+export function BergamoHeader({ ctaHref, className, ...rest }: BergamoHeaderProps) {
   return (
     <header
       className={cn(
@@ -55,12 +55,21 @@ export function BergamoHeader({ ctaHref = "#planos", className, ...rest }: Berga
           </a>
         </nav>
 
-        <a
-          href={ctaHref}
-          className="bergamo-cta shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
-        >
-          Quero o acervo
-        </a>
+        {ctaHref ? (
+          <a
+            href={ctaHref}
+            className="bergamo-cta shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
+          >
+            Quero o acervo
+          </a>
+        ) : (
+          <span
+            aria-disabled="true"
+            className="bergamo-cta shrink-0 cursor-wait rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase opacity-60 sm:px-4 sm:text-xs"
+          >
+            Quero o acervo
+          </span>
+        )}
       </div>
     </header>
   );

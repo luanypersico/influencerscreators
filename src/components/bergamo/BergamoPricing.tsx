@@ -8,7 +8,6 @@ export interface BergamoPlan {
   caption: string;
   features: string[];
   highlight?: boolean;
-  checkoutUrl: string;
 }
 
 function buildPlans(totalCount: number): BergamoPlan[] {
@@ -27,17 +26,17 @@ function buildPlans(totalCount: number): BergamoPlan[] {
         "Prompts de vídeo e motion control",
         "Atualizações vitalícias do acervo",
       ],
-      checkoutUrl: "#",
     },
   ];
 }
 
 export interface BergamoPricingProps {
   totalCount: number;
+  checkoutUrl: string | null;
 }
 
 /** Planos lado a lado, com destaque no completo. */
-export function BergamoPricing({ totalCount }: BergamoPricingProps) {
+export function BergamoPricing({ totalCount, checkoutUrl }: BergamoPricingProps) {
   const plans = buildPlans(totalCount);
   return (
     <section id="planos" className="bergamo-glow relative">
@@ -83,15 +82,24 @@ export function BergamoPricing({ totalCount }: BergamoPricingProps) {
                 ))}
               </ul>
 
-              <a
-                href={plan.checkoutUrl}
-                className={cn(
-                  "mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  plan.highlight ? "bergamo-cta" : "border border-border text-foreground",
-                )}
-              >
-                Garantir acesso
-              </a>
+              {checkoutUrl ? (
+                <a
+                  href={checkoutUrl}
+                  className={cn(
+                    "mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                    plan.highlight ? "bergamo-cta" : "border border-border text-foreground",
+                  )}
+                >
+                  Garantir acesso
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="bergamo-cta mt-8 inline-flex cursor-wait items-center justify-center rounded-full px-6 py-3.5 text-sm font-semibold opacity-60"
+                >
+                  Garantir acesso
+                </span>
+              )}
             </article>
           ))}
         </div>

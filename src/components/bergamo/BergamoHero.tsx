@@ -8,10 +8,11 @@ const HERO_IDS = ["01", "04", "26", "40", "71", "13"] as const;
 export interface BergamoHeroProps {
   items: BergamoCatalogItem[];
   totalCount: number;
+  checkoutUrl: string | null;
 }
 
 /** Hero editorial: promessa + mosaico com imagens reais do acervo (dados do backend, sem prompt completo no bundle). */
-export function BergamoHero({ items, totalCount }: BergamoHeroProps) {
+export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps) {
   const byCode = new Map(items.map((item) => [item.code, item]));
   const showcase = HERO_IDS.map((id) => byCode.get(id)).filter((item): item is BergamoCatalogItem =>
     Boolean(item),
@@ -61,13 +62,23 @@ export function BergamoHero({ items, totalCount }: BergamoHeroProps) {
           </ul>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <a
-              href="#planos"
-              className="bergamo-cta inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold shadow-[0_10px_40px_-12px_color-mix(in_oklab,var(--primary)_60%,transparent)] transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            >
-              Liberar meu acesso
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </a>
+            {checkoutUrl ? (
+              <a
+                href={checkoutUrl}
+                className="bergamo-cta inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold shadow-[0_10px_40px_-12px_color-mix(in_oklab,var(--primary)_60%,transparent)] transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                Liberar meu acesso
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="bergamo-cta inline-flex cursor-wait items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold opacity-60"
+              >
+                Liberar meu acesso
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </span>
+            )}
             <a
               href="#acervo"
               className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3.5 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:text-primary"

@@ -230,26 +230,7 @@
   pointer-events: none;
 }
 
-/*
- * Barreira contra captura (dissuasão, não garantia técnica): cortina de
- * privacidade acionada por PrivacyCurtain e bloqueio de impressão via
- * @media print. Usado em /bergamo e /membros/bergamo.
- */
-.privacy-curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in oklab, black 97%, transparent);
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
+/* Bloqueio de impressão das áreas protegidas. */
 .print-protected-notice {
   display: none;
 }

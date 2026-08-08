@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CopyButton } from "@/components/CopyButton";
 import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
-import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
 import { SessionWatermark } from "@/components/security/SessionWatermark";
 import { SiteButton } from "@/components/site/SiteButton";
 import { useSession } from "@/hooks/useAuth";
@@ -137,7 +136,6 @@ function BergamoMembersPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <PrivacyCurtain />
       <SessionWatermark watermark={content.watermark} />
       <header className="protected-content border-b border-border px-6 py-10">
         <div className="mx-auto max-w-5xl">

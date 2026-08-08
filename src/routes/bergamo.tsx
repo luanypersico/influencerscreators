@@ -9,7 +9,6 @@ import { BergamoGallery } from "@/components/bergamo/BergamoGallery";
 import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
-import { PrivacyCurtain } from "@/components/security/PrivacyCurtain";
 import { useSession } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/useLogout";
 import {
@@ -71,7 +70,6 @@ function BergamoPage() {
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
-      <PrivacyCurtain />
       <BergamoHeader
         ctaHref={checkoutUrl}
         viewer={authenticatedExperience?.viewer ?? null}

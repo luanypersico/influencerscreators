@@ -85,6 +85,29 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
               Ver o acervo completo
             </a>
           </div>
+
+          <div className="mt-8 flex max-w-md items-center gap-4 rounded-3xl border border-border/70 bg-card/70 p-2.5 shadow-[0_18px_48px_-28px_color-mix(in_oklab,var(--primary)_55%,transparent)] backdrop-blur-sm sm:gap-5 sm:p-3">
+            <div className="w-24 shrink-0 overflow-hidden rounded-2xl border border-foreground/10 bg-background sm:w-28">
+              <div className="relative aspect-[9/16] overflow-hidden">
+                <iframe
+                  className="absolute inset-0 size-full"
+                  src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
+                  title="Demonstração do Arsenal Bergamo"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+            <div className="min-w-0 pr-2">
+              <p className="text-[10px] font-medium tracking-[0.18em] text-primary uppercase">
+                Veja em ação
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Um exemplo de como os prompts transformam uma selfie em imagem de autoridade.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="relative">
@@ -122,20 +145,6 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
                 ))}
               </div>
             ))}
-          </div>
-          <div className="mt-4 flex justify-center sm:mt-5 lg:absolute lg:top-1/2 lg:right-0 lg:z-20 lg:mt-0 lg:-translate-y-1/2 lg:translate-x-8">
-            <div className="w-full max-w-[15rem] overflow-hidden rounded-2xl border border-foreground/15 bg-background/90 p-1.5 shadow-[0_22px_56px_-22px_color-mix(in_oklab,var(--primary)_72%,transparent)] backdrop-blur-xl sm:max-w-[17rem] sm:rounded-3xl lg:w-[11.5rem] lg:max-w-none">
-              <div className="relative aspect-[9/16] overflow-hidden rounded-[0.9rem] bg-background sm:rounded-[1.15rem]">
-                <iframe
-                  className="absolute inset-0 size-full"
-                  src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
-                  title="Demonstração do Arsenal Bergamo"
-                  loading="lazy"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -123,8 +123,8 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-center sm:mt-5">
-            <div className="w-full max-w-[17rem] overflow-hidden rounded-2xl border border-border/70 bg-card p-1.5 shadow-[0_18px_48px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] sm:max-w-[19rem] sm:rounded-3xl">
+          <div className="mt-4 flex justify-center sm:mt-5 lg:absolute lg:top-1/2 lg:right-0 lg:z-20 lg:mt-0 lg:-translate-y-1/2 lg:translate-x-8">
+            <div className="w-full max-w-[15rem] overflow-hidden rounded-2xl border border-foreground/15 bg-background/90 p-1.5 shadow-[0_22px_56px_-22px_color-mix(in_oklab,var(--primary)_72%,transparent)] backdrop-blur-xl sm:max-w-[17rem] sm:rounded-3xl lg:w-[11.5rem] lg:max-w-none">
               <div className="relative aspect-[9/16] overflow-hidden rounded-[0.9rem] bg-background sm:rounded-[1.15rem]">
                 <iframe
                   className="absolute inset-0 size-full"

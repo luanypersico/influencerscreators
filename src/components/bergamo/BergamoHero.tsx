@@ -30,7 +30,7 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
             {totalCount} prompts profissionais
           </span>
 
-          <div className="mt-6 w-[10.5rem] overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-[0_22px_56px_-24px_color-mix(in_oklab,var(--primary)_65%,transparent)] sm:w-52 sm:rounded-3xl">
+          <div className="mx-auto mt-6 w-full max-w-[19rem] overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-[0_28px_72px_-26px_color-mix(in_oklab,var(--primary)_72%,transparent)] sm:mt-7 sm:max-w-[21rem]">
             <div className="relative aspect-[9/16] overflow-hidden">
               <iframe
                 className="absolute inset-0 size-full"

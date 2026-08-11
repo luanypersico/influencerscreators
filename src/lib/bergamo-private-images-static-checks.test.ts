@@ -38,3 +38,18 @@ describe("entrega segura das imagens Bergamo", () => {
     expect(migration).not.toMatch(/create\s+policy/i);
   });
 });
+
+describe("vitrine pública limitada ao hero", () => {
+  it("assina somente os seis códigos fixos e parte do catálogo público", () => {
+    const constants = readSrc("src/lib/bergamo-public-hero.constants.ts");
+    const privateImages = readSrc("src/lib/bergamo-private-images.server.ts");
+    const functions = readSrc("src/lib/bergamo-catalog.functions.ts");
+
+    expect(constants).toContain('BERGAMO_PUBLIC_HERO_CODES = ["01", "04", "26", "40", "71", "13"]');
+    expect(privateImages).toContain("getBergamoPublicHeroImages");
+    expect(privateImages).toContain("BERGAMO_PUBLIC_HERO_CODES.map");
+    expect(functions).toContain("getBergamoPublicHeroFn");
+    expect(functions).toContain("getBergamoPublicCatalog()");
+    expect(functions).not.toContain("getBergamoFullCatalog");
+  });
+});

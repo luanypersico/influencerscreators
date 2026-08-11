@@ -15,6 +15,7 @@ import {
   getBergamoAuthenticatedExperienceFn,
   getBergamoOfferFn,
   getBergamoPublicCatalogFn,
+  getBergamoPublicHeroFn,
 } from "@/lib/bergamo-catalog.functions";
 
 const TITLE = "Bergamo Creators — 90 prompts de retrato realista com IA";
@@ -40,12 +41,18 @@ function BergamoPage() {
   const { session } = useSession();
   const { logout, isSigningOut } = useLogout();
   const getCatalog = useServerFn(getBergamoPublicCatalogFn);
+  const getPublicHero = useServerFn(getBergamoPublicHeroFn);
   const getAuthenticatedExperience = useServerFn(getBergamoAuthenticatedExperienceFn);
   const getOffer = useServerFn(getBergamoOfferFn);
 
   const { data: publicCatalog } = useQuery({
     queryKey: ["bergamo", "public-catalog"],
     queryFn: () => getCatalog(),
+  });
+
+  const { data: publicHero } = useQuery({
+    queryKey: ["bergamo", "public-hero"],
+    queryFn: () => getPublicHero(),
   });
 
   const { data: authenticatedExperience } = useQuery({
@@ -67,6 +74,7 @@ function BergamoPage() {
   const categories = data?.categories ?? [];
   const totalCount = data?.totalCount ?? 0;
   const checkoutUrl = offer?.checkoutUrl ?? null;
+  const heroItems = authenticatedExperience?.catalog?.items ?? publicHero ?? items;
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
@@ -77,7 +85,7 @@ function BergamoPage() {
         isSigningOut={isSigningOut}
       />
       <main className="protected-content">
-        <BergamoHero items={items} totalCount={totalCount} checkoutUrl={checkoutUrl} />
+        <BergamoHero items={heroItems} totalCount={totalCount} checkoutUrl={checkoutUrl} />
         <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />
         <BergamoBonus />
         <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />

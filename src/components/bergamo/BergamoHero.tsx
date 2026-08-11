@@ -2,8 +2,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { bergamoImage } from "@/data/bergamoAssets";
 import type { BergamoCatalogItem } from "@/lib/bergamo-catalog.server";
-
-const HERO_IDS = ["01", "04", "26", "40", "71", "13"] as const;
+import { BERGAMO_PUBLIC_HERO_CODES } from "@/lib/bergamo-public-hero.constants";
 
 export interface BergamoHeroProps {
   items: BergamoCatalogItem[];
@@ -14,8 +13,8 @@ export interface BergamoHeroProps {
 /** Hero editorial: promessa + mosaico com imagens reais do acervo (dados do backend, sem prompt completo no bundle). */
 export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps) {
   const byCode = new Map(items.map((item) => [item.code, item]));
-  const showcase = HERO_IDS.map((id) => byCode.get(id)).filter((item): item is BergamoCatalogItem =>
-    Boolean(item),
+  const showcase = BERGAMO_PUBLIC_HERO_CODES.map((id) => byCode.get(id)).filter(
+    (item): item is BergamoCatalogItem => Boolean(item),
   );
 
   return (
@@ -123,6 +122,20 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
                 ))}
               </div>
             ))}
+          </div>
+          <div className="mt-4 flex justify-center sm:mt-5">
+            <div className="w-full max-w-[17rem] overflow-hidden rounded-2xl border border-border/70 bg-card p-1.5 shadow-[0_18px_48px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] sm:max-w-[19rem] sm:rounded-3xl">
+              <div className="relative aspect-[9/16] overflow-hidden rounded-[0.9rem] bg-background sm:rounded-[1.15rem]">
+                <iframe
+                  className="absolute inset-0 size-full"
+                  src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
+                  title="Demonstração do Arsenal Bergamo"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

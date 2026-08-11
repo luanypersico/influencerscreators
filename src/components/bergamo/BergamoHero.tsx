@@ -23,23 +23,25 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent"
       />
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-14 sm:px-5 sm:py-16 lg:grid-cols-[1.02fr_1fr] lg:gap-16 lg:py-24">
+      <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-14 sm:px-5 sm:py-16 lg:grid-cols-[1.02fr_1fr] lg:items-start lg:gap-16 lg:py-24">
         <div className="min-w-0">
           <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-medium tracking-[0.18em] text-primary uppercase sm:text-[11px]">
             <Sparkles className="size-3.5" aria-hidden="true" />
             {totalCount} prompts profissionais
           </span>
 
-          <div className="mx-auto mt-6 w-full max-w-[19rem] overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-[0_28px_72px_-26px_color-mix(in_oklab,var(--primary)_72%,transparent)] sm:mt-7 sm:max-w-[21rem]">
-            <div className="relative aspect-[9/16] overflow-hidden">
-              <iframe
-                className="absolute inset-0 size-full"
-                src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
-                title="Demonstração do Arsenal Bergamo"
-                loading="lazy"
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+          <div className="mt-6 flex w-full justify-center sm:mt-7">
+            <div className="w-full max-w-[19rem] overflow-hidden rounded-3xl border border-foreground/10 bg-background shadow-[0_28px_72px_-26px_color-mix(in_oklab,var(--primary)_72%,transparent)] sm:max-w-[21rem]">
+              <div className="relative aspect-[9/16] overflow-hidden">
+                <iframe
+                  className="absolute inset-0 size-full"
+                  src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
+                  title="Demonstração do Arsenal Bergamo"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
             </div>
           </div>
 

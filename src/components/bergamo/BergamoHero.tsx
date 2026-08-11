@@ -30,6 +30,19 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
             {totalCount} prompts profissionais
           </span>
 
+          <div className="mt-6 w-[10.5rem] overflow-hidden rounded-2xl border border-foreground/10 bg-background shadow-[0_22px_56px_-24px_color-mix(in_oklab,var(--primary)_65%,transparent)] sm:w-52 sm:rounded-3xl">
+            <div className="relative aspect-[9/16] overflow-hidden">
+              <iframe
+                className="absolute inset-0 size-full"
+                src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
+                title="Demonstração do Arsenal Bergamo"
+                loading="lazy"
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </div>
+
           <h1 className="mt-5 font-display text-[2rem] leading-[1.02] tracking-tight text-balance text-foreground sm:mt-6 sm:text-5xl lg:text-6xl">
             O arsenal de prompts que transforma <em className="text-primary">uma selfie</em> em
             ensaio de autoridade.
@@ -84,29 +97,6 @@ export function BergamoHero({ items, totalCount, checkoutUrl }: BergamoHeroProps
             >
               Ver o acervo completo
             </a>
-          </div>
-
-          <div className="mt-8 flex max-w-md items-center gap-4 rounded-3xl border border-border/70 bg-card/70 p-2.5 shadow-[0_18px_48px_-28px_color-mix(in_oklab,var(--primary)_55%,transparent)] backdrop-blur-sm sm:gap-5 sm:p-3">
-            <div className="w-24 shrink-0 overflow-hidden rounded-2xl border border-foreground/10 bg-background sm:w-28">
-              <div className="relative aspect-[9/16] overflow-hidden">
-                <iframe
-                  className="absolute inset-0 size-full"
-                  src="https://www.youtube.com/embed/yvD4mIGoJuM?rel=0"
-                  title="Demonstração do Arsenal Bergamo"
-                  loading="lazy"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-            <div className="min-w-0 pr-2">
-              <p className="text-[10px] font-medium tracking-[0.18em] text-primary uppercase">
-                Veja em ação
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Um exemplo de como os prompts transformam uma selfie em imagem de autoridade.
-              </p>
-            </div>
           </div>
         </div>
 

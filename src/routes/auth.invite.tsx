@@ -17,11 +17,17 @@ function InvitePage() {
     if (!token_hash || params.get("type") !== "invite") return setState("invalid");
 
     setState("busy");
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type: "invite" });
-    if (error) return setState("invalid");
+    try {
+      const { error } = await supabase.auth.verifyOtp({ token_hash, type: "invite" });
+      if (error) return setState("invalid");
 
-    window.history.replaceState(null, "", "/auth/set-password");
-    await router.navigate({ to: "/auth/set-password" });
+      window.history.replaceState(null, "", "/auth/set-password");
+      await router.navigate({ to: "/auth/set-password" });
+    } catch {
+      // A client bootstrap or network error must never leave the invite UI
+      // in its pending state, and it must not expose auth internals.
+      setState("invalid");
+    }
   }
 
   const invalid = state === "invalid";

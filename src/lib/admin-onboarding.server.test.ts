@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, mock } from "bun:test";
 type Access = { revoked_at: string | null; suspended_at: string | null; expires_at: string | null };
 let roles: string[] = [];
 let userId: string | null = null;
-let paidOrder = false;
+let paidOrderEmail: string | null = null;
 let access: Access | null = null;
 let invited: Array<{ email: string; redirectTo?: string }> = [];
 let recovery: Array<{ email: string; redirectTo?: string }> = [];
@@ -61,9 +61,15 @@ mock.module("@/integrations/supabase/client.server", () => ({
           select: () => ({
             eq: () => ({
               eq: () => ({
-                ilike: () => ({
+                eq: (column: string, value: string) => ({
                   limit: () =>
-                    Promise.resolve({ data: paidOrder ? [{ id: "order" }] : [], error: null }),
+                    Promise.resolve({
+                      data:
+                        column === "buyer_email" && value === paidOrderEmail
+                          ? [{ id: "order" }]
+                          : [],
+                      error: null,
+                    }),
                 }),
               }),
             }),
@@ -106,7 +112,7 @@ const { previewArsenalOnboarding, resendArsenalOnboarding } = await import("./ad
 beforeEach(() => {
   roles = ["super_admin"];
   userId = null;
-  paidOrder = false;
+  paidOrderEmail = null;
   access = null;
   invited = [];
   recovery = [];
@@ -118,7 +124,7 @@ describe("reenviar onboarding Arsenal", () => {
   const base = { actorId: "admin", email: "buyer@example.com" };
 
   it("convida usuário inexistente com compra válida para o host Arsenal", async () => {
-    paidOrder = true;
+    paidOrderEmail = base.email;
     const result = await resendArsenalOnboarding({ ...base, confirm: true });
     expect(result.method).toBe("INVITE");
     expect(invited).toEqual([{ email: base.email, redirectTo: "https://arsenal.obergamo.com.br" }]);
@@ -140,6 +146,23 @@ describe("reenviar onboarding Arsenal", () => {
     expect(deletedAuthUsers).toHaveLength(0);
   });
 
+  it("usa igualdade exata de e-mail — nunca casamento tipo wildcard de ILIKE", async () => {
+    paidOrderEmail = "joao_silva@gmail.com";
+
+    const nonMatches = ["joaoXsilva@gmail.com", "joao-silva@gmail.com", "joaoasilva@gmail.com"];
+    for (const email of nonMatches) {
+      await expect(previewArsenalOnboarding({ actorId: "admin", email })).rejects.toThrow(
+        "Comprador sem compra Bergamo aprovada nem acesso legítimo",
+      );
+    }
+
+    const preview = await previewArsenalOnboarding({
+      actorId: "admin",
+      email: "joao_silva@gmail.com",
+    });
+    expect(preview.hasPaidOrder).toBe(true);
+  });
+
   it("bloqueia comprador sem compra nem acesso legítimo", async () => {
     await expect(previewArsenalOnboarding(base)).rejects.toThrow(
       "Comprador sem compra Bergamo aprovada nem acesso legítimo",
@@ -148,7 +171,7 @@ describe("reenviar onboarding Arsenal", () => {
 
   it("sinaliza entitlement ausente antes de enviar recovery", async () => {
     userId = "buyer";
-    paidOrder = true;
+    paidOrderEmail = base.email;
     const result = await resendArsenalOnboarding({ ...base, confirm: true });
     expect(result.status).toBe("ENTITLEMENT_REPAIR_REQUIRED");
     expect(result.sent).toBe(false);

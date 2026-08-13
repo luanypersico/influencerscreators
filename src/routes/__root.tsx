@@ -11,6 +11,51 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import {
+  extractErrorMessage,
+  isChunkLoadErrorMessage,
+  shouldReloadForChunkError,
+} from "../lib/chunk-reload-guard";
+
+const CHUNK_RELOAD_STORAGE_KEY = "arsenal:chunk-reload-attempted";
+
+/** Reloads once per session when a stale chunk fails after a redeploy; a second failure right after reload means the deploy is actually broken, so it falls through to the ErrorBoundary instead of looping. */
+function useChunkReloadGuard() {
+  useEffect(() => {
+    function reloadOnce() {
+      const alreadyAttempted = sessionStorage.getItem(CHUNK_RELOAD_STORAGE_KEY) === "1";
+      if (!shouldReloadForChunkError(alreadyAttempted)) return;
+      sessionStorage.setItem(CHUNK_RELOAD_STORAGE_KEY, "1");
+      window.location.reload();
+    }
+
+    function handlePreloadError(event: Event) {
+      event.preventDefault();
+      reloadOnce();
+    }
+
+    function handleRejection(event: PromiseRejectionEvent) {
+      if (!isChunkLoadErrorMessage(extractErrorMessage(event.reason))) return;
+      event.preventDefault();
+      reloadOnce();
+    }
+
+    window.addEventListener("vite:preloadError", handlePreloadError);
+    window.addEventListener("unhandledrejection", handleRejection);
+
+    // A clean mount that survives a few seconds means the reload (if any) worked —
+    // clear the guard so a later, unrelated deploy can still trigger one reload.
+    const clearGuardTimer = window.setTimeout(() => {
+      sessionStorage.removeItem(CHUNK_RELOAD_STORAGE_KEY);
+    }, 10_000);
+
+    return () => {
+      window.removeEventListener("vite:preloadError", handlePreloadError);
+      window.removeEventListener("unhandledrejection", handleRejection);
+      window.clearTimeout(clearGuardTimer);
+    };
+  }, []);
+}
 
 function NotFoundComponent() {
   return (
@@ -127,6 +172,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useChunkReloadGuard();
 
   return (
     <QueryClientProvider client={queryClient}>

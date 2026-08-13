@@ -159,7 +159,7 @@ export async function previewArsenalOnboarding(params: {
       .select("id")
       .eq("product_id", product.id)
       .eq("status", "paid")
-      .ilike("buyer_email", email)
+      .eq("buyer_email", email)
       .limit(1),
     userId
       ? supabaseAdmin

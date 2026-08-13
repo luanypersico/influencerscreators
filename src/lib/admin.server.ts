@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { ARSENAL_ORIGIN } from "./auth-invite.server";
 
 export type AdminRole = "super_admin" | "admin" | "coproducer" | "support" | "member";
 export type CollaboratorRole = "coproducer" | "editor" | "support";
@@ -95,6 +96,147 @@ export async function logAudit(params: {
     entity_id: params.entityId ?? null,
     meta: (params.meta ?? {}) as never,
   });
+}
+
+const ONBOARDING_COOLDOWN_MS = 60_000;
+
+export type ArsenalOnboardingMethod = "INVITE" | "RECOVERY";
+export type ArsenalOnboardingStatus = "READY" | "ENTITLEMENT_REPAIR_REQUIRED";
+
+export type ArsenalOnboardingPreview = {
+  email: string;
+  authExists: boolean;
+  hasPaidOrder: boolean;
+  hasActiveAccess: boolean;
+  method: ArsenalOnboardingMethod;
+  status: ArsenalOnboardingStatus;
+};
+
+function normalizeBuyerEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function activeAccess(
+  row: { revoked_at: string | null; suspended_at: string | null; expires_at: string | null } | null,
+): boolean {
+  return Boolean(
+    row &&
+    !row.revoked_at &&
+    !row.suspended_at &&
+    (!row.expires_at || new Date(row.expires_at).getTime() > Date.now()),
+  );
+}
+
+/**
+ * Resolves a buyer's onboarding route entirely from server-side facts. This
+ * function never writes orders, access rows, Auth users, or roles.
+ */
+export async function previewArsenalOnboarding(params: {
+  actorId: string;
+  email: string;
+  controlledTest?: boolean;
+}): Promise<ArsenalOnboardingPreview> {
+  await assertSuperAdmin(params.actorId);
+  const email = normalizeBuyerEmail(params.email);
+  if (!email.includes("@")) throw new Error("Informe um e-mail válido.");
+
+  const { data: product, error: productError } = await supabaseAdmin
+    .from("products")
+    .select("id")
+    .eq("slug", "bergamo")
+    .maybeSingle();
+  if (productError || !product)
+    throw new Error(productError?.message ?? "Produto Bergamo não encontrado.");
+
+  const { data: userId, error: userError } = await supabaseAdmin.rpc("find_user_id_by_email", {
+    _email: email,
+  });
+  if (userError) throw new Error(userError.message);
+
+  const [ordersResult, accessResult] = await Promise.all([
+    supabaseAdmin
+      .from("orders")
+      .select("id")
+      .eq("product_id", product.id)
+      .eq("status", "paid")
+      .ilike("buyer_email", email)
+      .limit(1),
+    userId
+      ? supabaseAdmin
+          .from("product_access")
+          .select("revoked_at, suspended_at, expires_at")
+          .eq("product_id", product.id)
+          .eq("user_id", userId)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (ordersResult.error) throw new Error(ordersResult.error.message);
+  if (accessResult.error) throw new Error(accessResult.error.message);
+
+  const hasPaidOrder = (ordersResult.data ?? []).length > 0;
+  const hasActiveAccess = activeAccess(accessResult.data);
+  if (!params.controlledTest && !hasPaidOrder && !hasActiveAccess) {
+    throw new Error("Comprador sem compra Bergamo aprovada nem acesso legítimo.");
+  }
+
+  return {
+    email,
+    authExists: Boolean(userId),
+    hasPaidOrder,
+    hasActiveAccess,
+    method: userId ? "RECOVERY" : "INVITE",
+    status:
+      hasPaidOrder && Boolean(userId) && !hasActiveAccess && !params.controlledTest
+        ? "ENTITLEMENT_REPAIR_REQUIRED"
+        : "READY",
+  };
+}
+
+/** Sends one secure Arsenal onboarding link without changing commercial data. */
+export async function resendArsenalOnboarding(params: {
+  actorId: string;
+  email: string;
+  controlledTest?: boolean;
+  confirm: boolean;
+}): Promise<ArsenalOnboardingPreview & { sent: boolean }> {
+  if (!params.confirm) throw new Error("Confirmação explícita obrigatória para reenviar o acesso.");
+  const preview = await previewArsenalOnboarding(params);
+  if (preview.status === "ENTITLEMENT_REPAIR_REQUIRED") return { ...preview, sent: false };
+
+  const cooldownSince = new Date(Date.now() - ONBOARDING_COOLDOWN_MS).toISOString();
+  const { data: recent, error: cooldownError } = await supabaseAdmin
+    .from("admin_audit_log")
+    .select("id")
+    .eq("action", "arsenal.onboarding.resend")
+    .eq("entity", "buyer")
+    .eq("entity_id", preview.email)
+    .gte("created_at", cooldownSince)
+    .limit(1);
+  if (cooldownError) throw new Error(cooldownError.message);
+  if ((recent ?? []).length > 0) throw new Error("Aguarde um minuto antes de reenviar o acesso.");
+
+  const redirectTo =
+    preview.method === "INVITE"
+      ? ARSENAL_ORIGIN
+      : `${ARSENAL_ORIGIN}/auth/callback?next=/auth/set-password`;
+  const result =
+    preview.method === "INVITE"
+      ? await supabaseAdmin.auth.admin.inviteUserByEmail(preview.email, { redirectTo })
+      : await supabaseAdmin.auth.resetPasswordForEmail(preview.email, { redirectTo });
+  if (result.error) throw new Error(result.error.message);
+
+  await logAudit({
+    actorId: params.actorId,
+    action: "arsenal.onboarding.resend",
+    entity: "buyer",
+    entityId: preview.email,
+    meta: {
+      method: preview.method,
+      result: "accepted",
+      controlled_test: Boolean(params.controlledTest),
+    },
+  });
+  return { ...preview, sent: true };
 }
 
 export type AdminUserRow = {

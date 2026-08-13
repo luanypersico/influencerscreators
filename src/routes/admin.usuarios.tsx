@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   adminDeleteUserFn,
   adminListUsersFn,
+  adminPreviewArsenalOnboardingFn,
+  adminResendArsenalOnboardingFn,
   adminSetAccessFn,
   adminSetPasswordFn,
   adminSetRoleFn,
@@ -41,6 +43,8 @@ function UsersPage() {
   const setAccess = useServerFn(adminSetAccessFn);
   const setPassword = useServerFn(adminSetPasswordFn);
   const deleteUser = useServerFn(adminDeleteUserFn);
+  const previewOnboarding = useServerFn(adminPreviewArsenalOnboardingFn);
+  const resendOnboarding = useServerFn(adminResendArsenalOnboardingFn);
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -183,6 +187,30 @@ function UsersPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!isSuperAdmin}
+                      onClick={() =>
+                        run(async () => {
+                          const preview = await previewOnboarding({
+                            data: { email: u.email, controlledTest: false },
+                          });
+                          if (preview.status === "ENTITLEMENT_REPAIR_REQUIRED") {
+                            throw new Error(
+                              "Este comprador precisa de reparo de entitlement antes do reenvio.",
+                            );
+                          }
+                          const detail = `Auth: ${preview.authExists ? "existe" : "não existe"}\nCompra válida: ${preview.hasPaidOrder ? "sim" : "não"}\nAcesso ativo: ${preview.hasActiveAccess ? "sim" : "não"}\nMétodo: ${preview.method}`;
+                          if (!confirm(`${detail}\n\nReenviar acesso Arsenal?`)) return;
+                          await resendOnboarding({
+                            data: { email: u.email, controlledTest: false, confirm: true },
+                          });
+                        }, "Acesso Arsenal reenviado.")
+                      }
+                    >
+                      Reenviar acesso
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"

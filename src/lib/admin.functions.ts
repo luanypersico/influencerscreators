@@ -11,6 +11,8 @@ import {
   listUsers,
   resolveRecipients,
   revokeProductCollaborator,
+  previewArsenalOnboarding,
+  resendArsenalOnboarding,
   sendEmails,
   setAccess,
   setUserPassword,
@@ -18,6 +20,39 @@ import {
   type AdminRole,
   type CollaboratorRole,
 } from "./admin.server";
+
+function parseOnboardingInput(data: unknown) {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const email = typeof raw["email"] === "string" ? raw["email"] : "";
+  return {
+    email,
+    controlledTest: raw["controlledTest"] === true,
+    confirm: raw["confirm"] === true,
+  };
+}
+
+export const adminPreviewArsenalOnboardingFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(parseOnboardingInput)
+  .handler(async ({ context, data }) =>
+    previewArsenalOnboarding({
+      actorId: context.userId,
+      email: data.email,
+      controlledTest: data.controlledTest,
+    }),
+  );
+
+export const adminResendArsenalOnboardingFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(parseOnboardingInput)
+  .handler(async ({ context, data }) =>
+    resendArsenalOnboarding({
+      actorId: context.userId,
+      email: data.email,
+      controlledTest: data.controlledTest,
+      confirm: data.confirm,
+    }),
+  );
 
 export const adminOverviewFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

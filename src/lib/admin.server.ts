@@ -99,6 +99,73 @@ export async function logAudit(params: {
 }
 
 const ONBOARDING_COOLDOWN_MS = 60_000;
+const ADMIN_DIAGNOSTIC_WINDOW_MS = 60_000;
+const ADMIN_DIAGNOSTIC_MAX_PER_WINDOW = 12;
+
+export type AdminClientDiagnosticInput = {
+  pathname: string;
+  message: string;
+  stack?: string;
+  requestName?: string;
+  status?: number;
+  correlationId: string;
+};
+
+function redactDiagnosticText(value: string, limit: number): string {
+  return value
+    .replace(/Bearer\\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
+    .replace(/(access_token|refresh_token|token_hash|password)=?[^\\s&",}]+/gi, "$1=[redacted]")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi, "[email-redacted]")
+    .slice(0, limit);
+}
+
+/**
+ * Temporary, allowlisted client telemetry for diagnosing an admin crash.
+ * Its caller is authenticated by the server function middleware and the
+ * payload is redacted again here before it can reach an audit row.
+ */
+export async function recordAdminClientDiagnostic(params: {
+  actorId: string;
+  diagnostic: AdminClientDiagnosticInput;
+}): Promise<{ accepted: true }> {
+  await assertSuperAdmin(params.actorId);
+
+  const since = new Date(Date.now() - ADMIN_DIAGNOSTIC_WINDOW_MS).toISOString();
+  const { data: recent, error } = await supabaseAdmin
+    .from("admin_audit_log")
+    .select("id")
+    .eq("actor_id", params.actorId)
+    .eq("action", "ADMIN_CLIENT_DIAGNOSTIC")
+    .gte("created_at", since)
+    .limit(ADMIN_DIAGNOSTIC_MAX_PER_WINDOW);
+  if (error) throw new Error(error.message);
+  if ((recent ?? []).length >= ADMIN_DIAGNOSTIC_MAX_PER_WINDOW) {
+    throw new Error("Limite temporário de diagnóstico atingido.");
+  }
+
+  const pathname = params.diagnostic.pathname.startsWith("/")
+    ? params.diagnostic.pathname.slice(0, 160)
+    : "/admin";
+  const status = Number.isInteger(params.diagnostic.status)
+    ? Math.max(0, Math.min(Number(params.diagnostic.status), 599))
+    : null;
+
+  await logAudit({
+    actorId: params.actorId,
+    action: "ADMIN_CLIENT_DIAGNOSTIC",
+    entity: "client_error",
+    entityId: pathname,
+    meta: {
+      message: redactDiagnosticText(params.diagnostic.message, 800),
+      stack: redactDiagnosticText(params.diagnostic.stack ?? "", 4000),
+      request_name: redactDiagnosticText(params.diagnostic.requestName ?? "", 160),
+      status,
+      correlation_id: redactDiagnosticText(params.diagnostic.correlationId, 80),
+      received_at: new Date().toISOString(),
+    },
+  });
+  return { accepted: true };
+}
 
 export type ArsenalOnboardingMethod = "INVITE" | "RECOVERY";
 export type ArsenalOnboardingStatus = "READY" | "ENTITLEMENT_REPAIR_REQUIRED";

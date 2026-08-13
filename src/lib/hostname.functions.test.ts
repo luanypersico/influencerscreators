@@ -27,6 +27,8 @@ describe("isolamento Arsenal por hostname", () => {
     expect(source("src/routes/entrar.tsx")).toContain(
       "isArsenalHostname(await getRequestHostnameFn())",
     );
+    expect(source("src/routes/auth.invite.tsx")).toContain("${ARSENAL_ORIGIN}/entrar");
+    expect(source("src/routes/auth.set-password.tsx")).toContain("${ARSENAL_ORIGIN}/entrar");
     expect(source("src/routes/membros.bergamo.tsx")).toContain('"/prompts" : "/membros"');
   });
 });

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ import { completePasswordSetup } from "@/hooks/passwordSetup";
 import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
 import { useSetPasswordSession } from "@/hooks/useSetPasswordSession";
 import { supabase } from "@/integrations/supabase/client";
+import { ARSENAL_ORIGIN } from "@/lib/hostname.functions";
 
 export const Route = createFileRoute("/auth/set-password")({
   head: () => ({
@@ -69,7 +70,7 @@ function SetPasswordPage() {
           Solicite um novo link para continuar com segurança.
         </p>
         <Button asChild className="bergamo-cta mt-6 h-11 rounded-xl border-0 px-6 text-white">
-          <Link to="/entrar">Ir para a área do aluno</Link>
+          <a href={`${ARSENAL_ORIGIN}/entrar`}>Ir para a área do aluno</a>
         </Button>
       </CenteredPanel>
     );

@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { AuthExperienceShell } from "@/components/auth/AuthExperienceShell";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ARSENAL_ORIGIN } from "@/lib/hostname.functions";
 
 export const Route = createFileRoute("/auth/invite")({ component: InvitePage });
 
@@ -43,7 +44,7 @@ function InvitePage() {
     >
       {invalid ? (
         <Button asChild className="bergamo-cta mt-6 h-11 rounded-xl border-0 px-6 text-white">
-          <Link to="/entrar">Solicitar novo link</Link>
+          <a href={`${ARSENAL_ORIGIN}/entrar`}>Solicitar novo link</a>
         </Button>
       ) : (
         <Button

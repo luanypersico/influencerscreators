@@ -38,6 +38,7 @@ import { Route as MembrosIndexRouteImport } from './routes/membros.index'
 import { Route as MembrosBergamoRouteImport } from './routes/membros.bergamo'
 import { Route as PublicInfluencersIndexRouteImport } from './routes/_public.influencers.index'
 import { Route as PublicInfluencersSlugRouteImport } from './routes/_public.influencers.$slug'
+import { Route as ApiPublicDiagnosticsClientErrorRouteImport } from './routes/api/public/diagnostics.client-error'
 import { Route as ApiPublicWebhooksHotmartRouteImport } from './routes/api/public/webhooks/hotmart'
 
 const PublicRoute = PublicRouteImport.update({
@@ -184,6 +185,12 @@ const PublicInfluencersSlugRoute = PublicInfluencersSlugRouteImport.update({
   path: '/influencers/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const ApiPublicDiagnosticsClientErrorRoute =
+  ApiPublicDiagnosticsClientErrorRouteImport.update({
+    id: '/api/public/diagnostics/client-error',
+    path: '/api/public/diagnostics/client-error',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksHotmartRoute =
   ApiPublicWebhooksHotmartRouteImport.update({
     id: '/api/public/webhooks/hotmart',
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/membros/': typeof MembrosIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers/': typeof PublicInfluencersIndexRoute
+  '/api/public/diagnostics/client-error': typeof ApiPublicDiagnosticsClientErrorRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRoutesByTo {
@@ -249,6 +257,7 @@ export interface FileRoutesByTo {
   '/membros': typeof MembrosIndexRoute
   '/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/influencers': typeof PublicInfluencersIndexRoute
+  '/api/public/diagnostics/client-error': typeof ApiPublicDiagnosticsClientErrorRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRoutesById {
@@ -282,6 +291,7 @@ export interface FileRoutesById {
   '/membros/': typeof MembrosIndexRoute
   '/_public/influencers/$slug': typeof PublicInfluencersSlugRoute
   '/_public/influencers/': typeof PublicInfluencersIndexRoute
+  '/api/public/diagnostics/client-error': typeof ApiPublicDiagnosticsClientErrorRoute
   '/api/public/webhooks/hotmart': typeof ApiPublicWebhooksHotmartRoute
 }
 export interface FileRouteTypes {
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/membros/'
     | '/influencers/$slug'
     | '/influencers/'
+    | '/api/public/diagnostics/client-error'
     | '/api/public/webhooks/hotmart'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/membros'
     | '/influencers/$slug'
     | '/influencers'
+    | '/api/public/diagnostics/client-error'
     | '/api/public/webhooks/hotmart'
   id:
     | '__root__'
@@ -376,6 +388,7 @@ export interface FileRouteTypes {
     | '/membros/'
     | '/_public/influencers/$slug'
     | '/_public/influencers/'
+    | '/api/public/diagnostics/client-error'
     | '/api/public/webhooks/hotmart'
   fileRoutesById: FileRoutesById
 }
@@ -390,6 +403,7 @@ export interface RootRouteChildren {
   MembrosRoute: typeof MembrosRouteWithChildren
   PromptsRoute: typeof PromptsRoute
   CoprodutorBergamoRoute: typeof CoprodutorBergamoRoute
+  ApiPublicDiagnosticsClientErrorRoute: typeof ApiPublicDiagnosticsClientErrorRoute
   ApiPublicWebhooksHotmartRoute: typeof ApiPublicWebhooksHotmartRoute
 }
 
@@ -598,6 +612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicInfluencersSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/api/public/diagnostics/client-error': {
+      id: '/api/public/diagnostics/client-error'
+      path: '/api/public/diagnostics/client-error'
+      fullPath: '/api/public/diagnostics/client-error'
+      preLoaderRoute: typeof ApiPublicDiagnosticsClientErrorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/hotmart': {
       id: '/api/public/webhooks/hotmart'
       path: '/api/public/webhooks/hotmart'
@@ -691,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   MembrosRoute: MembrosRouteWithChildren,
   PromptsRoute: PromptsRoute,
   CoprodutorBergamoRoute: CoprodutorBergamoRoute,
+  ApiPublicDiagnosticsClientErrorRoute: ApiPublicDiagnosticsClientErrorRoute,
   ApiPublicWebhooksHotmartRoute: ApiPublicWebhooksHotmartRoute,
 }
 export const routeTree = rootRouteImport

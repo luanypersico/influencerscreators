@@ -5,19 +5,19 @@ import { getPasswordSetupRedirectUrl } from "./auth-invite.server";
 describe("getPasswordSetupRedirectUrl", () => {
   it("usa produção por padrão", () => {
     expect(getPasswordSetupRedirectUrl({} as NodeJS.ProcessEnv)).toBe(
-      "https://influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
+      "https://influencerscreators.pages.dev/auth/invite",
     );
   });
 
   it("aceita somente localhost e previews do projeto", () => {
     expect(getPasswordSetupRedirectUrl({ APP_ORIGIN: "http://localhost:4173" })).toBe(
-      "http://localhost:4173/auth/callback?next=/auth/set-password",
+      "http://localhost:4173/auth/invite",
     );
     expect(
       getPasswordSetupRedirectUrl({
         APP_ORIGIN: "https://abc123.influencerscreators.pages.dev",
       }),
-    ).toBe("https://abc123.influencerscreators.pages.dev/auth/callback?next=/auth/set-password");
+    ).toBe("https://abc123.influencerscreators.pages.dev/auth/invite");
   });
 
   it("rejeita origem arbitrária e credenciais embutidas", () => {

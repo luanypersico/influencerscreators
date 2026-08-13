@@ -42,8 +42,9 @@ function AuthRoute() {
   const matchRoute = useMatchRoute();
   const isSetPasswordRoute = matchRoute({ to: "/auth/set-password", fuzzy: false });
   const isCallbackRoute = matchRoute({ to: "/auth/callback", fuzzy: false });
+  const isInviteRoute = matchRoute({ to: "/auth/invite", fuzzy: false });
 
-  if (isSetPasswordRoute || isCallbackRoute) return <Outlet />;
+  if (isSetPasswordRoute || isCallbackRoute || isInviteRoute) return <Outlet />;
   return <BuyerAuthPage />;
 }
 

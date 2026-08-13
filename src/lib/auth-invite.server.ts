@@ -15,8 +15,10 @@ export function getPasswordSetupRedirectUrl(env: NodeJS.ProcessEnv = process.env
     throw new Error("Origem confiável de convite não configurada.");
   }
 
-  url.pathname = "/auth/callback";
-  url.search = "?next=/auth/set-password";
+  // The Supabase Invite template appends token_hash={{ .TokenHash }} and
+  // type=invite. This route does not consume the token until user action.
+  url.pathname = "/auth/invite";
+  url.search = "";
   url.hash = "";
   return url.toString();
 }

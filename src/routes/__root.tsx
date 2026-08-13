@@ -10,7 +10,10 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { AdminClientDiagnostics } from "../components/admin/AdminClientDiagnostics";
+import {
+  AdminClientDiagnostics,
+  useAdminClientDiagnosticReporter,
+} from "../components/admin/AdminClientDiagnostics";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -38,18 +41,15 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const reportDiagnostic = useAdminClientDiagnosticReporter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-    window.dispatchEvent(
-      new CustomEvent("ADMIN_CLIENT_DIAGNOSTIC", {
-        detail: {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          requestName: "React ErrorBoundary",
-        },
-      }),
-    );
-  }, [error]);
+    reportDiagnostic({
+      message: error instanceof Error ? error.message : String(error),
+      ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
+      requestName: "React ErrorBoundary",
+    });
+  }, [error, reportDiagnostic]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

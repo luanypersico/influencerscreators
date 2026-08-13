@@ -19,7 +19,7 @@ function errorDetails(error: unknown): Pick<Diagnostic, "message" | "stack"> {
 }
 
 /** Temporary production-only reporter for the admin incident. */
-export function AdminClientDiagnostics() {
+export function useAdminClientDiagnosticReporter() {
   const reportServer = useServerFn(adminClientDiagnosticFn);
   const reporting = useRef(false);
 
@@ -45,6 +45,12 @@ export function AdminClientDiagnostics() {
     [reportServer],
   );
 
+  return report;
+}
+
+export function AdminClientDiagnostics() {
+  const report = useAdminClientDiagnosticReporter();
+
   useEffect(() => {
     const onError = (event: ErrorEvent) => {
       report({
@@ -53,15 +59,10 @@ export function AdminClientDiagnostics() {
       });
     };
     const onRejection = (event: PromiseRejectionEvent) => report(errorDetails(event.reason));
-    const onBoundary = (event: Event) => {
-      const detail = (event as CustomEvent<Diagnostic>).detail;
-      if (detail) report(detail);
-    };
     const originalFetch = window.fetch.bind(window);
 
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);
-    window.addEventListener("ADMIN_CLIENT_DIAGNOSTIC", onBoundary);
     window.fetch = async (...args) => {
       const response = await originalFetch(...args);
       if (!response.ok) {
@@ -79,7 +80,6 @@ export function AdminClientDiagnostics() {
     return () => {
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
-      window.removeEventListener("ADMIN_CLIENT_DIAGNOSTIC", onBoundary);
       window.fetch = originalFetch;
     };
   }, [report]);

@@ -10,10 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import {
-  AdminClientDiagnostics,
-  useAdminClientDiagnosticReporter,
-} from "../components/admin/AdminClientDiagnostics";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -41,15 +37,9 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  const reportDiagnostic = useAdminClientDiagnosticReporter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-    reportDiagnostic({
-      message: error instanceof Error ? error.message : String(error),
-      ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
-      requestName: "React ErrorBoundary",
-    });
-  }, [error, reportDiagnostic]);
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -129,7 +119,6 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <AdminClientDiagnostics />
         <Scripts />
       </body>
     </html>

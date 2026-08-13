@@ -12,7 +12,6 @@ import {
   resolveRecipients,
   revokeProductCollaborator,
   previewArsenalOnboarding,
-  recordAdminClientDiagnostic,
   resendArsenalOnboarding,
   sendEmails,
   setAccess,
@@ -21,35 +20,6 @@ import {
   type AdminRole,
   type CollaboratorRole,
 } from "./admin.server";
-
-function parseAdminClientDiagnostic(data: unknown) {
-  const raw = (data ?? {}) as Record<string, unknown>;
-  return {
-    pathname: typeof raw["pathname"] === "string" ? raw["pathname"] : "/admin",
-    message: typeof raw["message"] === "string" ? raw["message"] : "Unknown client error",
-    stack: typeof raw["stack"] === "string" ? raw["stack"] : "",
-    requestName: typeof raw["requestName"] === "string" ? raw["requestName"] : "",
-    status: typeof raw["status"] === "number" ? raw["status"] : undefined,
-    correlationId: typeof raw["correlationId"] === "string" ? raw["correlationId"] : "",
-  };
-}
-
-export const adminClientDiagnosticFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator(parseAdminClientDiagnostic)
-  .handler(async ({ context, data }) =>
-    recordAdminClientDiagnostic({
-      actorId: context.userId,
-      diagnostic: {
-        pathname: data.pathname,
-        message: data.message,
-        stack: data.stack,
-        requestName: data.requestName,
-        ...(data.status !== undefined ? { status: data.status } : {}),
-        correlationId: data.correlationId,
-      },
-    }),
-  );
 
 function parseOnboardingInput(data: unknown) {
   const raw = (data ?? {}) as Record<string, unknown>;

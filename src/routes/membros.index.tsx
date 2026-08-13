@@ -40,7 +40,7 @@ function MembersPage() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-4xl px-6 py-16">
         <Link
-          to="/bergamo"
+          to="/"
           className="mb-10 inline-block rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <ArsenalLogo className="w-36" />
@@ -61,7 +61,7 @@ function MembersPage() {
             product.slug === "bergamo" ? (
               <Link
                 key={product.productId}
-                to="/membros/bergamo"
+                to="/prompts"
                 className="rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
                 <h2 className="text-lg font-semibold text-foreground">{product.name}</h2>

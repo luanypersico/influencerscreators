@@ -28,13 +28,13 @@ describe("fluxo de Auth do Supabase", () => {
     ).toBe("/coprodutor/bergamo");
     expect(
       resolvePostAuthDestination({ roles: ["coproducer"], hasActiveBergamoCoproducerLink: false }),
-    ).toBe("/membros");
+    ).toBe("/prompts");
   });
 
-  it("envia membro para /membros", () => {
+  it("envia membro para /prompts", () => {
     expect(
       resolvePostAuthDestination({ roles: ["member"], hasActiveBergamoCoproducerLink: false }),
-    ).toBe("/membros");
+    ).toBe("/prompts");
   });
 
   it("usa dados reais do servidor, incluindo role, produto, vínculo e status", () => {
@@ -56,7 +56,9 @@ describe("fluxo de Auth do Supabase", () => {
 
   it("envia recovery para /auth/set-password", () => {
     const source = readSrc("src/routes/auth.tsx");
-    expect(source).toContain("${window.location.origin}/auth/callback?next=/auth/set-password");
+    expect(source).toContain("ARSENAL_HOSTNAME");
+    expect(source).toContain("ARSENAL_ORIGIN");
+    expect(source).toContain("${origin}/auth/callback?next=/auth/set-password");
   });
 
   it("recusa set-password sem sessão e só atualiza senha após validar sessão", () => {

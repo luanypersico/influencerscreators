@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-export type PostAuthDestination = "/admin" | "/coprodutor/bergamo" | "/membros";
+export type PostAuthDestination = "/admin" | "/coprodutor/bergamo" | "/prompts" | "/membros";
 
 export interface PostAuthAuthorization {
   roles: string[];
@@ -14,7 +14,7 @@ export function resolvePostAuthDestination({
 }: PostAuthAuthorization): PostAuthDestination {
   if (roles.includes("super_admin") || roles.includes("admin")) return "/admin";
   if (hasActiveBergamoCoproducerLink) return "/coprodutor/bergamo";
-  return "/membros";
+  return "/prompts";
 }
 
 /** Resolves an authenticated user's destination from server-side facts only. */

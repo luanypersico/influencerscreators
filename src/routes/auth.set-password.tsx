@@ -69,7 +69,7 @@ function SetPasswordPage() {
           Solicite um novo link para continuar com segurança.
         </p>
         <Button asChild className="bergamo-cta mt-6 h-11 rounded-xl border-0 px-6 text-white">
-          <Link to="/auth">Ir para a área do aluno</Link>
+          <Link to="/entrar">Ir para a área do aluno</Link>
         </Button>
       </CenteredPanel>
     );

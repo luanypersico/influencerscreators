@@ -16,7 +16,7 @@ describe("Conteúdo completo do prompt não está mais no bundle público", () =
     "src/components/bergamo/BergamoGallery.tsx",
     "src/components/bergamo/BergamoHero.tsx",
     "src/components/bergamo/BergamoPricing.tsx",
-    "src/routes/bergamo.tsx",
+    "src/routes/prompts.tsx",
   ];
 
   for (const file of publicComponents) {
@@ -31,8 +31,8 @@ describe("Conteúdo completo do prompt não está mais no bundle público", () =
     expect(readSrc("src/components/bergamo/BergamoGallery.tsx")).toContain("BergamoCatalogItem");
   });
 
-  it("a rota pública /bergamo usa o catálogo server-side", () => {
-    expect(readSrc("src/routes/bergamo.tsx")).toContain("getBergamoPublicCatalogFn");
+  it("a rota /prompts usa o catálogo server-side", () => {
+    expect(readSrc("src/routes/prompts.tsx")).toContain("getBergamoPublicCatalogFn");
   });
 });
 
@@ -42,9 +42,9 @@ describe("Área do aluno — ativação única e login com senha", () => {
 
   it("primeiro acesso envia recuperação para o caminho interno fixo de criação de senha", () => {
     expect(buyerSource).toContain("resetPasswordForEmail");
-    expect(buyerSource).toContain(
-      "${window.location.origin}/auth/callback?next=/auth/set-password",
-    );
+    expect(buyerSource).toContain("ARSENAL_HOSTNAME");
+    expect(buyerSource).toContain("ARSENAL_ORIGIN");
+    expect(buyerSource).toContain("${origin}/auth/callback?next=/auth/set-password");
     expect(buyerSource).not.toMatch(/searchParams|location\.search|redirectTo\s*=\s*.*params/);
   });
 

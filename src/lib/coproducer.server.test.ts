@@ -477,8 +477,7 @@ describe("Acesso cortesia do Bergamo", () => {
       {
         email: "nova@example.com",
         fullName: "Nova Cliente",
-        redirectTo:
-          "https://preview.influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
+        redirectTo: "https://arsenal.obergamo.com.br",
       },
     ]);
     const profile = db["profiles"]!.find((row) => row["id"] === result.userId);
@@ -623,11 +622,9 @@ describe("Acesso cortesia do Bergamo", () => {
   });
 
   it("aceita somente origem oficial, localhost ou preview do projeto", () => {
-    expect(getBergamoInviteRedirectUrl({})).toBe(
-      "https://influencerscreators.pages.dev/auth/callback?next=/auth/set-password",
-    );
+    expect(getBergamoInviteRedirectUrl({})).toBe("https://arsenal.obergamo.com.br/auth/invite");
     expect(getBergamoInviteRedirectUrl({ APP_ORIGIN: "http://localhost:4173" })).toBe(
-      "http://localhost:4173/auth/callback?next=/auth/set-password",
+      "http://localhost:4173/auth/invite",
     );
     expect(() => getBergamoInviteRedirectUrl({ APP_ORIGIN: "https://attacker.pages.dev" })).toThrow(
       "Origem confiável",

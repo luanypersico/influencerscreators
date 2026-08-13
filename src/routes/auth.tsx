@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
 import { useSession } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ARSENAL_ORIGIN, ARSENAL_HOSTNAME } from "@/lib/hostname.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth")({
@@ -48,7 +49,7 @@ function AuthRoute() {
   return <BuyerAuthPage />;
 }
 
-function BuyerAuthPage() {
+export function BuyerAuthPage() {
   const router = useRouter();
   const { session, loading } = useSession();
   const getPostAuthDestination = usePostAuthDestination();
@@ -95,8 +96,12 @@ function BuyerAuthPage() {
 
     try {
       if (mode !== "login") {
+        const origin =
+          window.location.hostname.toLowerCase() === ARSENAL_HOSTNAME
+            ? ARSENAL_ORIGIN
+            : window.location.origin;
         const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: `${window.location.origin}/auth/callback?next=/auth/set-password`,
+          redirectTo: `${origin}/auth/callback?next=/auth/set-password`,
         });
         if (error) throw error;
         setAccessEmailSent(true);

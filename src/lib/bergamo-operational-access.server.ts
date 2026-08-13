@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 import { assertSuperAdmin, logAudit } from "./admin.server";
+import { getPasswordSetupRedirectUrl } from "./auth-invite.server";
 
 /**
  * Toda a lógica deste módulo é preparação operacional — nenhuma função
@@ -408,7 +409,9 @@ export async function linkBergamoCoproducer(params: {
   if (existingId) {
     userId = existingId;
   } else {
-    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: getPasswordSetupRedirectUrl(),
+    });
     if (error || !data.user) {
       throw new Error(error?.message ?? "Não foi possível convidar o coprodutor.");
     }

@@ -43,7 +43,7 @@ function InvitePage() {
     >
       {invalid ? (
         <Button asChild className="bergamo-cta mt-6 h-11 rounded-xl border-0 px-6 text-white">
-          <Link to="/auth">Solicitar novo link</Link>
+          <Link to="/entrar">Solicitar novo link</Link>
         </Button>
       ) : (
         <Button

@@ -13,9 +13,11 @@ import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BergamoRouteImport } from './routes/bergamo'
+import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as LaboratorioRouteImport } from './routes/laboratorio'
 import { Route as MembrosRouteImport } from './routes/membros'
+import { Route as PromptsRouteImport } from './routes/prompts'
 import { Route as PublicIndexRouteImport } from './routes/_public.index'
 import { Route as PublicComoFuncionaRouteImport } from './routes/_public.como-funciona'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -57,6 +59,11 @@ const BergamoRoute = BergamoRouteImport.update({
   path: '/bergamo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EquipeRoute = EquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
@@ -70,6 +77,11 @@ const LaboratorioRoute = LaboratorioRouteImport.update({
 const MembrosRoute = MembrosRouteImport.update({
   id: '/membros',
   path: '/membros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptsRoute = PromptsRouteImport.update({
+  id: '/prompts',
+  path: '/prompts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
@@ -184,9 +196,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
+  '/prompts': typeof PromptsRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/bergamo': typeof AdminBergamoRoute
@@ -211,8 +225,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
+  '/prompts': typeof PromptsRoute
   '/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/bergamo': typeof AdminBergamoRoute
@@ -241,9 +257,11 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/bergamo': typeof BergamoRoute
+  '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/laboratorio': typeof LaboratorioRoute
   '/membros': typeof MembrosRouteWithChildren
+  '/prompts': typeof PromptsRoute
   '/_public/como-funciona': typeof PublicComoFuncionaRoute
   '/admin/auditoria': typeof AdminAuditoriaRoute
   '/admin/bergamo': typeof AdminBergamoRoute
@@ -273,9 +291,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/bergamo'
+    | '/entrar'
     | '/equipe'
     | '/laboratorio'
     | '/membros'
+    | '/prompts'
     | '/como-funciona'
     | '/admin/auditoria'
     | '/admin/bergamo'
@@ -300,8 +320,10 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/bergamo'
+    | '/entrar'
     | '/equipe'
     | '/laboratorio'
+    | '/prompts'
     | '/como-funciona'
     | '/admin/auditoria'
     | '/admin/bergamo'
@@ -329,9 +351,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/bergamo'
+    | '/entrar'
     | '/equipe'
     | '/laboratorio'
     | '/membros'
+    | '/prompts'
     | '/_public/como-funciona'
     | '/admin/auditoria'
     | '/admin/bergamo'
@@ -360,9 +384,11 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   BergamoRoute: typeof BergamoRoute
+  EntrarRoute: typeof EntrarRoute
   EquipeRoute: typeof EquipeRoute
   LaboratorioRoute: typeof LaboratorioRoute
   MembrosRoute: typeof MembrosRouteWithChildren
+  PromptsRoute: typeof PromptsRoute
   CoprodutorBergamoRoute: typeof CoprodutorBergamoRoute
   ApiPublicWebhooksHotmartRoute: typeof ApiPublicWebhooksHotmartRoute
 }
@@ -397,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BergamoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/equipe': {
       id: '/equipe'
       path: '/equipe'
@@ -416,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/membros'
       fullPath: '/membros'
       preLoaderRoute: typeof MembrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompts': {
+      id: '/prompts'
+      path: '/prompts'
+      fullPath: '/prompts'
+      preLoaderRoute: typeof PromptsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_public/': {
@@ -645,9 +685,11 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   BergamoRoute: BergamoRoute,
+  EntrarRoute: EntrarRoute,
   EquipeRoute: EquipeRoute,
   LaboratorioRoute: LaboratorioRoute,
   MembrosRoute: MembrosRouteWithChildren,
+  PromptsRoute: PromptsRoute,
   CoprodutorBergamoRoute: CoprodutorBergamoRoute,
   ApiPublicWebhooksHotmartRoute: ApiPublicWebhooksHotmartRoute,
 }

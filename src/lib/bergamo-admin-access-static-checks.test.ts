@@ -9,7 +9,7 @@ const readSrc = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
 describe("/bergamo — catálogo administrativo separado", () => {
   it("mantém a RPC pública intacta e usa uma função autenticada separada", () => {
-    const route = readSrc("src/routes/bergamo.tsx");
+    const route = readSrc("src/routes/prompts.tsx");
     const functions = readSrc("src/lib/bergamo-catalog.functions.ts");
 
     expect(route).toContain("getBergamoPublicCatalogFn");
@@ -27,7 +27,7 @@ describe("/bergamo — catálogo administrativo separado", () => {
   });
 
   it("checkout vem do backend e todos os CTAs de compra usam essa URL", () => {
-    const route = readSrc("src/routes/bergamo.tsx");
+    const route = readSrc("src/routes/prompts.tsx");
     const offer = readSrc("src/lib/bergamo-offer.server.ts");
     const purchaseComponents = [
       "src/components/bergamo/BergamoHero.tsx",

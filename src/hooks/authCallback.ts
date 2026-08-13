@@ -1,8 +1,9 @@
 export type AuthCallbackDestination =
-  "/auth/set-password" | "/membros" | "/admin" | "/coprodutor/bergamo";
+  "/auth/set-password" | "/prompts" | "/membros" | "/admin" | "/coprodutor/bergamo";
 
 const ALLOWED_NEXT_PATHS = new Set<AuthCallbackDestination>([
   "/auth/set-password",
+  "/prompts",
   "/membros",
   "/admin",
   "/coprodutor/bergamo",

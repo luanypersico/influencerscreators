@@ -77,26 +77,26 @@ async function assertBergamoCourtesyManager(userId: string): Promise<{ productId
   return { productId: product.id };
 }
 
-const PRODUCTION_ORIGIN = "https://influencerscreators.pages.dev";
+const ARSENAL_ORIGIN = "https://arsenal.obergamo.com.br";
 
-export function getBergamoInviteRedirectUrl(env: NodeJS.ProcessEnv = process.env): string {
+/** Explicit redirect base for Bergamo/Arsenal invitations. */
+export function getBergamoInviteRedirectUrl(env?: NodeJS.ProcessEnv): string {
+  if (!env) return ARSENAL_ORIGIN;
   const configuredOrigin = env["APP_ORIGIN"]?.trim() || env["CF_PAGES_URL"]?.trim();
-  const url = new URL(configuredOrigin || PRODUCTION_ORIGIN);
-  const isProduction = url.origin === PRODUCTION_ORIGIN;
-  const isLocal = url.origin === "http://localhost:4173";
-  const isProjectPreview =
-    url.protocol === "https:" &&
-    url.port === "" &&
-    url.hostname.endsWith(".influencerscreators.pages.dev");
+  if (!configuredOrigin) return `${ARSENAL_ORIGIN}/auth/invite`;
 
-  if (url.username || url.password || (!isProduction && !isLocal && !isProjectPreview)) {
+  const url = new URL(configuredOrigin);
+  const isTrustedNonProductionOrigin =
+    url.origin === "http://localhost:4173" ||
+    (url.protocol === "https:" &&
+      url.port === "" &&
+      url.hostname.endsWith(".influencerscreators.pages.dev"));
+
+  if (url.username || url.password || !isTrustedNonProductionOrigin) {
     throw new Error("Origem confiável de convite não configurada.");
   }
 
-  url.pathname = "/auth/callback";
-  url.search = "?next=/auth/set-password";
-  url.hash = "";
-  return url.toString();
+  return `${url.origin}/auth/invite`;
 }
 
 // ---------------------------------------------------------------------

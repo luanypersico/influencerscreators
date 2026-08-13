@@ -84,7 +84,7 @@ function AdminLayout() {
         <aside className="border-b border-border bg-card/60 lg:min-h-screen lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r">
           <div className="space-y-5 p-5">
             <Link
-              to="/bergamo"
+              to="/"
               className="inline-block rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <ArsenalLogo className="w-32" />

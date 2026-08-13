@@ -4,8 +4,7 @@ import { getBergamoFullCatalog } from "./bergamo-admin-catalog.server";
 import type { BergamoPublicCatalog } from "./bergamo-catalog.server";
 import { attachBergamoPrivateImages } from "./bergamo-private-images.server";
 
-export type BergamoViewerDestination =
-  "/admin" | "/coprodutor/bergamo" | "/membros/bergamo" | "/membros";
+export type BergamoViewerDestination = "/admin" | "/coprodutor/bergamo" | "/prompts" | "/membros";
 
 export interface BergamoViewer {
   displayName: string;
@@ -46,7 +45,7 @@ export function resolveBergamoViewerAuthorization({
     };
   }
   if (hasActiveProductAccess) {
-    return { label: "Aluno Bergamo", destination: "/membros/bergamo", hasFullAccess: true };
+    return { label: "Aluno Bergamo", destination: "/prompts", hasFullAccess: true };
   }
   return { label: "Conta conectada", destination: "/membros", hasFullAccess: false };
 }

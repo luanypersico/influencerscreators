@@ -36,7 +36,7 @@ describe("Componentes públicos do Bergamo nunca importam os originais diretamen
   const files = [
     "src/components/bergamo/BergamoGallery.tsx",
     "src/components/bergamo/BergamoHero.tsx",
-    "src/routes/bergamo.tsx",
+    "src/routes/prompts.tsx",
   ];
 
   for (const file of files) {
@@ -69,19 +69,19 @@ describe("Cartão bloqueado — cópia e cadeado exigidos pela vitrine protegida
 });
 
 describe("Proteção sem cortina visual intrusiva", () => {
-  it("/bergamo não renderiza a cortina escura e mantém o bloqueio de impressão", () => {
-    const source = readSrc("src/routes/bergamo.tsx");
+  it("/prompts não renderiza a cortina escura e mantém o bloqueio de impressão", () => {
+    const source = readSrc("src/routes/prompts.tsx");
     expect(source).not.toContain("PrivacyCurtain");
     expect(source).toContain("protected-content");
     expect(source).toContain("print-protected-notice");
   });
 
-  it("/membros/bergamo mantém a marca d'água sem renderizar a cortina escura", () => {
+  it("o legado /membros/bergamo redireciona sem renderizar conteúdo protegido", () => {
     const source = readSrc("src/routes/membros.bergamo.tsx");
     expect(source).not.toContain("PrivacyCurtain");
-    expect(source).toMatch(/<SessionWatermark\s+watermark=\{content\.watermark\}\s*\/>/);
-    expect(source).toContain("protected-content");
-    expect(source).toContain("print-protected-notice");
+    expect(source).toContain('to: isArsenalHostname(hostname) ? "/prompts" : "/membros"');
+    expect(source).not.toContain("protected-content");
+    expect(source).not.toContain("print-protected-notice");
   });
 
   it("/laboratorio permanece intacto — não recebe a barreira desta rodada", () => {

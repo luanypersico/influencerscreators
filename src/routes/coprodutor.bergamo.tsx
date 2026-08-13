@@ -120,7 +120,7 @@ function CoproducerBergamoPage() {
       <div className="mx-auto max-w-6xl p-4 sm:p-8">
         <div className="mb-8 border-b border-border pb-5">
           <Link
-            to="/bergamo"
+            to="/"
             className="rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <ArsenalLogo className="w-28 sm:w-36" />

@@ -58,7 +58,7 @@ export function AuthExperienceShell({
 
       <header className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12 lg:py-7">
         <Link
-          to="/bergamo"
+          to="/"
           className="rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <ArsenalLogo className="w-28 drop-shadow-[0_12px_28px_rgba(0,0,0,0.45)] sm:w-36" />

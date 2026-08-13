@@ -356,7 +356,7 @@ describe("handleHotmartWebhook (mockado — supabaseAdmin substituído, sem banc
       {
         email: "comprador@example.com",
         fullName: "Comprador",
-        redirectTo: "https://influencerscreators.pages.dev/auth/invite",
+        redirectTo: "https://arsenal.obergamo.com.br",
       },
     ]);
   });

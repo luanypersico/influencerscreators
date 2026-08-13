@@ -36,7 +36,7 @@ describe("Bergamo viewer authorization", () => {
         hasActiveCoproducerLink: false,
         hasActiveProductAccess: true,
       }),
-    ).toEqual({ label: "Aluno Bergamo", destination: "/membros/bergamo", hasFullAccess: true });
+    ).toEqual({ label: "Aluno Bergamo", destination: "/prompts", hasFullAccess: true });
   });
 
   it("mantém o catálogo público para conta sem acesso ao Bergamo", () => {

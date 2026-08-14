@@ -40,6 +40,7 @@ export interface MemberRecommendedOffer {
   coverUrl: string | null;
   checkoutUrl: string | null;
   badge: string | null;
+  videoUrl: string | null;
 }
 
 /**
@@ -52,7 +53,7 @@ export interface MemberRecommendedOffer {
 export async function getRecommendedOffers(): Promise<MemberRecommendedOffer[]> {
   const { data, error } = await supabaseAdmin
     .from("member_offers")
-    .select("id, title, description, cover_url, checkout_url, badge")
+    .select("id, title, description, cover_url, checkout_url, badge, video_url")
     .eq("active", true)
     .order("sort_order", { ascending: true });
 
@@ -67,6 +68,7 @@ export async function getRecommendedOffers(): Promise<MemberRecommendedOffer[]> 
       coverUrl: row.cover_url,
       checkoutUrl: row.checkout_url,
       badge: row.badge,
+      videoUrl: row.video_url,
     }));
 }
 

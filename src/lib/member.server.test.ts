@@ -38,6 +38,7 @@ interface OfferRow {
   cover_url: string | null;
   checkout_url: string | null;
   badge: string | null;
+  video_url: string | null;
   active: boolean;
   sort_order: number;
 }
@@ -217,6 +218,7 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
         cover_url: null,
         checkout_url: "https://checkout.example.com/a",
         badge: null,
+        video_url: null,
         active: true,
         sort_order: 0,
       },
@@ -224,6 +226,38 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
     const result = await getRecommendedOffers();
     expect(result).toHaveLength(1);
     expect(result[0]?.id).toBe("o1");
+  });
+
+  it("repassa video_url quando presente, e null quando ausente — sem quebrar em nenhum dos dois casos", async () => {
+    offerRows = [
+      {
+        id: "o1b",
+        title: "Com vídeo",
+        description: null,
+        cover_url: null,
+        checkout_url: "https://checkout.example.com/a",
+        badge: null,
+        video_url: "https://www.youtube.com/watch?v=tYd6jyhx5BI",
+        active: true,
+        sort_order: 0,
+      },
+      {
+        id: "o1c",
+        title: "Sem vídeo",
+        description: null,
+        cover_url: null,
+        checkout_url: "https://checkout.example.com/a",
+        badge: null,
+        video_url: null,
+        active: true,
+        sort_order: 1,
+      },
+    ];
+    const result = await getRecommendedOffers();
+    expect(result.find((o) => o.id === "o1b")?.videoUrl).toBe(
+      "https://www.youtube.com/watch?v=tYd6jyhx5BI",
+    );
+    expect(result.find((o) => o.id === "o1c")?.videoUrl).toBeNull();
   });
 
   it("oferta inativa (active=false) nunca aparece para o aluno", async () => {
@@ -235,6 +269,7 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
         cover_url: null,
         checkout_url: "https://checkout.example.com/b",
         badge: null,
+        video_url: null,
         active: false,
         sort_order: 0,
       },
@@ -252,6 +287,7 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
         cover_url: null,
         checkout_url: null,
         badge: null,
+        video_url: null,
         active: true,
         sort_order: 0,
       },
@@ -262,6 +298,7 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
         cover_url: null,
         checkout_url: "   ",
         badge: null,
+        video_url: null,
         active: true,
         sort_order: 1,
       },
@@ -279,6 +316,7 @@ describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", 
         cover_url: null,
         checkout_url: "https://checkout.example.com/c",
         badge: null,
+        video_url: null,
         active: true,
         sort_order: 0,
       },

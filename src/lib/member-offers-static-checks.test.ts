@@ -30,12 +30,11 @@ describe("OwnedProductCard.tsx — só o Arsenal leva para /prompts", () => {
   });
 });
 
-describe("RecommendedOfferCard.tsx — checkout externo seguro, nunca concede acesso", () => {
+describe("RecommendedOfferCard.tsx — abre o detalhe, nunca concede acesso", () => {
   const source = readSrc("src/components/member/RecommendedOfferCard.tsx");
 
-  it("abre em nova aba com rel seguro", () => {
-    expect(source).toContain('target="_blank"');
-    expect(source).toContain('rel="noopener noreferrer"');
+  it("clicar no card abre o modal de detalhe, não um checkout direto (ver member-offer-detail-static-checks.test.ts para a cobertura completa dessa mudança)", () => {
+    expect(source).toContain("onSelect(offer)");
   });
 
   it("nunca referencia orders, product_access ou entitlement", () => {

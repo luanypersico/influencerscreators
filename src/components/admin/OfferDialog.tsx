@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
+import { extractYouTubeVideoId } from "@/lib/youtube";
 
 export type OfferRow = {
   id: string;
@@ -22,6 +23,7 @@ export type OfferRow = {
   cover_url: string | null;
   checkout_url: string | null;
   badge: string | null;
+  video_url: string | null;
   sort_order: number;
   active: boolean;
   provider: string | null;
@@ -76,6 +78,7 @@ export function OfferDialog({
         cover_url: form.cover_url?.trim() || null,
         checkout_url: form.checkout_url?.trim() || null,
         badge: form.badge?.trim() || null,
+        video_url: form.video_url?.trim() || null,
         sort_order: form.sort_order ?? 0,
         active: Boolean(form.active),
         provider: form.provider?.trim() || null,
@@ -150,6 +153,24 @@ export function OfferDialog({
               onChange={(e) => set("checkout_url", e.target.value)}
               placeholder="https://..."
             />
+          </Field>
+          <Field label="Vídeo do produto (opcional)">
+            <Input
+              value={form.video_url ?? ""}
+              onChange={(e) => set("video_url", e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+            <p
+              className={
+                form.video_url?.trim() && !extractYouTubeVideoId(form.video_url)
+                  ? "text-[11px] text-destructive"
+                  : "text-[11px] text-muted-foreground"
+              }
+            >
+              {form.video_url?.trim() && !extractYouTubeVideoId(form.video_url)
+                ? "Não reconheci essa URL como um vídeo do YouTube — confira o link."
+                : "Aparece em destaque no detalhe da oferta. Sem vídeo, mostramos a capa."}
+            </p>
           </Field>
           <Field label="Selo (opcional)">
             <Input value={form.badge ?? ""} onChange={(e) => set("badge", e.target.value)} />

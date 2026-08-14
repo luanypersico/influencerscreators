@@ -1,22 +1,23 @@
-import { ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import type { MemberRecommendedOffer } from "@/lib/member.server";
 
 export interface RecommendedOfferCardProps {
   offer: MemberRecommendedOffer;
+  onSelect: (offer: MemberRecommendedOffer) => void;
 }
 
 /**
- * Card de uma oferta recomendada (afiliada). Nunca concede acesso — é só
- * vitrine. O checkout sempre abre em nova aba, sem tirar o aluno da sessão.
+ * Card de uma oferta recomendada (afiliada). Clicar SEMPRE abre o detalhe
+ * premium (vídeo + CTA) — nunca vai direto pro checkout. O checkout só
+ * existe dentro do modal, em OfferDetailModal.
  */
-export function RecommendedOfferCard({ offer }: RecommendedOfferCardProps) {
+export function RecommendedOfferCard({ offer, onSelect }: RecommendedOfferCardProps) {
   return (
-    <a
-      href={offer.checkoutUrl ?? undefined}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative w-72 shrink-0 snap-start overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-80"
+    <button
+      type="button"
+      onClick={() => onSelect(offer)}
+      className="group relative w-72 shrink-0 snap-start overflow-hidden rounded-3xl border border-border/70 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-80"
     >
       {/* Capa padrão do admin: 1600×1000px (proporção 8:5 / 16:10) — o card
           segue essa proporção para nunca cortar a imagem enviada. */}
@@ -48,11 +49,14 @@ export function RecommendedOfferCard({ offer }: RecommendedOfferCardProps) {
             </p>
           )}
           <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-white">
-            Ver oferta
-            <ExternalLink className="size-3.5" aria-hidden="true" />
+            Conhecer
+            <ArrowRight
+              className="size-3.5 transition-transform duration-300 group-hover:translate-x-1"
+              aria-hidden="true"
+            />
           </span>
         </div>
       </div>
-    </a>
+    </button>
   );
 }

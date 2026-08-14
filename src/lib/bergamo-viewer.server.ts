@@ -45,7 +45,9 @@ export function resolveBergamoViewerAuthorization({
     };
   }
   if (hasActiveProductAccess) {
-    return { label: "Aluno Bergamo", destination: "/prompts", hasFullAccess: true };
+    // /membros é a "Minha área" real (hub premium); /prompts é o acervo em
+    // si, para onde o aluno já navega pelo próprio conteúdo da página.
+    return { label: "Aluno Bergamo", destination: "/membros", hasFullAccess: true };
   }
   return { label: "Conta conectada", destination: "/membros", hasFullAccess: false };
 }

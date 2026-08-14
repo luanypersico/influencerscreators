@@ -1,4 +1,5 @@
 import { ChevronDown, LogOut } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -120,13 +121,13 @@ export function BergamoHeader({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <a href={viewer.destination} className="cursor-pointer">
+                <Link to={viewer.destination} className="cursor-pointer">
                   {viewer.destination === "/admin"
                     ? "Abrir painel"
                     : viewer.destination === "/coprodutor/bergamo"
                       ? "Abrir workspace"
                       : "Minha área"}
-                </a>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

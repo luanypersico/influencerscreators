@@ -29,14 +29,14 @@ describe("Bergamo viewer authorization", () => {
     });
   });
 
-  it("libera catálogo completo para comprador com acesso ativo", () => {
+  it("libera catálogo completo para comprador com acesso ativo, e leva para /membros (Minha área), não /prompts", () => {
     expect(
       resolveBergamoViewerAuthorization({
         roles: ["member"],
         hasActiveCoproducerLink: false,
         hasActiveProductAccess: true,
       }),
-    ).toEqual({ label: "Aluno Bergamo", destination: "/prompts", hasFullAccess: true });
+    ).toEqual({ label: "Aluno Bergamo", destination: "/membros", hasFullAccess: true });
   });
 
   it("mantém o catálogo público para conta sem acesso ao Bergamo", () => {

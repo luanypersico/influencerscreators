@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +30,8 @@ function SetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -100,31 +103,63 @@ function SetPasswordPage() {
             <Label htmlFor="new-password" className="text-white/80">
               Nova senha
             </Label>
-            <Input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              minLength={MINIMUM_PASSWORD_LENGTH}
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="h-12 rounded-xl border-white/15 bg-black/25 px-4 text-white focus-visible:border-primary"
-            />
+            <div className="relative">
+              <Input
+                id="new-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                minLength={MINIMUM_PASSWORD_LENGTH}
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="h-12 rounded-xl border-white/15 bg-black/25 pr-12 pl-4 text-white focus-visible:border-primary"
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={showPassword}
+                title={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setShowPassword((visible) => !visible)}
+                className="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="size-4.5" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4.5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirm-password" className="text-white/80">
               Confirmar nova senha
             </Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              minLength={MINIMUM_PASSWORD_LENGTH}
-              required
-              value={confirmation}
-              onChange={(event) => setConfirmation(event.target.value)}
-              className="h-12 rounded-xl border-white/15 bg-black/25 px-4 text-white focus-visible:border-primary"
-            />
+            <div className="relative">
+              <Input
+                id="confirm-password"
+                type={showConfirmation ? "text" : "password"}
+                autoComplete="new-password"
+                minLength={MINIMUM_PASSWORD_LENGTH}
+                required
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                className="h-12 rounded-xl border-white/15 bg-black/25 pr-12 pl-4 text-white focus-visible:border-primary"
+              />
+              <button
+                type="button"
+                aria-label={showConfirmation ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={showConfirmation}
+                title={showConfirmation ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setShowConfirmation((visible) => !visible)}
+                className="absolute top-1/2 right-1 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-white/55 transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                {showConfirmation ? (
+                  <EyeOff className="size-4.5" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4.5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
           <Button
             type="submit"

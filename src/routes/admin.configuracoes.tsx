@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,7 @@ function SettingsPage() {
   const [brand, setBrand] = useState<Brand>({});
   const [emailCfg, setEmailCfg] = useState<EmailCfg>({});
   const [newPassword, setNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["admin", "settings"],
@@ -131,12 +133,28 @@ function SettingsPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Nova senha</Label>
-            <Input
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-64"
-            />
+            <div className="relative w-64">
+              <Input
+                type={showNewPassword ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                aria-label={showNewPassword ? "Ocultar senha" : "Mostrar senha"}
+                aria-pressed={showNewPassword}
+                title={showNewPassword ? "Ocultar senha" : "Mostrar senha"}
+                onClick={() => setShowNewPassword((visible) => !visible)}
+                className="absolute top-1/2 right-1 grid size-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              >
+                {showNewPassword ? (
+                  <EyeOff className="size-4" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
           <Button size="sm" variant="outline" onClick={changeOwnPassword}>
             Trocar minha senha

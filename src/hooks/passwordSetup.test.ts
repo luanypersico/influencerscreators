@@ -75,33 +75,42 @@ describe("prova Supabase para definir senha", () => {
     });
   }
 
-  it("permite recovery válido e verificado pelo Auth", async () => {
-    const { auth, calls } = authFor("recovery");
-    expect(await verifyPasswordSetupSession(auth, session(), NOW)).toBe("recovery");
+  // Supabase Auth (GoTrue) tags BOTH recovery-link and invite-link consumption
+  // with the generic "otp" method — confirmed against real production session
+  // data (auth.mfa_amr_claims) for both a live recovery flow and 3 real Bergamo
+  // buyers' invite flows. It never emits the literal strings "recovery"/"invite".
+  it("permite recovery válido e verificado pelo Auth (amr real: otp)", async () => {
+    const { auth, calls } = authFor("otp");
+    expect(await verifyPasswordSetupSession(auth, session(), NOW)).toBe("otp");
     expect(calls.getUser).toBe(1);
   });
 
-  it("permite convite válido e verificado pelo Auth", async () => {
-    const { auth } = authFor("invite");
-    expect(await verifyPasswordSetupSession(auth, session(), NOW)).toBe("invite");
+  it("permite convite válido e verificado pelo Auth (amr real: otp)", async () => {
+    const { auth } = authFor("otp");
+    expect(await verifyPasswordSetupSession(auth, session(), NOW)).toBe("otp");
   });
 
-  it("nega recovery expirado", () => {
-    expect(getPasswordSetupMethod(claims("recovery", NOW - 901), USER_ID, NOW)).toBeNull();
+  it("nega os literais 'recovery'/'invite' — nunca são o valor real emitido pelo Supabase", () => {
+    expect(getPasswordSetupMethod(claims("recovery"), USER_ID, NOW)).toBeNull();
+    expect(getPasswordSetupMethod(claims("invite"), USER_ID, NOW)).toBeNull();
+  });
+
+  it("nega otp expirado", () => {
+    expect(getPasswordSetupMethod(claims("otp", NOW - 901), USER_ID, NOW)).toBeNull();
   });
 
   it("nega replay depois que a sessão especial foi substituída", () => {
     const replay = claims("token_refresh");
     replay.amr = [
       { method: "token_refresh", timestamp: NOW },
-      { method: "recovery", timestamp: NOW - 10 },
+      { method: "otp", timestamp: NOW - 10 },
     ];
     expect(getPasswordSetupMethod(replay, USER_ID, NOW)).toBeNull();
   });
 
   it("nega claim válido para outro usuário", () => {
     expect(
-      getPasswordSetupMethod(claims("recovery"), "33333333-3333-4333-8333-333333333333", NOW),
+      getPasswordSetupMethod(claims("otp"), "33333333-3333-4333-8333-333333333333", NOW),
     ).toBeNull();
   });
 
@@ -126,7 +135,7 @@ describe("prova Supabase para definir senha", () => {
   });
 
   it("revalida, atualiza, encerra a sessão especial e cria sessão normal", async () => {
-    const { auth, calls, nextSession } = authFor("recovery");
+    const { auth, calls, nextSession } = authFor("otp");
     expect(await completePasswordSetup(auth, session(), "correct-horse-battery")).toBe(nextSession);
     expect(calls.update).toBe(1);
     expect(calls.signOut).toBe(1);

@@ -1,6 +1,6 @@
 import type { JwtPayload, Session, SupabaseClient } from "@supabase/supabase-js";
 
-export type PasswordSetupMethod = "invite" | "recovery";
+export type PasswordSetupMethod = "otp";
 
 type PasswordSetupAuthClient = Pick<
   SupabaseClient["auth"],
@@ -38,13 +38,17 @@ export function getPasswordSetupMethod(
 ): PasswordSetupMethod | null {
   if (claims.sub !== expectedUserId || claims.exp <= nowSeconds) return null;
 
+  // Supabase Auth (GoTrue) tags both recovery-link and invite-link consumption
+  // with the generic "otp" authentication method — never the literal strings
+  // "recovery"/"invite" — confirmed against real production session data.
+  // A normal password login is tagged "password", so this still rejects it.
   const latest = getLatestAuthenticationMethod(claims);
-  if (!latest || (latest.method !== "recovery" && latest.method !== "invite")) return null;
+  if (!latest || latest.method !== "otp") return null;
 
   const ageSeconds = nowSeconds - latest.timestamp;
   if (ageSeconds < -CLOCK_SKEW_SECONDS || ageSeconds > PASSWORD_SETUP_MAX_AGE_SECONDS) return null;
 
-  return latest.method;
+  return "otp";
 }
 
 export async function verifyPasswordSetupSession(

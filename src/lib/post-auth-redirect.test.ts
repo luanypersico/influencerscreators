@@ -63,7 +63,7 @@ describe("fluxo de Auth do Supabase", () => {
 
   it("recusa set-password sem sessão e só atualiza senha após validar sessão", () => {
     const source = readSrc("src/routes/auth.set-password.tsx");
-    expect(source).toContain("if (!session || busy) return;");
+    expect(source).toContain("if (!session || busy || completed) return;");
     expect(source).toContain("Link inválido ou expirado");
     expect(source).toContain("completePasswordSetup(supabase.auth, session, password)");
     expect(source).toContain("requirePasswordSetupProof: true");

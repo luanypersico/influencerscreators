@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import { completePasswordSetup } from "@/hooks/passwordSetup";
 import { usePostAuthDestination } from "@/hooks/usePostAuthDestination";
 import { useSetPasswordSession } from "@/hooks/useSetPasswordSession";
 import { supabase } from "@/integrations/supabase/client";
+import { completeArsenalOnboardingFn } from "@/lib/arsenal-onboarding-welcome.functions";
 import { ARSENAL_ORIGIN } from "@/lib/hostname.functions";
 
 export const Route = createFileRoute("/auth/set-password")({
@@ -27,15 +29,26 @@ function SetPasswordPage() {
   const router = useRouter();
   const { session, state } = useSetPasswordSession({ requirePasswordSetupProof: true });
   const getPostAuthDestination = usePostAuthDestination();
+  const completeArsenalOnboarding = useServerFn(completeArsenalOnboardingFn);
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
+  // Once the password update succeeds, completePasswordSetup signs the
+  // browser out and back in to swap the otp session for a normal one — that
+  // re-authentication fires onAuthStateChange, which this very page is still
+  // subscribed to via useSetPasswordSession. The guard correctly sees a
+  // non-otp session and would flip state to "invalid", flashing a broken
+  // screen right after success. `completed` is checked before that state in
+  // the render below, so once we know we finished, this component never
+  // shows the form (or the invalid-link panel) again — it survives that
+  // guard's own follow-up reaction for the rest of this mount's lifetime.
+  const [completed, setCompleted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!session || busy) return;
+    if (!session || busy || completed) return;
 
     if (password.length < MINIMUM_PASSWORD_LENGTH) {
       toast.error(`Use pelo menos ${MINIMUM_PASSWORD_LENGTH} caracteres.`);
@@ -51,18 +64,32 @@ function SetPasswordPage() {
       // The password goes only to Supabase Auth after the signed recovery/invite
       // claim is revalidated for this exact authenticated user.
       await completePasswordSetup(supabase.auth, session, password);
+      // Password + access are already real at this point. Onboarding is over —
+      // lock the UI into its terminal state immediately, before any further
+      // await lets the guard hook's reaction (see comment above) repaint the form.
+      setCompleted(true);
+      setPassword("");
+      setConfirmation("");
+
+      // Side effect only: a Resend outage must never strand an already
+      // successful password change. Errors are handled and audited server-side;
+      // never let this block or undo the redirect to /membros.
+      void completeArsenalOnboarding().catch(() => {
+        // Failure is already recorded server-side (arsenal.welcome_email.failed).
+      });
 
       const destination = await getPostAuthDestination();
       toast.success("Senha definida com sucesso.");
-      await router.navigate({ to: destination });
+      await router.navigate({ to: destination, replace: true });
     } catch {
       toast.error("Não foi possível definir a nova senha. Solicite outro link.");
-    } finally {
       setBusy(false);
       setPassword("");
       setConfirmation("");
     }
   }
+
+  if (completed) return <CenteredPanel title="Senha criada! Levando você para o Arsenal..." />;
 
   if (state === "processing") return <CenteredPanel title="Validando seu link..." />;
 

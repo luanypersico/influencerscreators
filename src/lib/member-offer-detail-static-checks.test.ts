@@ -31,6 +31,25 @@ describe("RecommendedOfferCard.tsx — clicar no card abre o detalhe, nunca o ch
   });
 });
 
+describe("RecommendedOfferCard.tsx (fechado) — só a capa, sem texto sobre a imagem", () => {
+  const source = readSrc("src/components/member/RecommendedOfferCard.tsx");
+
+  it("não renderiza título, descrição ou CTA em texto sobre a capa", () => {
+    expect(source).not.toContain("offer.title}</h3>");
+    expect(source).not.toContain("offer.description");
+    expect(source).not.toContain("Conhecer");
+    expect(source).not.toContain("Ver oferta");
+  });
+
+  it("não usa gradiente escuro para acomodar texto (não há mais texto para acomodar)", () => {
+    expect(source).not.toContain("from-black/90");
+  });
+
+  it("mantém a proporção 8:5 da capa, consistente com o admin", () => {
+    expect(source).toContain("aspect-[8/5]");
+  });
+});
+
 describe("OfferDetailModal.tsx — vídeo seguro, checkout único, aviso Hotmart obrigatório", () => {
   const source = readSrc("src/components/member/OfferDetailModal.tsx");
 
@@ -40,7 +59,15 @@ describe("OfferDetailModal.tsx — vídeo seguro, checkout único, aviso Hotmart
   });
 
   it("iframe só renderiza quando o embed é válido — nunca player vazio/quebrado", () => {
-    expect(source).toMatch(/embedUrl \? \(\s*<iframe/);
+    const start = source.indexOf("embedUrl ? (");
+    const nextBranch = source.indexOf(") : offer.coverUrl ? (");
+    expect(start).toBeGreaterThan(-1);
+    expect(nextBranch).toBeGreaterThan(start);
+    expect(source.slice(start, nextBranch)).toContain("<iframe");
+  });
+
+  it("vídeo usa formato vertical (9:16, estilo Shorts), centralizado no modal", () => {
+    expect(source).toContain("aspect-[9/16]");
   });
 
   it("sem vídeo, cai para capa ou gradiente — nunca quebra o modal", () => {

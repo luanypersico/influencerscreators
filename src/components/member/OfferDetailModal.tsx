@@ -28,22 +28,30 @@ export function OfferDetailModal({ offer, onOpenChange }: OfferDetailModalProps)
         <DialogContent
           className="bergamo-theme max-h-[90vh] w-[95vw] max-w-3xl gap-0 overflow-y-auto rounded-3xl border-primary/25 bg-card p-0 shadow-[0_40px_120px_-20px_color-mix(in_oklab,var(--primary)_35%,transparent)] sm:w-full"
         >
-          <div className="relative aspect-video w-full shrink-0 bg-black">
+          <div className="relative flex w-full shrink-0 items-center justify-center bg-black">
             {embedUrl ? (
-              <iframe
-                src={embedUrl}
-                title={offer.title}
-                className="absolute inset-0 h-full w-full"
-                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
+              // Vídeo em formato Shorts (9:16) — centralizado, sem esticar
+              // para o formato paisagem do resto do modal.
+              <div className="relative aspect-[9/16] h-[52vh] max-h-[620px] overflow-hidden sm:h-[65vh]">
+                <iframe
+                  src={embedUrl}
+                  title={offer.title}
+                  className="absolute inset-0 h-full w-full"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              </div>
             ) : offer.coverUrl ? (
-              <img src={offer.coverUrl} alt={offer.title} className="h-full w-full object-cover" />
+              <img
+                src={offer.coverUrl}
+                alt={offer.title}
+                className="aspect-[8/5] w-full object-cover"
+              />
             ) : (
               <div
                 aria-hidden="true"
-                className="h-full w-full"
+                className="aspect-[8/5] w-full"
                 style={{ backgroundImage: "var(--gradient-bergamo)", opacity: 0.35 }}
               />
             )}

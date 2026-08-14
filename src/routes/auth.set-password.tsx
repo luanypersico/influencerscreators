@@ -82,21 +82,19 @@ function SetPasswordPage() {
   return (
     <AuthExperienceShell
       badge="Última etapa"
-      title="Crie sua senha e entre no acervo."
-      description="A compra já está vinculada ao seu e-mail. Agora escolha uma senha forte para acessar os 90 prompts sempre que quiser."
-      highlights={[
-        "Sua senha vai diretamente para o Supabase Auth",
-        "O link é validado novamente antes da alteração",
-      ]}
+      title="Crie sua senha e acesse o Arsenal."
+      description="Seu acesso já está pronto. Agora escolha uma senha segura para entrar no Arsenal de Prompts sempre que quiser."
+      highlights={["Seu acesso fica protegido com segurança", "Depois é só entrar com seu e-mail e senha"]}
     >
       <Toaster />
       <form onSubmit={handleSubmit} className="w-full">
         <p className="text-[10px] font-semibold tracking-[0.2em] text-primary uppercase">
           Ativação segura
         </p>
-        <h2 className="mt-2 font-display text-2xl text-white">Defina sua nova senha</h2>
+        <h2 className="mt-2 font-display text-2xl text-white">Defina sua senha</h2>
         <p className="mt-2 text-sm leading-relaxed text-white/60">
-          Use ao menos {MINIMUM_PASSWORD_LENGTH} caracteres e não reutilize uma senha exposta.
+          Crie uma senha com pelo menos {MINIMUM_PASSWORD_LENGTH} caracteres para proteger seu
+          acesso.
         </p>
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
@@ -166,7 +164,7 @@ function SetPasswordPage() {
             className="bergamo-cta h-12 w-full rounded-xl border-0 font-bold text-white"
             disabled={busy}
           >
-            {busy ? "Salvando..." : "Criar senha e entrar"}
+            {busy ? "Salvando..." : "Criar senha e acessar →"}
           </Button>
         </div>
       </form>

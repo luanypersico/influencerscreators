@@ -80,6 +80,9 @@ export function BergamoPromptsExperience() {
   const totalCount = data?.totalCount ?? 0;
   const checkoutUrl = offer?.checkoutUrl ?? null;
   const heroItems = authenticatedExperience?.catalog?.items ?? publicHero ?? items;
+  // Server-decided (has_product_access via getBergamoAuthenticatedExperience) — a
+  // session alone never counts as membership, only real, active Bergamo access does.
+  const isMember = Boolean(authenticatedExperience?.viewer?.hasFullAccess);
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
@@ -90,7 +93,9 @@ export function BergamoPromptsExperience() {
         isSigningOut={isSigningOut}
       />
       <main className="protected-content">
-        <BergamoHero items={heroItems} totalCount={totalCount} checkoutUrl={checkoutUrl} />
+        {!isMember && (
+          <BergamoHero items={heroItems} totalCount={totalCount} checkoutUrl={checkoutUrl} />
+        )}
         <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />
         <BergamoBonus />
         <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />

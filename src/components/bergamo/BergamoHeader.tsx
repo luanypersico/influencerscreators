@@ -81,7 +81,7 @@ export function BergamoHeader({
           </a>
         </nav>
 
-        {viewer ? (
+        {viewer?.hasFullAccess ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -139,20 +139,30 @@ export function BergamoHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        ) : ctaHref ? (
-          <a
-            href={ctaHref}
-            className="bergamo-cta shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
-          >
-            Quero o acervo
-          </a>
         ) : (
-          <span
-            aria-disabled="true"
-            className="bergamo-cta shrink-0 cursor-wait rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase opacity-60 sm:px-4 sm:text-xs"
-          >
-            Quero o acervo
-          </span>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <a
+              href="/auth"
+              className="inline-flex shrink-0 items-center justify-center rounded-full border border-border px-3 py-2 text-[10px] font-semibold tracking-wide whitespace-nowrap text-foreground uppercase transition-colors hover:border-primary/60 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
+            >
+              Já sou aluno
+            </a>
+            {ctaHref ? (
+              <a
+                href={ctaHref}
+                className="bergamo-cta shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-4 sm:text-xs"
+              >
+                Quero o acervo
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="bergamo-cta shrink-0 cursor-wait rounded-full px-3.5 py-2 text-[11px] font-semibold tracking-wide whitespace-nowrap uppercase opacity-60 sm:px-4 sm:text-xs"
+              >
+                Quero o acervo
+              </span>
+            )}
+          </div>
         )}
       </div>
     </header>

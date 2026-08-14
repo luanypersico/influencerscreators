@@ -16,9 +16,11 @@ export function RecommendedOfferCard({ offer }: RecommendedOfferCardProps) {
       href={offer.checkoutUrl ?? undefined}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative w-64 shrink-0 snap-start overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-72"
+      className="group relative w-72 shrink-0 snap-start overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-80"
     >
-      <div className="bergamo-vignette relative aspect-[3/4] overflow-hidden bg-secondary">
+      {/* Capa padrão do admin: 1600×1000px (proporção 8:5 / 16:10) — o card
+          segue essa proporção para nunca cortar a imagem enviada. */}
+      <div className="bergamo-vignette relative aspect-[8/5] overflow-hidden bg-secondary">
         {offer.coverUrl ? (
           <img
             src={offer.coverUrl}

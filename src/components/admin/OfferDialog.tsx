@@ -139,6 +139,10 @@ export function OfferDialog({
               onChange={(e) => set("cover_url", e.target.value)}
               placeholder="https://..."
             />
+            <p className="text-[11px] text-muted-foreground">
+              Tamanho recomendado: 1600 × 1000px (proporção 8:5). O card corta imagens fora dessa
+              proporção.
+            </p>
           </Field>
           <Field label="Link do checkout/afiliado">
             <Input

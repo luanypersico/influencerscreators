@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -5,9 +6,12 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { ArsenalLogo } from "@/components/brand/ArsenalLogo";
 import { useLogout } from "@/hooks/useLogout";
+import type { MemberRecommendedOffer } from "@/lib/member.server";
 import { memberGetMyAccessFn, memberGetRecommendedOffersFn } from "@/lib/member.functions";
 import { MemberHero } from "./MemberHero";
+import { OfferDetailModal } from "./OfferDetailModal";
 import { OwnedProductCard } from "./OwnedProductCard";
+import { RecommendedOfferBanner } from "./RecommendedOfferBanner";
 import { RecommendedOffersRow } from "./RecommendedOffersRow";
 
 export interface MemberHomeProps {
@@ -16,8 +20,10 @@ export interface MemberHomeProps {
 
 /**
  * Hub premium do aluno em /membros. Ordem fixa e intencional: 1) o que o
- * aluno já possui (hero + continuar), 2) meus produtos, 3) só depois
- * recomendações — nunca uma página de vendas agressiva.
+ * aluno já possui (hero + continuar), 2) meus produtos, 3) banner de
+ * destaque, 4) só depois recomendações — nunca uma página de vendas
+ * agressiva. O estado do modal de detalhe fica aqui (elevado) porque tanto
+ * o banner quanto os cards da vitrine abrem o mesmo modal compartilhado.
  */
 export function MemberHome({ userEmail }: MemberHomeProps) {
   const { logout, isSigningOut } = useLogout();
@@ -33,6 +39,8 @@ export function MemberHome({ userEmail }: MemberHomeProps) {
     queryKey: ["member", "recommended-offers"],
     queryFn: () => getRecommended(),
   });
+
+  const [selectedOffer, setSelectedOffer] = useState<MemberRecommendedOffer | null>(null);
 
   const displayName = userEmail.split("@")[0] || "";
   const featured = products?.[0] ?? null;
@@ -89,8 +97,17 @@ export function MemberHome({ userEmail }: MemberHomeProps) {
           )}
         </section>
 
-        <RecommendedOffersRow offers={offers ?? []} />
+        <RecommendedOfferBanner offers={offers ?? []} onSelect={setSelectedOffer} />
+
+        <RecommendedOffersRow offers={offers ?? []} onSelect={setSelectedOffer} />
       </main>
+
+      <OfferDetailModal
+        offer={selectedOffer}
+        onOpenChange={(open) => {
+          if (!open) setSelectedOffer(null);
+        }}
+      />
     </div>
   );
 }

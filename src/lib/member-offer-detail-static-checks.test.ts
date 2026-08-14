@@ -98,13 +98,59 @@ describe("OfferDetailModal.tsx — vídeo seguro, checkout único, aviso Hotmart
   });
 });
 
-describe("RecommendedOffersRow.tsx — controla o modal, um card selecionado por vez", () => {
+describe("RecommendedOffersRow.tsx — presentational, delega o modal para quem a usa", () => {
   const source = readSrc("src/components/member/RecommendedOffersRow.tsx");
 
-  it("gerencia o estado da oferta selecionada e renderiza o modal", () => {
+  it("não gerencia estado próprio nem renderiza o modal — recebe onSelect por prop", () => {
+    expect(source).not.toContain("useState");
+    expect(source).not.toContain("<OfferDetailModal");
+    expect(source).toContain("onSelect: (offer: MemberRecommendedOffer) => void");
+    expect(source).toContain("onSelect={onSelect}");
+  });
+});
+
+describe("RecommendedOfferBanner.tsx — banner de destaque, mesmo modal compartilhado", () => {
+  const source = readSrc("src/components/member/RecommendedOfferBanner.tsx");
+
+  it("não renderiza nada sem uma oferta com bannerUrl", () => {
+    expect(source).toMatch(/if \(!offer\?\.bannerUrl\) return null;/);
+  });
+
+  it("é clicável e delega para onSelect — nunca link direto de checkout", () => {
+    expect(source).toMatch(/<button[\s\S]*?onClick=\{\(\) => onSelect\(offer\)\}/);
+    expect(source).not.toMatch(/href=\{offer\.checkoutUrl/);
+  });
+
+  it("não renderiza texto sobre a imagem — só a imagem, mesmo padrão do card fechado", () => {
+    expect(source).not.toContain("offer.title}</h3>");
+    expect(source).not.toContain("offer.description");
+  });
+});
+
+describe("MemberHome.tsx — estado do modal elevado, compartilhado entre banner e vitrine", () => {
+  const source = readSrc("src/components/member/MemberHome.tsx");
+
+  it("possui o único estado de oferta selecionada e o único <OfferDetailModal>", () => {
     expect(source).toContain("useState<MemberRecommendedOffer | null>(null)");
     expect(source).toContain("<OfferDetailModal");
-    expect(source).toContain("onSelect={setSelectedOffer}");
+  });
+
+  it("passa onSelect={setSelectedOffer} tanto para o banner quanto para a vitrine", () => {
+    const bannerIdx = source.indexOf("<RecommendedOfferBanner");
+    const rowIdx = source.indexOf("<RecommendedOffersRow");
+    expect(bannerIdx).toBeGreaterThan(-1);
+    expect(rowIdx).toBeGreaterThan(bannerIdx);
+    expect(source.slice(bannerIdx, bannerIdx + 120)).toContain("onSelect={setSelectedOffer}");
+    expect(source.slice(rowIdx, rowIdx + 120)).toContain("onSelect={setSelectedOffer}");
+  });
+
+  it("o banner fica entre a seção 'Meus produtos' e a vitrine de recomendados", () => {
+    const productsIdx = source.indexOf("Meus produtos");
+    const bannerIdx = source.indexOf("<RecommendedOfferBanner");
+    const rowIdx = source.indexOf("<RecommendedOffersRow");
+    expect(productsIdx).toBeGreaterThan(-1);
+    expect(productsIdx).toBeLessThan(bannerIdx);
+    expect(bannerIdx).toBeLessThan(rowIdx);
   });
 });
 
@@ -113,6 +159,19 @@ describe("member_offers video_url — migration aditiva, isolada", () => {
 
   it("adiciona video_url como coluna nullable, só em member_offers", () => {
     expect(source).toMatch(/ADD COLUMN IF NOT EXISTS "video_url" text/);
+    expect(source).not.toMatch(/ALTER TABLE public\.(?!"member_offers")/);
+  });
+
+  it("não cria nenhuma policy nova — a RLS existente de member_offers já cobre a coluna", () => {
+    expect(source).not.toMatch(/CREATE POLICY|DROP POLICY/);
+  });
+});
+
+describe("member_offers banner_url — migration aditiva, isolada", () => {
+  const source = readSrc("supabase/migrations/20260814050000_member_offers_banner_url.sql");
+
+  it("adiciona banner_url como coluna nullable, só em member_offers", () => {
+    expect(source).toMatch(/ADD COLUMN IF NOT EXISTS "banner_url" text/);
     expect(source).not.toMatch(/ALTER TABLE public\.(?!"member_offers")/);
   });
 
@@ -131,6 +190,7 @@ describe("Áreas protegidas continuam intocadas por esta rodada", () => {
     for (const file of [
       "src/components/member/OfferDetailModal.tsx",
       "src/components/member/RecommendedOfferCard.tsx",
+      "src/components/member/RecommendedOfferBanner.tsx",
       "src/components/member/RecommendedOffersRow.tsx",
       "src/components/admin/OfferDialog.tsx",
     ]) {

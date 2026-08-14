@@ -1,17 +1,17 @@
-import { useState } from "react";
-
 import type { MemberRecommendedOffer } from "@/lib/member.server";
-import { OfferDetailModal } from "./OfferDetailModal";
 import { RecommendedOfferCard } from "./RecommendedOfferCard";
 
 export interface RecommendedOffersRowProps {
   offers: MemberRecommendedOffer[];
+  onSelect: (offer: MemberRecommendedOffer) => void;
 }
 
-/** Vitrine de ofertas recomendadas — nada renderiza se não houver nenhuma oferta válida. */
-export function RecommendedOffersRow({ offers }: RecommendedOffersRowProps) {
-  const [selectedOffer, setSelectedOffer] = useState<MemberRecommendedOffer | null>(null);
-
+/**
+ * Vitrine de ofertas recomendadas — nada renderiza se não houver nenhuma
+ * oferta válida. O modal de detalhe é compartilhado com o banner de
+ * destaque, então vive em MemberHome (estado elevado), não aqui.
+ */
+export function RecommendedOffersRow({ offers, onSelect }: RecommendedOffersRowProps) {
   if (offers.length === 0) return null;
 
   return (
@@ -24,16 +24,9 @@ export function RecommendedOffersRow({ offers }: RecommendedOffersRowProps) {
       </h2>
       <div className="mt-6 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:-mx-5 sm:px-5 [scrollbar-width:thin]">
         {offers.map((offer) => (
-          <RecommendedOfferCard key={offer.id} offer={offer} onSelect={setSelectedOffer} />
+          <RecommendedOfferCard key={offer.id} offer={offer} onSelect={onSelect} />
         ))}
       </div>
-
-      <OfferDetailModal
-        offer={selectedOffer}
-        onOpenChange={(open) => {
-          if (!open) setSelectedOffer(null);
-        }}
-      />
     </section>
   );
 }

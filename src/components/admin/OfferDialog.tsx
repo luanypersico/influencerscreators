@@ -24,6 +24,7 @@ export type OfferRow = {
   checkout_url: string | null;
   badge: string | null;
   video_url: string | null;
+  banner_url: string | null;
   sort_order: number;
   active: boolean;
   provider: string | null;
@@ -79,6 +80,7 @@ export function OfferDialog({
         checkout_url: form.checkout_url?.trim() || null,
         badge: form.badge?.trim() || null,
         video_url: form.video_url?.trim() || null,
+        banner_url: form.banner_url?.trim() || null,
         sort_order: form.sort_order ?? 0,
         active: Boolean(form.active),
         provider: form.provider?.trim() || null,
@@ -175,6 +177,20 @@ export function OfferDialog({
           <Field label="Selo (opcional)">
             <Input value={form.badge ?? ""} onChange={(e) => set("badge", e.target.value)} />
           </Field>
+          <div className="sm:col-span-2">
+            <Field label="Banner de destaque (opcional)">
+              <Input
+                value={form.banner_url ?? ""}
+                onChange={(e) => set("banner_url", e.target.value)}
+                placeholder="https://..."
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Aparece em largura total entre &quot;Meus produtos&quot; e &quot;Produtos
+                recomendados&quot; em /membros, promovendo esta oferta. Recomendado: 1600 × 500px
+                (proporção 16:5). Sem banner, essa seção não aparece.
+              </p>
+            </Field>
+          </div>
           <Field label="Ordem">
             <Input
               type="number"

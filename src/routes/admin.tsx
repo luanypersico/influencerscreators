@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/admin", label: "Visão geral", exact: true },
   { to: "/admin/produtos", label: "Produtos" },
+  { to: "/admin/ofertas", label: "Produtos recomendados", superAdminOnly: true },
   { to: "/admin/bergamo", label: "Bergamo" },
   { to: "/admin/usuarios", label: "Usuários & acessos" },
   { to: "/admin/bergamo-usuarios", label: "Usuários do Bergamo", superAdminOnly: true },

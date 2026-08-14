@@ -33,6 +33,43 @@ export async function getMyProductAccess(userId: string): Promise<MyProductAcces
     }));
 }
 
+export interface MemberRecommendedOffer {
+  id: string;
+  title: string;
+  description: string | null;
+  coverUrl: string | null;
+  checkoutUrl: string | null;
+  badge: string | null;
+}
+
+/**
+ * Vitrine de ofertas recomendadas (afiliadas) — nunca concede acesso.
+ * `member_offers` é isolada do domínio comercial interno: nunca aparece em
+ * orders/product_access/entitlement. Só mostra ofertas ativas E com um
+ * checkout_url válido — uma oferta sem link de compra não vira um botão
+ * quebrado, some da lista até ser configurada corretamente.
+ */
+export async function getRecommendedOffers(): Promise<MemberRecommendedOffer[]> {
+  const { data, error } = await supabaseAdmin
+    .from("member_offers")
+    .select("id, title, description, cover_url, checkout_url, badge")
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  return (data ?? [])
+    .filter((row) => Boolean(row.checkout_url?.trim()))
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      coverUrl: row.cover_url,
+      checkoutUrl: row.checkout_url,
+      badge: row.badge,
+    }));
+}
+
 export interface BergamoMemberItem {
   code: string;
   title: string;

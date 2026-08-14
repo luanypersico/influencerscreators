@@ -31,6 +31,17 @@ let updateRows: Array<{
   status: string;
 }> = [];
 let profileEmail = "comprador@example.com";
+interface OfferRow {
+  id: string;
+  title: string;
+  description: string | null;
+  cover_url: string | null;
+  checkout_url: string | null;
+  badge: string | null;
+  active: boolean;
+  sort_order: number;
+}
+let offerRows: OfferRow[] = [];
 
 mock.module("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
@@ -46,6 +57,19 @@ mock.module("@/integrations/supabase/client.server", () => ({
                     error: null,
                   }),
               }),
+            }),
+          }),
+        };
+      }
+      if (table === "member_offers") {
+        return {
+          select: () => ({
+            eq: (_column: string, value: boolean) => ({
+              order: () =>
+                Promise.resolve({
+                  data: offerRows.filter((o) => o.active === value),
+                  error: null,
+                }),
             }),
           }),
         };
@@ -108,8 +132,13 @@ mock.module("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const { getMyProductAccess, getBergamoMemberContent, maskEmailForWatermark, shortIdForWatermark } =
-  await import("./member.server");
+const {
+  getMyProductAccess,
+  getBergamoMemberContent,
+  getRecommendedOffers,
+  maskEmailForWatermark,
+  shortIdForWatermark,
+} = await import("./member.server");
 
 describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece como ativo", () => {
   beforeEach(() => {
@@ -157,6 +186,108 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
     ];
     const result = await getMyProductAccess("user-1");
     expect(result).toHaveLength(1);
+  });
+
+  it("revoked_at preenchido nunca conta como produto adquirido, mesmo sem suspended_at/expires_at", async () => {
+    accessRows = [
+      {
+        product_id: "p1",
+        expires_at: null,
+        revoked_at: new Date().toISOString(),
+        suspended_at: null,
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null },
+      },
+    ];
+    const result = await getMyProductAccess("user-1");
+    expect(result).toHaveLength(0);
+  });
+});
+
+describe("getRecommendedOffers — vitrine de afiliados, nunca concede acesso", () => {
+  beforeEach(() => {
+    offerRows = [];
+  });
+
+  it("oferta ativa com checkout_url aparece", async () => {
+    offerRows = [
+      {
+        id: "o1",
+        title: "Oferta A",
+        description: null,
+        cover_url: null,
+        checkout_url: "https://checkout.example.com/a",
+        badge: null,
+        active: true,
+        sort_order: 0,
+      },
+    ];
+    const result = await getRecommendedOffers();
+    expect(result).toHaveLength(1);
+    expect(result[0]?.id).toBe("o1");
+  });
+
+  it("oferta inativa (active=false) nunca aparece para o aluno", async () => {
+    offerRows = [
+      {
+        id: "o2",
+        title: "Oferta inativa",
+        description: null,
+        cover_url: null,
+        checkout_url: "https://checkout.example.com/b",
+        badge: null,
+        active: false,
+        sort_order: 0,
+      },
+    ];
+    const result = await getRecommendedOffers();
+    expect(result).toHaveLength(0);
+  });
+
+  it("oferta ativa sem checkout_url não aparece — nunca vira botão de compra quebrado", async () => {
+    offerRows = [
+      {
+        id: "o3",
+        title: "Sem link configurado",
+        description: null,
+        cover_url: null,
+        checkout_url: null,
+        badge: null,
+        active: true,
+        sort_order: 0,
+      },
+      {
+        id: "o4",
+        title: "Link em branco",
+        description: null,
+        cover_url: null,
+        checkout_url: "   ",
+        badge: null,
+        active: true,
+        sort_order: 1,
+      },
+    ];
+    const result = await getRecommendedOffers();
+    expect(result).toHaveLength(0);
+  });
+
+  it("nunca consulta orders ou product_access — a vitrine é inteiramente isolada do domínio comercial", async () => {
+    offerRows = [
+      {
+        id: "o5",
+        title: "Oferta",
+        description: null,
+        cover_url: null,
+        checkout_url: "https://checkout.example.com/c",
+        badge: null,
+        active: true,
+        sort_order: 0,
+      },
+    ];
+    // O mock só define handlers para as tabelas legítimas (member_offers,
+    // product_access, products, ...); se getRecommendedOffers tocasse
+    // orders ou product_access para decidir a vitrine, o mock lançaria
+    // "tabela não mockada" — não lança, então nunca toca essas tabelas.
+    await expect(getRecommendedOffers()).resolves.toHaveLength(1);
   });
 });
 

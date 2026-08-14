@@ -5,6 +5,7 @@ export interface MyProductAccessRow {
   slug: string;
   name: string;
   tagline: string | null;
+  coverUrl: string | null;
 }
 
 /**
@@ -15,7 +16,7 @@ export interface MyProductAccessRow {
 export async function getMyProductAccess(userId: string): Promise<MyProductAccessRow[]> {
   const { data, error } = await supabaseAdmin
     .from("product_access")
-    .select("product_id, expires_at, products!inner(id, slug, name, tagline)")
+    .select("product_id, expires_at, products!inner(id, slug, name, tagline, cover_url)")
     .eq("user_id", userId)
     .is("revoked_at", null)
     .is("suspended_at", null);
@@ -30,6 +31,7 @@ export async function getMyProductAccess(userId: string): Promise<MyProductAcces
       slug: row.products.slug,
       name: row.products.name,
       tagline: row.products.tagline,
+      coverUrl: row.products.cover_url,
     }));
 }
 

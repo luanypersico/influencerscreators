@@ -22,6 +22,7 @@ export type ProductRow = {
   name: string;
   tagline: string | null;
   description: string | null;
+  cover_url: string | null;
   price_cents: number;
   compare_at_cents: number | null;
   checkout_url: string | null;
@@ -80,6 +81,7 @@ export function ProductDialog({
         name: form.name.trim(),
         tagline: form.tagline ?? null,
         description: form.description ?? null,
+        cover_url: form.cover_url?.trim() || null,
         price_cents: centsFromInput(priceInput),
         compare_at_cents: form.compare_at_cents ?? null,
         checkout_url: form.checkout_url ?? null,
@@ -132,6 +134,19 @@ export function ProductDialog({
           <Field label="Chamada curta">
             <Input value={form.tagline ?? ""} onChange={(e) => set("tagline", e.target.value)} />
           </Field>
+          <div className="sm:col-span-2">
+            <Field label="URL da capa (opcional)">
+              <Input
+                value={form.cover_url ?? ""}
+                onChange={(e) => set("cover_url", e.target.value)}
+                placeholder="https://..."
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Aparece no card de &quot;Meus produtos&quot; em /membros. Tamanho recomendado:
+                1600 × 1000px (proporção 8:5). Sem capa, o card mantém o gradiente padrão.
+              </p>
+            </Field>
+          </div>
           <Field label="Status">
             <select
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"

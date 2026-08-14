@@ -10,7 +10,13 @@ interface AccessRow {
   expires_at: string | null;
   revoked_at: string | null;
   suspended_at: string | null;
-  products: { id: string; slug: string; name: string; tagline: string | null };
+  products: {
+    id: string;
+    slug: string;
+    name: string;
+    tagline: string | null;
+    cover_url: string | null;
+  };
 }
 
 let accessRows: AccessRow[] = [];
@@ -154,7 +160,7 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
         expires_at: null,
         revoked_at: null,
         suspended_at: null,
-        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null },
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null, cover_url: null },
       },
     ];
     const result = await getMyProductAccess("user-1");
@@ -169,7 +175,7 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
         expires_at: new Date(Date.now() - 86_400_000).toISOString(),
         revoked_at: null,
         suspended_at: null,
-        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null },
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null, cover_url: null },
       },
     ];
     const result = await getMyProductAccess("user-1");
@@ -183,7 +189,7 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
         expires_at: new Date(Date.now() + 86_400_000).toISOString(),
         revoked_at: null,
         suspended_at: null,
-        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null },
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null, cover_url: null },
       },
     ];
     const result = await getMyProductAccess("user-1");
@@ -197,11 +203,45 @@ describe("getMyProductAccess — acesso suspenso/revogado/expirado nunca aparece
         expires_at: null,
         revoked_at: new Date().toISOString(),
         suspended_at: null,
-        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null },
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null, cover_url: null },
       },
     ];
     const result = await getMyProductAccess("user-1");
     expect(result).toHaveLength(0);
+  });
+
+  it("repassa cover_url do produto como coverUrl (capa configurável em /admin/produtos)", async () => {
+    accessRows = [
+      {
+        product_id: "p1",
+        expires_at: null,
+        revoked_at: null,
+        suspended_at: null,
+        products: {
+          id: "p1",
+          slug: "bergamo",
+          name: "Bergamo",
+          tagline: null,
+          cover_url: "https://cdn.example.com/capa.jpg",
+        },
+      },
+    ];
+    const result = await getMyProductAccess("user-1");
+    expect(result[0]?.coverUrl).toBe("https://cdn.example.com/capa.jpg");
+  });
+
+  it("sem capa configurada, coverUrl é null (card cai no gradiente padrão)", async () => {
+    accessRows = [
+      {
+        product_id: "p1",
+        expires_at: null,
+        revoked_at: null,
+        suspended_at: null,
+        products: { id: "p1", slug: "bergamo", name: "Bergamo", tagline: null, cover_url: null },
+      },
+    ];
+    const result = await getMyProductAccess("user-1");
+    expect(result[0]?.coverUrl).toBeNull();
   });
 });
 

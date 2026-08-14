@@ -28,6 +28,25 @@ describe("OwnedProductCard.tsx — só o Arsenal leva para /prompts", () => {
   it("produto não-Bergamo nunca vira link clicável (o fallback final é um <div>, não um <Link>)", () => {
     expect(source).toContain("return <div");
   });
+
+  it("renderiza product.coverUrl como imagem real quando configurada em /admin/produtos", () => {
+    expect(source).toMatch(/product\.coverUrl \? \(\s*<img/);
+    expect(source).toContain("src={product.coverUrl}");
+  });
+
+  it("sem capa configurada, mantém o gradiente/Sparkles original — nunca um card quebrado", () => {
+    expect(source).toContain("var(--gradient-bergamo)");
+    expect(source).toContain("Sparkles");
+  });
+});
+
+describe("ProductDialog.tsx (/admin/produtos) — capa do produto interno, coluna já existente em products", () => {
+  const source = readSrc("src/components/admin/ProductDialog.tsx");
+
+  it("expõe cover_url no formulário e no payload salvo", () => {
+    expect(source).toContain("cover_url: string | null");
+    expect(source).toContain("cover_url: form.cover_url?.trim() || null");
+  });
 });
 
 describe("RecommendedOfferCard.tsx — abre o detalhe, nunca concede acesso", () => {

@@ -18,15 +18,26 @@ export function OwnedProductCard({ product }: OwnedProductCardProps) {
   const inner = (
     <>
       <div className="bergamo-vignette relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-secondary via-accent to-primary/40">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-90"
-          style={{ backgroundImage: "var(--gradient-bergamo)" }}
-        />
-        <Sparkles
-          className="absolute right-5 bottom-5 size-8 text-white/25 transition-transform duration-500 group-hover:scale-110"
-          aria-hidden="true"
-        />
+        {product.coverUrl ? (
+          <img
+            src={product.coverUrl}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-90"
+              style={{ backgroundImage: "var(--gradient-bergamo)" }}
+            />
+            <Sparkles
+              className="absolute right-5 bottom-5 size-8 text-white/25 transition-transform duration-500 group-hover:scale-110"
+              aria-hidden="true"
+            />
+          </>
+        )}
       </div>
       <div className="space-y-2 p-5">
         <h3 className="font-display text-xl tracking-tight text-foreground">{product.name}</h3>

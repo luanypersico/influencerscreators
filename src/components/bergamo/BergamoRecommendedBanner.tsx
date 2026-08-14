@@ -2,6 +2,7 @@ import type { MemberRecommendedOffer } from "@/lib/member.server";
 
 export interface BergamoRecommendedBannerProps {
   offers: MemberRecommendedOffer[];
+  onSelect: (offer: MemberRecommendedOffer) => void;
 }
 
 /**
@@ -10,10 +11,10 @@ export interface BergamoRecommendedBannerProps {
  * próprio produto. Reaproveita a mesma member_offer e o mesmo sinal de
  * destaque (bannerUrl) já usados no banner de /membros — os dados
  * continuam 100% administráveis pelo Super Admin, nunca hardcoded aqui.
- * Clique abre o checkout_url configurado direto em nova aba (sem modal
- * intermediário, diferente do card de /membros).
+ * Clique abre o mesmo detalhe premium com vídeo do card de /membros
+ * (onSelect, modal compartilhado) — não vai direto pro checkout.
  */
-export function BergamoRecommendedBanner({ offers }: BergamoRecommendedBannerProps) {
+export function BergamoRecommendedBanner({ offers, onSelect }: BergamoRecommendedBannerProps) {
   const offer = offers.find((o) => o.bannerUrl && o.checkoutUrl);
   if (!offer?.bannerUrl || !offer.checkoutUrl) return null;
 
@@ -23,12 +24,11 @@ export function BergamoRecommendedBanner({ offers }: BergamoRecommendedBannerPro
         <p className="text-center text-[11px] font-medium tracking-[0.2em] text-primary uppercase">
           Recomendado para você
         </p>
-        <a
-          href={offer.checkoutUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Ver oferta: ${offer.title}`}
-          className="group mt-6 block overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_24px_60px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        <button
+          type="button"
+          onClick={() => onSelect(offer)}
+          aria-label={`Ver detalhes de ${offer.title}`}
+          className="group mt-6 block w-full overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_24px_60px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
           <div className="aspect-[16/5] w-full overflow-hidden">
             <img
@@ -38,7 +38,7 @@ export function BergamoRecommendedBanner({ offers }: BergamoRecommendedBannerPro
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           </div>
-        </a>
+        </button>
       </div>
     </section>
   );

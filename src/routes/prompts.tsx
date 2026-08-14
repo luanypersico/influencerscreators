@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,6 +11,7 @@ import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
 import { BergamoRecommendedBanner } from "@/components/bergamo/BergamoRecommendedBanner";
+import { OfferDetailModal } from "@/components/member/OfferDetailModal";
 import { useSession } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/useLogout";
 import { getRequestHostnameFn, isArsenalHostname } from "@/lib/hostname.functions";
@@ -19,6 +21,7 @@ import {
   getBergamoPublicCatalogFn,
   getBergamoPublicHeroFn,
 } from "@/lib/bergamo-catalog.functions";
+import type { MemberRecommendedOffer } from "@/lib/member.server";
 import { memberGetRecommendedOffersFn } from "@/lib/member.functions";
 
 const TITLE = "Bergamo Creators — 90 prompts de retrato realista com IA";
@@ -95,6 +98,8 @@ export function BergamoPromptsExperience() {
     enabled: isMember,
   });
 
+  const [selectedOffer, setSelectedOffer] = useState<MemberRecommendedOffer | null>(null);
+
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
       <BergamoHeader
@@ -108,12 +113,20 @@ export function BergamoPromptsExperience() {
           <BergamoHero items={heroItems} totalCount={totalCount} checkoutUrl={checkoutUrl} />
         )}
         <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />
-        <BergamoBonus />
+        {!isMember && <BergamoBonus />}
         {!isMember && <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />}
-        {isMember && <BergamoRecommendedBanner offers={recommendedOffers ?? []} />}
+        {isMember && (
+          <BergamoRecommendedBanner offers={recommendedOffers ?? []} onSelect={setSelectedOffer} />
+        )}
         <BergamoFaq hideQuestions={isMember} />
       </main>
       <p className="print-protected-notice">Conteúdo protegido — impressão desativada</p>
+      <OfferDetailModal
+        offer={selectedOffer}
+        onOpenChange={(open) => {
+          if (!open) setSelectedOffer(null);
+        }}
+      />
       <Toaster />
     </div>
   );

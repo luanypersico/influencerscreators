@@ -118,7 +118,9 @@ describe("prompts.tsx — reaproveita member_offers só como leitura, nunca dupl
     expect(source).not.toContain("MemberHome");
   });
 
-  it("não importa nada do detalhe premium com modal/vídeo — a versão do Arsenal é link direto para checkout", () => {
-    expect(source).not.toMatch(/OfferDetailModal|youtube/i);
+  it("reaproveita o mesmo OfferDetailModal (com vídeo) de /membros — mesmo formato do card, sem reimplementar o modal", () => {
+    expect(source).toContain(
+      'import { OfferDetailModal } from "@/components/member/OfferDetailModal"',
+    );
   });
 });

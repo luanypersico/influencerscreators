@@ -35,7 +35,9 @@ describe("prompts.tsx — seções comerciais somem só com acesso real, não co
   });
 
   it("mostra o BergamoRecommendedBanner só para isMember, com as ofertas reais buscadas", () => {
-    expect(source).toMatch(/\{isMember\s*&&\s*<BergamoRecommendedBanner offers=\{recommendedOffers/);
+    expect(source).toMatch(
+      /\{isMember\s*&&\s*\(\s*<BergamoRecommendedBanner offers=\{recommendedOffers/,
+    );
   });
 
   it("busca as ofertas recomendadas reutilizando memberGetRecommendedOffersFn, só quando é membro", () => {
@@ -47,13 +49,23 @@ describe("prompts.tsx — seções comerciais somem só com acesso real, não co
     expect(source).toMatch(/<BergamoFaq hideQuestions=\{isMember\}\s*\/>/);
   });
 
-  it("mantém acervo e bônus sempre renderizados (não gated por isMember)", () => {
+  it("mantém o acervo (BergamoGallery) sempre renderizado, nunca gated por isMember", () => {
     expect(source).not.toMatch(/isMember\s*&&[\s\S]{0,20}<BergamoGallery/);
-    expect(source).not.toMatch(/isMember\s*&&[\s\S]{0,20}<BergamoBonus/);
     expect(source).toContain("<BergamoGallery");
-    expect(source).toContain("<BergamoBonus");
   });
 
+  it("esconde o BergamoBonus ('Incluso no acesso') atrás de !isMember — o aluno já sabe o que tem", () => {
+    expect(source).toMatch(/\{!isMember\s*&&\s*<BergamoBonus/);
+  });
+
+  it("abre o mesmo OfferDetailModal (com vídeo) de /membros ao selecionar uma oferta no banner", () => {
+    expect(source).toContain(
+      'import { OfferDetailModal } from "@/components/member/OfferDetailModal"',
+    );
+    expect(source).toMatch(/<BergamoRecommendedBanner[\s\S]{0,80}onSelect=\{setSelectedOffer\}/);
+    expect(source).toContain("<OfferDetailModal");
+    expect(source).toContain("useState<MemberRecommendedOffer | null>(null)");
+  });
 });
 
 describe("BergamoFaq.tsx — FAQ comercial oculta para aluno, rodapé sempre presente", () => {
@@ -88,10 +100,10 @@ describe("BergamoRecommendedBanner.tsx — reaproveita member_offers, sem duplic
     expect(source).toMatch(/if \(!offer\?\.bannerUrl \|\| !offer\.checkoutUrl\) return null;/);
   });
 
-  it("clique abre checkout_url direto em nova aba (sem checkout hardcoded)", () => {
-    expect(source).toMatch(/href=\{offer\.checkoutUrl\}/);
-    expect(source).toContain('target="_blank"');
-    expect(source).toContain('rel="noopener noreferrer"');
+  it("é um <button> que delega para onSelect — mesmo padrão de clique do card de /membros (não vai direto pro checkout)", () => {
+    expect(source).toMatch(/<button[\s\S]*?onClick=\{\(\) => onSelect\(offer\)\}/);
+    expect(source).not.toMatch(/href=\{offer\.checkoutUrl/);
+    expect(source).not.toContain('target="_blank"');
     expect(source).not.toMatch(/https:\/\/go\.hotmart\.com/);
   });
 
@@ -123,7 +135,13 @@ describe("BergamoHeader.tsx — CTA comercial vs. menu de conta pelo mesmo crit�
     expect(source).toContain("Quero o acervo");
   });
 
-  it("esconde o item de navegação 'Planos' só para viewer.hasFullAccess", () => {
+  it("esconde os itens de navegação 'Planos' e 'Bônus' só para viewer.hasFullAccess", () => {
     expect(source).toMatch(/\{!viewer\?\.hasFullAccess\s*&&\s*\(\s*<a\s+href="#planos"/);
+    expect(source).toMatch(/\{!viewer\?\.hasFullAccess\s*&&\s*\(\s*<a\s+href="#bonus"/);
+  });
+
+  it("mantém 'Acervo' e 'Categorias' sempre visíveis no header (não gated)", () => {
+    expect(source).not.toMatch(/hasFullAccess[\s\S]{0,40}href="#acervo"/);
+    expect(source).not.toMatch(/hasFullAccess[\s\S]{0,40}href="#categorias"/);
   });
 });

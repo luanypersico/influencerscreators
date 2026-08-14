@@ -68,12 +68,14 @@ export function BergamoHeader({
           >
             Categorias
           </a>
-          <a
-            href="#bonus"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Bônus
-          </a>
+          {!viewer?.hasFullAccess && (
+            <a
+              href="#bonus"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Bônus
+            </a>
+          )}
           {!viewer?.hasFullAccess && (
             <a
               href="#planos"

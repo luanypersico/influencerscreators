@@ -9,6 +9,7 @@ import { BergamoGallery } from "@/components/bergamo/BergamoGallery";
 import { BergamoHeader } from "@/components/bergamo/BergamoHeader";
 import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
+import { BergamoRecommendedBanner } from "@/components/bergamo/BergamoRecommendedBanner";
 import { useSession } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/useLogout";
 import { getRequestHostnameFn, isArsenalHostname } from "@/lib/hostname.functions";
@@ -18,6 +19,7 @@ import {
   getBergamoPublicCatalogFn,
   getBergamoPublicHeroFn,
 } from "@/lib/bergamo-catalog.functions";
+import { memberGetRecommendedOffersFn } from "@/lib/member.functions";
 
 const TITLE = "Bergamo Creators — 90 prompts de retrato realista com IA";
 const DESCRIPTION =
@@ -49,6 +51,7 @@ export function BergamoPromptsExperience() {
   const getPublicHero = useServerFn(getBergamoPublicHeroFn);
   const getAuthenticatedExperience = useServerFn(getBergamoAuthenticatedExperienceFn);
   const getOffer = useServerFn(getBergamoOfferFn);
+  const getRecommendedOffers = useServerFn(memberGetRecommendedOffersFn);
 
   const { data: publicCatalog } = useQuery({
     queryKey: ["bergamo", "public-catalog"],
@@ -84,6 +87,14 @@ export function BergamoPromptsExperience() {
   // session alone never counts as membership, only real, active Bergamo access does.
   const isMember = Boolean(authenticatedExperience?.viewer?.hasFullAccess);
 
+  // Mesma vitrine afiliada (member_offers) já usada em /membros — só buscada
+  // para quem já tem acesso, para substituir a região comercial pelo banner.
+  const { data: recommendedOffers } = useQuery({
+    queryKey: ["bergamo", "recommended-offers"],
+    queryFn: () => getRecommendedOffers(),
+    enabled: isMember,
+  });
+
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
       <BergamoHeader
@@ -98,8 +109,9 @@ export function BergamoPromptsExperience() {
         )}
         <BergamoGallery items={items} categories={categories} checkoutUrl={checkoutUrl} />
         <BergamoBonus />
-        <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />
-        <BergamoFaq />
+        {!isMember && <BergamoPricing totalCount={totalCount} checkoutUrl={checkoutUrl} />}
+        {isMember && <BergamoRecommendedBanner offers={recommendedOffers ?? []} />}
+        <BergamoFaq hideQuestions={isMember} />
       </main>
       <p className="print-protected-notice">Conteúdo protegido — impressão desativada</p>
       <Toaster />

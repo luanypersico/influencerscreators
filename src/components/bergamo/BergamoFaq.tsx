@@ -23,26 +23,33 @@ const FAQ = [
   },
 ];
 
-/** Perguntas frequentes + rodapé isolado do produto. */
-export function BergamoFaq() {
+export interface BergamoFaqProps {
+  /** Aluno com acesso ativo não precisa da FAQ de pré-compra — o rodapé continua aparecendo normalmente. */
+  hideQuestions?: boolean;
+}
+
+/** Perguntas frequentes (comercial, pré-compra) + rodapé isolado do produto. */
+export function BergamoFaq({ hideQuestions = false }: BergamoFaqProps) {
   return (
     <>
-      <section className="border-t border-border/60">
-        <div className="mx-auto w-full max-w-3xl px-5 py-16 lg:py-24">
-          <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
-            Perguntas frequentes
-          </h2>
+      {!hideQuestions && (
+        <section className="border-t border-border/60">
+          <div className="mx-auto w-full max-w-3xl px-5 py-16 lg:py-24">
+            <h2 className="font-display text-[1.65rem] leading-tight tracking-tight text-balance text-foreground sm:text-4xl">
+              Perguntas frequentes
+            </h2>
 
-          <dl className="mt-8 divide-y divide-border/60">
-            {FAQ.map(({ q, a }) => (
-              <div key={q} className="py-5">
-                <dt className="font-medium text-foreground">{q}</dt>
-                <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{a}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+            <dl className="mt-8 divide-y divide-border/60">
+              {FAQ.map(({ q, a }) => (
+                <div key={q} className="py-5">
+                  <dt className="font-medium text-foreground">{q}</dt>
+                  <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{a}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )}
 
       <footer className="border-t border-border/60 bg-card/40">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-12 text-xs text-muted-foreground sm:flex-row sm:items-end sm:justify-between">

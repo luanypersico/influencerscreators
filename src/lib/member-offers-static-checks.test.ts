@@ -106,10 +106,19 @@ describe("member_offers migration corretiva — remove exposição desnecessári
   });
 });
 
-describe("prompts.tsx permanece intocado por esta rodada", () => {
-  it("BergamoPromptsExperience continua exatamente a mesma experiência canônica do Arsenal", () => {
-    const source = readSrc("src/routes/prompts.tsx");
+describe("prompts.tsx — reaproveita member_offers só como leitura, nunca duplica MemberHome", () => {
+  const source = readSrc("src/routes/prompts.tsx");
+
+  it("BergamoPromptsExperience continua sendo a experiência canônica do Arsenal", () => {
     expect(source).toContain("BergamoPromptsExperience");
-    expect(source).not.toMatch(/member_offers|MemberHome|RecommendedOffer/);
+  });
+
+  it("lê ofertas recomendadas via memberGetRecommendedOffersFn (mesma função de /membros), sem reimplementar MemberHome", () => {
+    expect(source).toContain("memberGetRecommendedOffersFn");
+    expect(source).not.toContain("MemberHome");
+  });
+
+  it("não importa nada do detalhe premium com modal/vídeo — a versão do Arsenal é link direto para checkout", () => {
+    expect(source).not.toMatch(/OfferDetailModal|youtube/i);
   });
 });

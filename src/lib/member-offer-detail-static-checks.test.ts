@@ -181,9 +181,9 @@ describe("member_offers banner_url — migration aditiva, isolada", () => {
 });
 
 describe("Áreas protegidas continuam intocadas por esta rodada", () => {
-  it("prompts.tsx não referencia nada do detalhe de oferta recomendada", () => {
+  it("prompts.tsx reaproveita a lista de ofertas (leitura), mas nunca o modal/vídeo do detalhe premium", () => {
     const source = readSrc("src/routes/prompts.tsx");
-    expect(source).not.toMatch(/OfferDetailModal|RecommendedOffer|youtube/i);
+    expect(source).not.toMatch(/OfferDetailModal|youtube/i);
   });
 
   it("nenhum componente novo desta rodada importa integração Hotmart ou auth-middleware — só o texto de aviso pode citar 'Hotmart'", () => {

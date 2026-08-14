@@ -186,8 +186,10 @@ export function OfferDialog({
               />
               <p className="text-[11px] text-muted-foreground">
                 Aparece em largura total entre &quot;Meus produtos&quot; e &quot;Produtos
-                recomendados&quot; em /membros, promovendo esta oferta. Recomendado: 1600 × 500px
-                (proporção 16:5). Sem banner, essa seção não aparece.
+                recomendados&quot; em /membros (e no lugar do preço para quem já é aluno em
+                /prompts), promovendo esta oferta. A imagem aparece inteira, sem corte, em
+                qualquer proporção — use um banner horizontal com pelo menos 1600px de largura.
+                Sem banner, essa seção não aparece.
               </p>
             </Field>
           </div>

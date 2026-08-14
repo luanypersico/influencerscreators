@@ -13,6 +13,10 @@ export interface BergamoRecommendedBannerProps {
  * continuam 100% administráveis pelo Super Admin, nunca hardcoded aqui.
  * Clique abre o mesmo detalhe premium com vídeo do card de /membros
  * (onSelect, modal compartilhado) — não vai direto pro checkout.
+ *
+ * Sem proporção fixa: a imagem define sua própria altura (w-full h-auto),
+ * então nunca é cortada — qualquer banner enviado pelo admin aparece
+ * inteiro, em qualquer tela.
  */
 export function BergamoRecommendedBanner({ offers, onSelect }: BergamoRecommendedBannerProps) {
   const offer = offers.find((o) => o.bannerUrl && o.checkoutUrl);
@@ -30,14 +34,12 @@ export function BergamoRecommendedBanner({ offers, onSelect }: BergamoRecommende
           aria-label={`Ver detalhes de ${offer.title}`}
           className="group mt-6 block w-full overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_24px_60px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          <div className="aspect-[16/5] w-full overflow-hidden">
-            <img
-              src={offer.bannerUrl}
-              alt={offer.title}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            />
-          </div>
+          <img
+            src={offer.bannerUrl}
+            alt={offer.title}
+            loading="lazy"
+            className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.03]"
+          />
         </button>
       </div>
     </section>

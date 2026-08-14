@@ -116,6 +116,12 @@ describe("BergamoRecommendedBanner.tsx — reaproveita member_offers, sem duplic
   it("nunca cria order, product_access ou toca entitlement/Hotmart", () => {
     expect(source).not.toMatch(/orders|product_access|has_product_access|hotmart/i);
   });
+
+  it("imagem inteira, sem corte — sem proporção fixa nem object-cover", () => {
+    expect(source).not.toMatch(/aspect-\[/);
+    expect(source).not.toContain("object-cover");
+    expect(source).toMatch(/className="block h-auto w-full/);
+  });
 });
 
 describe("BergamoHeader.tsx — CTA comercial vs. menu de conta pelo mesmo critério de acesso real", () => {

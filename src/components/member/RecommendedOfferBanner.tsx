@@ -11,7 +11,9 @@ export interface RecommendedOfferBannerProps {
  * premium do card. Nada renderiza se nenhuma oferta tiver banner_url
  * configurado no admin.
  *
- * Proporção fixa: 16:5 (banner recomendado: 1600×500px).
+ * Sem proporção fixa: a imagem define sua própria altura (w-full h-auto),
+ * então nunca é cortada — qualquer banner enviado pelo admin aparece
+ * inteiro, em qualquer tela.
  */
 export function RecommendedOfferBanner({ offers, onSelect }: RecommendedOfferBannerProps) {
   const offer = offers.find((o) => o.bannerUrl);
@@ -25,14 +27,12 @@ export function RecommendedOfferBanner({ offers, onSelect }: RecommendedOfferBan
         aria-label={`Ver detalhes de ${offer.title}`}
         className="group relative block w-full overflow-hidden rounded-3xl border border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 hover:shadow-[0_24px_60px_-24px_color-mix(in_oklab,var(--primary)_55%,transparent)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
-        <div className="aspect-[16/5] w-full overflow-hidden">
-          <img
-            src={offer.bannerUrl}
-            alt={offer.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
-        </div>
+        <img
+          src={offer.bannerUrl}
+          alt={offer.title}
+          loading="lazy"
+          className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.03]"
+        />
       </button>
     </section>
   );

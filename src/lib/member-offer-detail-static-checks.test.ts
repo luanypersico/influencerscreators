@@ -125,6 +125,12 @@ describe("RecommendedOfferBanner.tsx — banner de destaque, mesmo modal compart
     expect(source).not.toContain("offer.title}</h3>");
     expect(source).not.toContain("offer.description");
   });
+
+  it("imagem inteira, sem corte — sem proporção fixa nem object-cover", () => {
+    expect(source).not.toMatch(/aspect-\[/);
+    expect(source).not.toContain("object-cover");
+    expect(source).toMatch(/className="block h-auto w-full/);
+  });
 });
 
 describe("MemberHome.tsx — estado do modal elevado, compartilhado entre banner e vitrine", () => {

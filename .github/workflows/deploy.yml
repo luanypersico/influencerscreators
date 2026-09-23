@@ -45,4 +45,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # A action instala a 3.x por padrão; o build local usa a 4.x.
+          wranglerVersion: "4.137.0"
           command: deploy --config .output/server/wrangler.json --name casa-influencer-ai

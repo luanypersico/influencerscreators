@@ -12,6 +12,7 @@ import { BergamoHero } from "@/components/bergamo/BergamoHero";
 import { BergamoPricing } from "@/components/bergamo/BergamoPricing";
 import { BergamoRecommendedBanner } from "@/components/bergamo/BergamoRecommendedBanner";
 import { OfferDetailModal } from "@/components/member/OfferDetailModal";
+import { BergamoTracking } from "@/components/tracking/BergamoTracking";
 import { useSession } from "@/hooks/useAuth";
 import { useLogout } from "@/hooks/useLogout";
 import { getRequestHostnameFn, isArsenalHostname } from "@/lib/hostname.functions";
@@ -102,6 +103,7 @@ export function BergamoPromptsExperience() {
 
   return (
     <div className="bergamo-theme min-h-screen bg-background font-sans text-foreground antialiased">
+      <BergamoTracking priceCents={offer?.priceCents ?? null} isMember={isMember} />
       <BergamoHeader
         ctaHref={checkoutUrl}
         viewer={authenticatedExperience?.viewer ?? null}

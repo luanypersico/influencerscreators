@@ -18,6 +18,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 
 import { getPasswordSetupRedirectUrl } from "./auth-invite.server";
+import { sendMetaPurchaseEvent } from "@/lib/meta-capi.server";
 
 type ProcessHotmartEventArgs = Database["public"]["Functions"]["process_hotmart_event"]["Args"];
 
@@ -57,6 +58,7 @@ export interface HotmartExtract {
   buyerEmail: string | null;
   buyerName: string | null;
   amountCents: number | null;
+  currency: string;
 }
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -153,6 +155,7 @@ export function extractHotmartEvent(raw: unknown): HotmartExtract | null {
       : null;
 
   const buyerEmail = asString(buyer["email"]);
+  const currency = asString(price["currency_value"]) ?? "BRL";
 
   return {
     eventId,
@@ -166,6 +169,7 @@ export function extractHotmartEvent(raw: unknown): HotmartExtract | null {
     buyerEmail: buyerEmail ? normalizeEmail(buyerEmail) : null,
     buyerName: asString(buyer["name"]),
     amountCents,
+    currency,
   };
 }
 
@@ -335,5 +339,22 @@ export async function handleHotmartWebhook(request: Request): Promise<Response> 
   }
 
   const result = record(processed.data);
-  return json(200, { status: asString(result["status"]) ?? "processed" });
+  const status = asString(result["status"]) ?? "processed";
+
+  // Conversão para o Meta só depois da venda registrada de verdade, e só em
+  // evento que concede acesso. Falha aqui não muda a resposta para a Hotmart:
+  // o acesso do comprador já está garantido e não pode depender do rastreamento.
+  if (isGranting && status !== "ignored") {
+    await sendMetaPurchaseEvent({
+      transaction: event.transaction,
+      email: event.buyerEmail,
+      fullName: event.buyerName,
+      amountCents: event.amountCents,
+      currency: event.currency,
+      occurredAt: event.occurredAt,
+      sourceUrl: new URL("/bergamo", request.url).toString(),
+    });
+  }
+
+  return json(200, { status });
 }

@@ -1,0 +1,48 @@
+# Deploy próprio, na conta Cloudflare do projeto — sem depender da Lovable.
+#
+# Segredos necessários em Settings > Secrets and variables > Actions:
+#   CLOUDFLARE_API_TOKEN          token com permissão "Edit Cloudflare Workers"
+#   CLOUDFLARE_ACCOUNT_ID         id da conta Cloudflare
+#   VITE_SUPABASE_URL             lido no build (vai para o bundle do navegador)
+#   VITE_SUPABASE_PUBLISHABLE_KEY idem — é a chave pública, nunca a service role
+#
+# Os segredos de servidor (SUPABASE_SERVICE_ROLE_KEY, HOTMART_HOTTOK,
+# RESEND_API_KEY, META_CAPI_ACCESS_TOKEN) NÃO ficam aqui: são secrets do
+# próprio Worker, cadastrados com `wrangler secret put`.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun test
+
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: bun run build
+
+      - name: Deploy no Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config .output/server/wrangler.json --name casa-influencer-ai

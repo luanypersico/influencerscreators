@@ -1,14 +1,19 @@
-# Deploy próprio, na conta Cloudflare do projeto — sem depender da Lovable.
+# Publicação no Cloudflare Pages (projeto `influencerscreators`), que é quem
+# serve arsenal.obergamo.com.br.
+#
+# Existe porque a integração Git do próprio Pages parou de disparar: o último
+# build automático foi em 14/08 e os pushes seguintes não geraram implantação.
+# Aqui o gatilho é o push neste repositório, não a integração.
 #
 # Segredos necessários em Settings > Secrets and variables > Actions:
 #   CLOUDFLARE_API_TOKEN          token com permissão "Edit Cloudflare Workers"
-#   CLOUDFLARE_ACCOUNT_ID         id da conta Cloudflare
+#   CLOUDFLARE_ACCOUNT_ID         b495c88cbbd8ca16534c022c0d7c175c
 #   VITE_SUPABASE_URL             lido no build (vai para o bundle do navegador)
 #   VITE_SUPABASE_PUBLISHABLE_KEY idem — é a chave pública, nunca a service role
 #
 # Os segredos de servidor (SUPABASE_SERVICE_ROLE_KEY, HOTMART_HOTTOK,
-# RESEND_API_KEY, META_CAPI_ACCESS_TOKEN) NÃO ficam aqui: são secrets do
-# próprio Worker, cadastrados com `wrangler secret put`.
+# RESEND_API_KEY, META_CAPI_ACCESS_TOKEN) NÃO ficam aqui: são variáveis do
+# projeto no Pages e sobrevivem a cada publicação.
 name: Deploy
 
 on:
@@ -36,15 +41,18 @@ jobs:
 
       - name: Build
         env:
+          # O preset de Pages gera dist/ com _worker.js; o padrão do projeto
+          # gera .output/ para Workers, que não é o que este projeto serve.
+          NITRO_PRESET: cloudflare_pages
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: bun run build
 
-      - name: Deploy no Cloudflare Workers
+      - name: Publicar no Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # A action instala a 3.x por padrão; o build local usa a 4.x.
           wranglerVersion: "4.137.0"
-          command: deploy --config .output/server/wrangler.json --name casa-influencer-ai
+          command: pages deploy dist --project-name influencerscreators --branch main
